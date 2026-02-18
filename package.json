@@ -1,0 +1,37 @@
+{
+  "name": "autodesk-f3d-submission",
+  "version": "1.0.0",
+  "description": "Node.js application for submitting Fusion 360 F3D files to Autodesk for modification",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "web": "node server.js",
+    "dev": "node --watch src/index.js",
+    "demo": "DEMO_MODE=true node server.js",
+    "setup-check": "node -e \"import('axios').then(m => m.default.get('http://localhost:3000/api/setup/status').then(r => console.log(JSON.stringify(r.data, null, 2))).catch(e => console.error('Server not running')))\"",
+    "setup-nickname": "node setup-da-nickname.js",
+    "setup": "node setup-diagnostics.js",
+    "deploy": "node scripts/setup-via-api.js",
+    "submit": "node submit-job.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "autodesk",
+    "fusion-360",
+    "f3d",
+    "api"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "archiver": "^6.0.2",
+    "axios": "^1.13.5",
+    "body-parser": "^2.2.2",
+    "cors": "^2.8.6",
+    "dotenv": "^16.3.1",
+    "express": "^5.2.1",
+    "form-data": "^4.0.0",
+    "multer": "^2.0.2"
+  }
+}

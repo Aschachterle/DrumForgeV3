@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ApplicationPackage SchemaVersion="1.0">
+  <Components>
+    <RuntimeRequirements OS="Win64" Platform="Fusion" SeriesMin="0" SeriesMax="0" />
+  </Components>
+</ApplicationPackage>

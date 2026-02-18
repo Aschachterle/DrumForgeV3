@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DrumForge - Parametric Drum Modifier</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 20px;
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 28px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-icon {
+            width: 24px;
+            height: 24px;
+            background: #667eea;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9ff;
+        }
+
+        .upload-area:hover {
+            background: #f0f2ff;
+            border-color: #764ba2;
+        }
+
+        .upload-area.dragover {
+            background: #e8ebff;
+            border-color: #764ba2;
+        }
+
+        .upload-area input[type="file"] {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .upload-hint {
+            color: #999;
+            font-size: 12px;
+        }
+
+        .file-info {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .file-info-text {
+            color: #333;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #667eea;
+            word-break: break-all;
+        }
+
+        .parameters-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .parameter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .parameter-group label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .parameter-group input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: monospace;
+            transition: border-color 0.3s ease;
+        }
+
+        .parameter-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .parameter-note {
+            font-size: 11px;
+            color: #999;
+            margin-top: 3px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+            font-size: 14px;
+        }
+
+        .status.show {
+            display: block;
+        }
+
+        .status.pending {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            color: #856404;
+        }
+
+        .status.success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+        }
+
+        .status-text {
+            margin-bottom: 10px;
+        }
+
+        .status-id {
+            font-family: monospace;
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 5px 10px;
+            border-radius: 4px;
+            word-break: break-all;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .progress {
+            margin-top: 15px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #667eea;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .info-box {
+            background: #e8f4f8;
+            border-left: 4px solid #17a2b8;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #0c5460;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            .parameters-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🥁 DrumForge</h1>
+            <p>Parametric Drum File Modifier</p>
+        </div>
+
+        <!-- Parameters Section -->
+        <div class="section">
+            <div class="section-title">
+                <div class="section-icon">1</div>
+                Modify Parameters
+            </div>
+            <div class="parameters-grid" id="parametersGrid">
+                <!-- Will be filled by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Submit Section -->
+        <div class="section">
+            <div class="section-title">
+                <div class="section-icon">2</div>
+                Process Your Drum
+            </div>
+            <div class="button-group">
+                <button class="btn-submit" id="submitBtn">
+                    ✨ Generate Modified Drum
+                </button>
+                <button class="btn-secondary" id="resetBtn">Reset Parameters</button>
+            </div>
+        </div>
+
+        <!-- Status Section -->
+        <div class="status" id="status">
+            <div class="status-text" id="statusText"></div>
+            <div class="progress" id="progress" style="display: none;">
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+            </div>
+            <div id="statusDetails"></div>
+        </div>
+
+        <div class="info-box">
+            ℹ️ Running in demo mode. Jobs will simulate processing in ~7 seconds to let you test the UI workflow.
+        </div>
+    </div>
+
+    <script>
+        let config = {};
+        let currentJobId = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadConfig();
+            setupEventListeners();
+        });
+
+        async function loadConfig() {
+            try {
+                const response = await fetch('/api/config');
+                config = await response.json();
+                renderParameters();
+            } catch (error) {
+                console.error('Error loading config:', error);
+                showStatus('Error loading configuration', 'error');
+            }
+        }
+
+        function renderParameters() {
+            const grid = document.getElementById('parametersGrid');
+            grid.innerHTML = '';
+
+            for (const [key, param] of Object.entries(config.parameters)) {
+                const group = document.createElement('div');
+                group.className = 'parameter-group';
+                group.innerHTML = `
+                    <label for="${key}">${key}</label>
+                    <input 
+                        type="text" 
+                        id="${key}" 
+                        value="${param.default}"
+                        placeholder="${param.default}"
+                    >
+                    <div class="parameter-note">Default: ${param.default}</div>
+                `;
+                grid.appendChild(group);
+            }
+        }
+
+        function setupEventListeners() {
+            const submitBtn = document.getElementById('submitBtn');
+            const resetBtn = document.getElementById('resetBtn');
+
+            // Submit handling
+            submitBtn.addEventListener('click', handleSubmit);
+            resetBtn.addEventListener('click', handleReset);
+        }
+
+        async function handleSubmit() {
+            const parameters = {};
+            for (const [key] of Object.entries(config.parameters)) {
+                const input = document.getElementById(key);
+                parameters[key] = input.value;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+
+            try {
+                showStatus('Submitting to Autodesk...', 'pending', true);
+
+                const response = await fetch('/api/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ parameters })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Submission failed: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                currentJobId = data.workItemId;
+
+                showStatus(
+                    `✓ Job submitted! ID: <div class="status-id">${currentJobId}</div>
+                    Processing... (this may take 2-5 minutes)`,
+                    'pending',
+                    true
+                );
+
+                // Poll for status
+                pollJobStatus();
+            } catch (error) {
+                console.error('Error submitting job:', error);
+                showStatus(`Submission error: ${error.message}`, 'error');
+                submitBtn.disabled = false;
+            }
+        }
+
+        async function pollJobStatus() {
+            if (!currentJobId) return;
+
+            try {
+                const response = await fetch(`/api/job-status/${currentJobId}`);
+                if (!response.ok) throw new Error('Failed to get status');
+
+                const data = await response.json();
+
+                // Update progress bar if available
+                if (data.progress !== undefined) {
+                    const progressFill = document.querySelector('.progress-fill');
+                    if (progressFill) {
+                        progressFill.style.width = `${data.progress}%`;
+                    }
+                }
+
+                if (data.status === 'success') {
+                    const demoNote = data.demo ? '<br><small>(Demo mode - no actual Fusion processing)</small>' : '';
+                    showStatus(
+                        `✓ Processing complete! Your modified drum parameters have been applied.${demoNote}`,
+                        'success'
+                    );
+                    document.getElementById('submitBtn').disabled = false;
+                } else if (data.status === 'failed' || data.status === 'cancelled') {
+                    showStatus(`✗ Job ${data.status}. Please try again.`, 'error');
+                    document.getElementById('submitBtn').disabled = false;
+                } else {
+                    // Still pending - update status message
+                    const progressPercent = data.progress !== undefined ? ` ${data.progress}%` : '';
+                    showStatus(
+                        `⏳ Processing...${progressPercent}<br><small>Job ID: ${currentJobId}</small>`,
+                        'pending',
+                        true
+                    );
+                    // Check again in 1 second
+                    setTimeout(pollJobStatus, 1000);
+                }
+            } catch (error) {
+                console.error('Error polling status:', error);
+                // Continue polling on error
+                setTimeout(pollJobStatus, 2000);
+            }
+        }
+
+        function handleReset() {
+            currentJobId = null;
+            document.getElementById('submitBtn').disabled = false;
+            document.getElementById('status').classList.remove('show');
+            renderParameters();
+        }
+
+        function showStatus(message, type, showProgress = false) {
+            const status = document.getElementById('status');
+            const statusText = document.getElementById('statusText');
+            const progress = document.getElementById('progress');
+
+            status.className = `status show ${type}`;
+            statusText.innerHTML = message;
+            progress.style.display = showProgress ? 'block' : 'none';
+        }
+    </script>
+</body>
+</html>

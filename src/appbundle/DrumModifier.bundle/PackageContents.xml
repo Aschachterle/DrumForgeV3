@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ApplicationPackage SchemaVersion="1.0" AutodeskProduct="Fusion" ProductType="Application" Name="DrumModifier" AppVersion="1.0.0" Author="DrumForge">
+  <CompanyDetails Name="DrumForge"/>
+  <Components>
+    <RuntimeRequirements OS="Win64|Mac64" Platform="Fusion" SeriesMin="R2.0"/>
+    <ComponentEntry AppName="DrumModifier" Version="1.0.0" ModuleName="./Contents/main.ts" OS="Win64|Mac64" Platform="Fusion"/>
+  </Components>
+</ApplicationPackage>
