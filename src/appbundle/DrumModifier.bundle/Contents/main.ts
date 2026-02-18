@@ -51,14 +51,38 @@ try {
     };
 
     try {
-        const textIO = adsk.core.TextIO.cast(app.documents.textIO);
-        if (textIO) {
-            const paramsText = textIO.readTextFile('params.json');
+        // Try reading from current directory first (Design Automation staging directory)
+        const fs = require('fs');
+        const path = require('path');
+        
+        // Try multiple possible locations
+        const possiblePaths = [
+            'params.json',
+            './params.json',
+            '../params.json',
+            process.cwd() + '/params.json'
+        ];
+        
+        let paramsText = null;
+        for (const filePath of possiblePaths) {
+            try {
+                console.log("Trying to read from: " + filePath);
+                paramsText = (fs as any).readFileSync(filePath, 'utf8');
+                console.log("Successfully read params from: " + filePath);
+                break;
+            } catch (err) {
+                console.log("Not found at: " + filePath);
+            }
+        }
+        
+        if (paramsText) {
             paramValues = JSON.parse(paramsText);
-            console.log("Loaded parameters from JSON: " + JSON.stringify(paramValues));
+            console.log("✓ Loaded parameters from JSON: " + JSON.stringify(paramValues));
+        } else {
+            console.log("⚠ Could not find params.json in any location, using defaults");
         }
     } catch (err) {
-        console.log("Could not read params.json, using defaults: " + err.toString());
+        console.log("Could not read params.json: " + err.toString());
     }
 
     // List all available parameters - debug step
