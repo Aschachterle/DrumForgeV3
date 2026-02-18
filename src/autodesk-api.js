@@ -148,7 +148,7 @@ class AutodeskAPIClient {
       // Step 5: Submit WorkItem
       console.log('🔧 Submitting to Design Automation...');
       const activityId = 'drumforge_app.DrumModifierActivity+current';
-      const workItem = await this.submitWorkItem(activityId, inputUrl, outputUrl, paramsUrl);
+      const workItem = await this.submitWorkItem(activityId, inputUrl, outputUrl, paramsUrl, modificationParams);
 
       console.log(`✅ WorkItem submitted: ${workItem.id}`);
       
@@ -212,7 +212,7 @@ class AutodeskAPIClient {
    * @param {string} outputFileUrl - Signed URL for output F3D file
    * @param {string} paramsFileUrl - Signed URL for params.json file
    */
-  async submitWorkItem(activityId, inputFileUrl, outputFileUrl, paramsFileUrl = null) {
+  async submitWorkItem(activityId, inputFileUrl, outputFileUrl, paramsFileUrl = null, modificationParams = {}) {
     try {
       const accessToken = await this.getAccessToken();
 
@@ -233,7 +233,15 @@ class AutodeskAPIClient {
       // Add PersonalAccessToken as string value (required by Activity with verb: 'read')
       workItemPayload.arguments.PersonalAccessToken = this.personalAccessToken;
 
-      // Add params file if provided
+      // Add individual modification parameters
+      if (modificationParams && typeof modificationParams === 'object') {
+        for (const [key, value] of Object.entries(modificationParams)) {
+          workItemPayload.arguments[key] = value;
+        }
+        console.log('Added modification parameters:', JSON.stringify(modificationParams));
+      }
+
+      // Add params file if provided (for reference/logging)
       if (paramsFileUrl) {
         workItemPayload.arguments.paramsFile = {
           url: paramsFileUrl
@@ -241,7 +249,7 @@ class AutodeskAPIClient {
       }
 
       console.log(`Submitting WorkItem for activity: ${activityId}`);
-      console.log('Payload:', JSON.stringify(workItemPayload, null, 2));
+      console.log('Full Payload:', JSON.stringify(workItemPayload, null, 2));
 
       const response = await axios.post(
         `${this.baseUrl}/da/us-east/v3/workitems`,
@@ -464,6 +472,12 @@ class AutodeskAPIClient {
             verb: 'put',
             description: 'Output F3D file',
             localName: 'output.f3d'
+          },
+          paramsFile: {
+            verb: 'get',
+            description: 'Parameters JSON file',
+            localName: 'params.json',
+            required: false
           },
           NumSegments: {
             verb: 'get',

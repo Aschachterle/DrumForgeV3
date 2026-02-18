@@ -51,27 +51,56 @@ try {
     };
 
     try {
-        // Try reading from current directory first (Design Automation staging directory)
         const fs = require('fs');
         const path = require('path');
+        
+        // Log current directory and list files
+        const cwd = process.cwd();
+        console.log("Current working directory: " + cwd);
+        
+        // List all files in current directory
+        try {
+            const files = (fs as any).readdirSync(cwd);
+            console.log("Files in " + cwd + ":");
+            for (const file of files) {
+                console.log("  - " + file);
+            }
+        } catch (err) {
+            console.log("Could not list files: " + err.toString());
+        }
         
         // Try multiple possible locations
         const possiblePaths = [
             'params.json',
             './params.json',
             '../params.json',
-            process.cwd() + '/params.json'
+            cwd + '/params.json',
+            '/tmp/params.json',
+            path.join(cwd, 'params.json')
         ];
+        
+        // Also try looking for any .json file
+        try {
+            const allFiles = (fs as any).readdirSync(cwd);
+            for (const file of allFiles) {
+                if (file.includes('param') || file.endsWith('.json')) {
+                    possiblePaths.push(path.join(cwd, file));
+                }
+            }
+        } catch (err) {
+            console.log("Could not scan for JSON files: " + err.toString());
+        }
         
         let paramsText = null;
         for (const filePath of possiblePaths) {
             try {
-                console.log("Trying to read from: " + filePath);
-                paramsText = (fs as any).readFileSync(filePath, 'utf8');
-                console.log("Successfully read params from: " + filePath);
+                console.log("Trying: " + filePath);
+                const content = (fs as any).readFileSync(filePath, 'utf8');
+                console.log("✓ Read " + content.length + " bytes from " + filePath);
+                paramsText = content;
                 break;
             } catch (err) {
-                console.log("Not found at: " + filePath);
+                // Silently continue
             }
         }
         
@@ -79,10 +108,10 @@ try {
             paramValues = JSON.parse(paramsText);
             console.log("✓ Loaded parameters from JSON: " + JSON.stringify(paramValues));
         } else {
-            console.log("⚠ Could not find params.json in any location, using defaults");
+            console.log("⚠ Could not find params.json in any location, using defaults: " + JSON.stringify(paramValues));
         }
     } catch (err) {
-        console.log("Could not read params.json: " + err.toString());
+        console.log("Error reading params: " + err.toString());
     }
 
     // List all available parameters - debug step
