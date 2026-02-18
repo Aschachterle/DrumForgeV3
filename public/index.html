@@ -368,6 +368,11 @@
                 </div>
             </div>
             <div id="statusDetails"></div>
+            <div id="downloadSection" style="display: none; margin-top: 15px;">
+                <button class="btn-submit" id="downloadBtn" style="width: 100%;">
+                    ⬇️ Download Modified Drum File
+                </button>
+            </div>
         </div>
 
         <div class="info-box">
@@ -420,19 +425,30 @@
         function setupEventListeners() {
             const submitBtn = document.getElementById('submitBtn');
             const resetBtn = document.getElementById('resetBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
 
             // Submit handling
             submitBtn.addEventListener('click', handleSubmit);
             resetBtn.addEventListener('click', handleReset);
+            downloadBtn.addEventListener('click', handleDownload);
         }
 
         async function handleSubmit() {
             const parameters = {};
-            for (const [key] of Object.entries(config.parameters)) {
+            for (const [key, param] of Object.entries(config.parameters)) {
                 const input = document.getElementById(key);
-                parameters[key] = input.value;
+                let value = input.value;
+                
+                // Convert to appropriate type based on parameter config
+                if (param.type === 'number' || !isNaN(value)) {
+                    value = parseFloat(value);
+                }
+                
+                parameters[key] = value;
             }
 
+            console.log('📤 Sending parameters:', JSON.stringify(parameters, null, 2));
+            
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
 
@@ -492,6 +508,7 @@
                         'success'
                     );
                     document.getElementById('submitBtn').disabled = false;
+                    document.getElementById('downloadSection').style.display = 'block';
                 } else if (data.status === 'failed' || data.status === 'cancelled') {
                     showStatus(`✗ Job ${data.status}. Please try again.`, 'error');
                     document.getElementById('submitBtn').disabled = false;
@@ -517,7 +534,53 @@
             currentJobId = null;
             document.getElementById('submitBtn').disabled = false;
             document.getElementById('status').classList.remove('show');
+            document.getElementById('downloadSection').style.display = 'none';
             renderParameters();
+        }
+
+        async function handleDownload() {
+            if (!currentJobId) {
+                showStatus('No job ID available for download', 'error');
+                return;
+            }
+
+            try {
+                const downloadBtn = document.getElementById('downloadBtn');
+                downloadBtn.disabled = true;
+                downloadBtn.textContent = '⬇️ Downloading...';
+
+                const response = await fetch(`/api/download/${currentJobId}`);
+                if (!response.ok) {
+                    throw new Error(`Download failed: ${response.statusText}`);
+                }
+
+                // Get filename from response header or use default
+                const contentDisposition = response.headers.get('content-disposition');
+                let filename = 'modified_drum.f3d';
+                if (contentDisposition) {
+                    const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+                    if (filenameMatch) filename = filenameMatch[1];
+                }
+
+                // Convert response to blob and trigger download
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+
+                downloadBtn.disabled = false;
+                downloadBtn.textContent = '⬇️ Download Modified Drum File';
+            } catch (error) {
+                console.error('Error downloading file:', error);
+                showStatus(`Download error: ${error.message}`, 'error');
+                document.getElementById('downloadBtn').disabled = false;
+                document.getElementById('downloadBtn').textContent = '⬇️ Download Modified Drum File';
+            }
         }
 
         function showStatus(message, type, showProgress = false) {

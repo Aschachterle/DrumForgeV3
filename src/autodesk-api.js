@@ -131,10 +131,11 @@ class AutodeskAPIClient {
 
       // Step 3: Create and upload params.json file
       console.log('📝 Creating parameters file...');
+      console.log('   Parameters to apply:', JSON.stringify(modificationParams, null, 2));
       const tempDir = os.tmpdir();
       const paramsFilePath = path.join(tempDir, `params_${timestamp}.json`);
       fs.writeFileSync(paramsFilePath, JSON.stringify(modificationParams, null, 2));
-      console.log('   Uploading parameters file...');
+      console.log('   ✓ Uploading parameters file...');
       await this.uploadFileToOSS(bucketKey, paramsObjectKey, paramsFilePath);
       fs.unlinkSync(paramsFilePath); // Clean up temp file
 

@@ -79,6 +79,9 @@ app.post('/api/submit', async (req, res) => {
   try {
     const { parameters } = req.body;
 
+    console.log('📥 Submit request received');
+    console.log('Parameters from UI:', JSON.stringify(parameters, null, 2));
+
     if (!parameters) {
       return res.status(400).json({ error: 'Parameters required' });
     }
@@ -201,11 +204,18 @@ app.get('/api/job-status/:id', async (req, res) => {
       }
     }
 
-    res.json({
+    // Include stored parameters if available
+    const jobInfo = jobMetadata.get(jobId);
+    const responseData = {
       id: status.id,
       status: status.status,
       reportUrl: status.reportUrl
-    });
+    };
+    if (jobInfo?.parameters) {
+      responseData.parameters = jobInfo.parameters;
+    }
+
+    res.json(responseData);
   } catch (error) {
     logError('Error checking status', error);
     
