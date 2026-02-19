@@ -230,25 +230,19 @@ class AutodeskAPIClient {
         }
       };
 
-      // Add PersonalAccessToken as string value (required by Activity with verb: 'read')
-      workItemPayload.arguments.PersonalAccessToken = this.personalAccessToken;
+      // Add PersonalAccessToken as a direct value (required by Activity with verb: 'read')
+      workItemPayload.arguments.PersonalAccessToken = {
+        value: this.personalAccessToken
+      };
 
-      // Add individual modification parameters
-      if (modificationParams && typeof modificationParams === 'object') {
-        for (const [key, value] of Object.entries(modificationParams)) {
-          workItemPayload.arguments[key] = value;
-        }
-        console.log('Added modification parameters:', JSON.stringify(modificationParams));
-      }
-
-      // Add params file if provided (for reference/logging)
-      if (paramsFileUrl) {
-        workItemPayload.arguments.paramsFile = {
-          url: paramsFileUrl
-        };
-      }
+      // Add TaskParameters (Fusion's spec for passing parameters to scripts)
+      // This is accessed in TypeScript via adsk.parameters
+      workItemPayload.arguments.TaskParameters = JSON.stringify({
+        parameters: modificationParams
+      });
 
       console.log(`Submitting WorkItem for activity: ${activityId}`);
+      console.log('TaskParameters:', workItemPayload.arguments.TaskParameters);
       console.log('Full Payload:', JSON.stringify(workItemPayload, null, 2));
 
       const response = await axios.post(
@@ -473,54 +467,13 @@ class AutodeskAPIClient {
             description: 'Output F3D file',
             localName: 'output.f3d'
           },
-          paramsFile: {
-            verb: 'get',
-            description: 'Parameters JSON file',
-            localName: 'params.json',
-            required: false
-          },
-          NumSegments: {
-            verb: 'get',
-            description: 'Number of segments',
-            required: false
-          },
-          ShellThick: {
-            verb: 'get',
-            description: 'Shell thickness',
-            required: false
-          },
-          ShellHeight: {
-            verb: 'get',
-            description: 'Shell height',
-            required: false
-          },
-          ShellDiam: {
-            verb: 'get',
-            description: 'Shell diameter',
-            required: false
-          },
-          LugTopDist: {
-            verb: 'get',
-            description: 'Lug top distance',
-            required: false
-          },
-          LugSpacing: {
-            verb: 'get',
-            description: 'Lug spacing',
-            required: false
-          },
-          LapSizePercent: {
-            verb: 'get',
-            description: 'Lap size percentage',
-            required: false
-          },
-          LugHoleDiam: {
-            verb: 'get',
-            description: 'Lug hole diameter',
+          TaskParameters: {
+            verb: 'read',
+            description: 'Parameters passed to the script as JSON object',
             required: false
           },
           PersonalAccessToken: {
-            verb: 'get',
+            verb: 'read',
             description: 'Personal Access Token for Fusion operations',
             required: true
           }
@@ -555,14 +508,41 @@ class AutodeskAPIClient {
           message: error.message
         });
         
-        // Handle conflicts - Activity already exists
+        // Handle conflicts - Activity already exists, create a new version instead
         if (error.response?.status === 409 || 
             JSON.stringify(error.response?.data).includes('already exists')) {
-          console.log('✓ Activity already exists');
-          return {
-            id: activityId,
-            created: false
-          };
+          console.log('✓ Activity already exists, creating new version...');
+          
+          try {
+            const versionPayload = { ...activityPayload };
+            delete versionPayload.id;
+
+            // Create new version by POSTing to the activities/:id/versions endpoint
+            const versionResponse = await axios.post(
+              `${this.baseUrl}/da/us-east/v3/activities/${encodeURIComponent(ACTIVITY_NAME)}/versions`,
+              versionPayload,
+              {
+                headers: {
+                  'Authorization': `Bearer ${accessToken}`,
+                  'Content-Type': 'application/json',
+                  'X-Autodesk-Personal-Access-Token': this.personalAccessToken
+                }
+              }
+            );
+            
+            console.log(`✓ New Activity version created: ${versionResponse.data.version}`);
+            return {
+              id: versionResponse.data.id,
+              version: versionResponse.data.version,
+              created: false
+            };
+          } catch (versionError) {
+            console.log('Activity version creation error:', {
+              status: versionError.response?.status,
+              data: versionError.response?.data
+            });
+            throw versionError;
+          }
         }
         throw error;
       }
@@ -580,7 +560,7 @@ class AutodeskAPIClient {
   /**
    * Create Activity alias
    */
-  async setupActivityAlias() {
+  async setupActivityAlias(version = 1) {
     const NICKNAME = 'drumforge_app';
     const ACTIVITY_NAME = 'DrumModifierActivity';
     const activityId = `${NICKNAME}.${ACTIVITY_NAME}`;
@@ -588,13 +568,13 @@ class AutodeskAPIClient {
     try {
       const accessToken = await this.getAccessToken();
 
-      console.log(`\n🔗 Setting up Activity Alias`);
+      console.log(`\n🔗 Setting up Activity Alias (version ${version})`);
 
       try {
         // Use unqualified name in URL path
         const response = await axios.post(
-        `${this.baseUrl}/da/us-east/v3/activities/${ACTIVITY_NAME}/aliases`,
-          { id: 'current', version: 1 },
+        `${this.baseUrl}/da/us-east/v3/activities/${encodeURIComponent(ACTIVITY_NAME)}/aliases`,
+          { id: 'current', version },
           {
             headers: {
               'Authorization': `Bearer ${accessToken}`,
@@ -615,7 +595,20 @@ class AutodeskAPIClient {
         
         if (error.response?.status === 409) {
           console.log('✓ Alias already exists: +current');
-          return { id: 'current', created: false };
+          const patchResponse = await axios.patch(
+            `${this.baseUrl}/da/us-east/v3/activities/${encodeURIComponent(ACTIVITY_NAME)}/aliases/current`,
+            { version },
+            {
+              headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+                'X-Autodesk-Personal-Access-Token': this.personalAccessToken
+              }
+            }
+          );
+
+          console.log(`✓ Alias updated to version ${patchResponse.data.version}`);
+          return { id: 'current', created: false, version: patchResponse.data.version };
         }
         throw error;
       }

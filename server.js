@@ -509,7 +509,8 @@ app.post('/api/setup/alias', async (req, res) => {
     }
 
     console.log('🚀 Starting Activity Alias setup...');
-    const result = await apiClient.setupActivityAlias();
+    const aliasVersion = Number(req.body?.version || 1);
+    const result = await apiClient.setupActivityAlias(aliasVersion);
     
     res.json({
       success: true,
@@ -661,7 +662,8 @@ app.post('/api/setup/deploy', async (req, res) => {
     }
 
     try {
-      results.alias = await apiClient.setupActivityAlias();
+      const activityVersion = results.activity?.version || 1;
+      results.alias = await apiClient.setupActivityAlias(activityVersion);
     } catch (error) {
       return res.status(500).json({
         error: 'Alias setup failed',
