@@ -12,67 +12,89 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: "IBM Plex Sans", "Space Grotesk", "Segoe UI", sans-serif;
+            background-color: #f6f6f6;
+            background-image:
+                linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+            background-size: 24px 24px;
             min-height: 100vh;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            padding: 32px;
+            color: #0a0a0a;
         }
 
         .container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 600px;
-            width: 100%;
-            padding: 40px;
+            max-width: 1100px;
+            margin: 0 auto;
         }
 
         .header {
-            text-align: center;
-            margin-bottom: 40px;
-            border-bottom: 3px solid #667eea;
-            padding-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 24px;
         }
 
         .header h1 {
-            color: #333;
-            margin-bottom: 5px;
-            font-size: 28px;
+            color: #0a0a0a;
+            margin-bottom: 6px;
+            font-size: 30px;
+            letter-spacing: -0.5px;
         }
 
         .header p {
-            color: #666;
+            color: #4c4c4c;
             font-size: 14px;
         }
 
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(320px, 1fr) minmax(320px, 1fr);
+            gap: 24px;
+        }
+
+        .panel {
+            background: #ffffff;
+            border: 1px solid #e2e2e2;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+        }
+
+        .panel-header {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #6b6b6b;
+            margin-bottom: 20px;
+        }
+
         .section {
-            margin-bottom: 30px;
+            margin-bottom: 26px;
         }
 
         .section-title {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
-            color: #333;
-            margin-bottom: 15px;
+            color: #0a0a0a;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
         .section-icon {
-            width: 24px;
-            height: 24px;
-            background: #667eea;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
-            display: flex;
+            border: 1px solid #0a0a0a;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-size: 12px;
-            font-weight: bold;
+            color: #0a0a0a;
+            font-size: 11px;
+            font-weight: 700;
         }
 
         .upload-area {
@@ -152,31 +174,31 @@
         }
 
         .parameter-group label {
-            font-size: 13px;
-            font-weight: 500;
-            color: #333;
-            margin-bottom: 5px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #1c1c1c;
+            margin-bottom: 6px;
         }
 
         .parameter-group input {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
+            padding: 10px 12px;
+            border: 1px solid #d6d6d6;
+            border-radius: 8px;
             font-size: 13px;
-            font-family: monospace;
-            transition: border-color 0.3s ease;
+            font-family: "IBM Plex Mono", "Menlo", monospace;
+            transition: border-color 0.2s ease;
         }
 
         .parameter-group input:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #0a0a0a;
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
         }
 
         .parameter-note {
             font-size: 11px;
-            color: #999;
-            margin-top: 3px;
+            color: #7a7a7a;
+            margin-top: 4px;
         }
 
         .button-group {
@@ -188,22 +210,18 @@
         button {
             flex: 1;
             padding: 12px 20px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
+            border: 1px solid #0a0a0a;
+            border-radius: 8px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-submit {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            transition: all 0.2s ease;
+            background: #0a0a0a;
+            color: #ffffff;
         }
 
         .btn-submit:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            transform: translateY(-1px);
         }
 
         .btn-submit:disabled {
@@ -212,12 +230,12 @@
         }
 
         .btn-secondary {
-            background: #f0f0f0;
-            color: #333;
+            background: #ffffff;
+            color: #0a0a0a;
         }
 
         .btn-secondary:hover {
-            background: #e0e0e0;
+            background: #f0f0f0;
         }
 
         .status {
@@ -233,21 +251,21 @@
         }
 
         .status.pending {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            color: #856404;
+            background: #f3f3f3;
+            border-left: 4px solid #0a0a0a;
+            color: #2a2a2a;
         }
 
         .status.success {
-            background: #d4edda;
-            border-left: 4px solid #28a745;
-            color: #155724;
+            background: #f3f3f3;
+            border-left: 4px solid #0a0a0a;
+            color: #1a1a1a;
         }
 
         .status.error {
-            background: #f8d7da;
-            border-left: 4px solid #dc3545;
-            color: #721c24;
+            background: #f3f3f3;
+            border-left: 4px solid #0a0a0a;
+            color: #1a1a1a;
         }
 
         .status-text {
@@ -267,8 +285,8 @@
             display: inline-block;
             width: 14px;
             height: 14px;
-            border: 2px solid rgba(0, 0, 0, 0.1);
-            border-top-color: #667eea;
+            border: 2px solid rgba(0, 0, 0, 0.12);
+            border-top-color: #0a0a0a;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
             margin-right: 8px;
@@ -293,7 +311,7 @@
 
         .progress-fill {
             height: 100%;
-            background: #667eea;
+            background: #0a0a0a;
             animation: pulse 1.5s ease-in-out infinite;
         }
 
@@ -303,63 +321,89 @@
         }
 
         .info-box {
-            background: #e8f4f8;
-            border-left: 4px solid #17a2b8;
+            background: #f3f3f3;
+            border-left: 4px solid #0a0a0a;
             padding: 12px;
-            border-radius: 4px;
-            font-size: 13px;
-            color: #0c5460;
-            margin-top: 15px;
-        }
-
-        .preview {
-            margin-top: 15px;
-            background: #f7f7fb;
-            border: 1px solid #e3e3f4;
             border-radius: 8px;
-            padding: 12px;
+            font-size: 12px;
+            color: #2a2a2a;
+            margin-top: 15px;
         }
 
-        .preview-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 8px;
+        .preview-frame {
+            background: #f8f8f8;
+            border: 1px solid #e2e2e2;
+            border-radius: 12px;
+            padding: 16px;
+            min-height: 320px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
         }
 
-        .preview img {
-            width: 100%;
+        .preview-frame img {
+            max-width: 100%;
+            max-height: 420px;
+            border-radius: 8px;
+            border: 1px solid #d6d6d6;
+            display: none;
+            background: #ffffff;
+        }
+
+        .preview-frame.has-image img {
             display: block;
-            border-radius: 6px;
-            border: 1px solid #ddd;
-            background: #fff;
         }
 
-        .preview-note {
-            font-size: 11px;
-            color: #777;
-            margin-top: 6px;
+        .preview-empty {
+            font-size: 13px;
+            color: #6b6b6b;
+            text-align: center;
+            max-width: 220px;
         }
 
         .preview-actions {
-            margin-top: 10px;
+            margin-top: 12px;
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 8px 12px;
+            font-size: 12px;
+            color: #6b6b6b;
+        }
+
+        .preview-actions span {
+            flex: 1 1 220px;
+            line-height: 1.4;
         }
 
         .preview-link {
-            font-size: 12px;
-            color: #667eea;
+            color: #0a0a0a;
             text-decoration: none;
             font-weight: 600;
+            white-space: nowrap;
         }
 
         .preview-link:hover {
             text-decoration: underline;
         }
 
+        @media (max-width: 900px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+
         @media (max-width: 600px) {
-            .container {
+            body {
                 padding: 20px;
             }
 
@@ -376,61 +420,70 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🥁 DrumForge</h1>
-            <p>Parametric Drum File Modifier</p>
-        </div>
-
-        <!-- Parameters Section -->
-        <div class="section">
-            <div class="section-title">
-                <div class="section-icon">1</div>
-                Modify Parameters
-            </div>
-            <div class="parameters-grid" id="parametersGrid">
-                <!-- Will be filled by JavaScript -->
+            <div>
+                <h1>DrumForge</h1>
+                <p>Parametric Drum File Modifier</p>
             </div>
         </div>
 
-        <!-- Submit Section -->
-        <div class="section">
-            <div class="section-title">
-                <div class="section-icon">2</div>
-                Process Your Drum
-            </div>
-            <div class="button-group">
-                <button class="btn-submit" id="submitBtn">
-                    ✨ Generate Modified Drum
-                </button>
-                <button class="btn-secondary" id="resetBtn">Reset Parameters</button>
-            </div>
-        </div>
+        <div class="layout">
+            <div class="panel">
+                <div class="panel-header">Configuration</div>
 
-        <!-- Status Section -->
-        <div class="status" id="status">
-            <div class="status-text" id="statusText"></div>
-            <div class="progress" id="progress" style="display: none;">
-                <div class="progress-bar">
-                    <div class="progress-fill"></div>
+                <!-- Parameters Section -->
+                <div class="section">
+                    <div class="section-title">
+                        <div class="section-icon">1</div>
+                        Modify Parameters
+                    </div>
+                    <div class="parameters-grid" id="parametersGrid">
+                        <!-- Will be filled by JavaScript -->
+                    </div>
                 </div>
+
+                <!-- Submit Section -->
+                <div class="section">
+                    <div class="section-title">
+                        <div class="section-icon">2</div>
+                        Process Your Drum
+                    </div>
+                    <div class="button-group">
+                        <button class="btn-submit" id="submitBtn">
+                            Generate Modified Drum
+                        </button>
+                        <button class="btn-secondary" id="resetBtn">Reset Parameters</button>
+                    </div>
+                </div>
+
+                <!-- Status Section -->
+                <div class="status" id="status">
+                    <div class="status-text" id="statusText"></div>
+                    <div class="progress" id="progress" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill"></div>
+                        </div>
+                    </div>
+                    <div id="statusDetails"></div>
+                    <div id="downloadSection" style="display: none; margin-top: 15px;">
+                        <button class="btn-submit" id="downloadBtn" style="width: 100%;">
+                            Download Modified Drum File
+                        </button>
+                    </div>
+                </div>
+
             </div>
-            <div id="statusDetails"></div>
-            <div id="downloadSection" style="display: none; margin-top: 15px;">
-                <button class="btn-submit" id="downloadBtn" style="width: 100%;">
-                    ⬇️ Download Modified Drum File
-                </button>
-            </div>
-            <div id="previewSection" class="preview" style="display: none;">
-                <div class="preview-title">Preview</div>
-                <img id="previewImage" alt="Modified drum preview">
-                <div class="preview-note">Preview is illustrative and based on submitted parameters.</div>
+
+            <div class="panel">
+                <div class="panel-header">Preview</div>
+                <div class="preview-frame" id="previewFrame">
+                    <div class="preview-empty" id="previewEmpty">Submit a job to generate a preview thumbnail.</div>
+                    <img id="previewImage" alt="Modified drum preview">
+                </div>
                 <div class="preview-actions">
-                    <a id="previewLink" class="preview-link" href="#" target="_blank" rel="noopener">View full size</a>
+                    <span>Preview updates automatically.</span>
+                    <a id="previewLink" class="preview-link" href="#" target="_blank" rel="noopener">Open full size</a>
                 </div>
             </div>
-        </div>
-
-        <div class="info-box">
-            ℹ️ Running in demo mode. Jobs will simulate processing in ~7 seconds to let you test the UI workflow.
         </div>
     </div>
 
@@ -460,11 +513,23 @@
             const grid = document.getElementById('parametersGrid');
             grid.innerHTML = '';
 
+            const labelMap = {
+                NumSegments: 'Segment count',
+                ShellThick: 'Shell thickness',
+                ShellHeight: 'Shell height',
+                ShellDiam: 'Shell diameter',
+                LugTopDist: 'Lug offset from top',
+                LugSpacing: 'Lug spacing',
+                LapSizePercent: 'Lap size (%)',
+                LugHoleDiam: 'Lug hole diameter'
+            };
+
             for (const [key, param] of Object.entries(config.parameters)) {
                 const group = document.createElement('div');
                 group.className = 'parameter-group';
+                const label = labelMap[key] || key;
                 group.innerHTML = `
-                    <label for="${key}">${key}</label>
+                    <label for="${key}">${label}</label>
                     <input 
                         type="text" 
                         id="${key}" 
@@ -481,6 +546,19 @@
             const submitBtn = document.getElementById('submitBtn');
             const resetBtn = document.getElementById('resetBtn');
             const downloadBtn = document.getElementById('downloadBtn');
+            const previewImage = document.getElementById('previewImage');
+            const previewFrame = document.getElementById('previewFrame');
+            const previewEmpty = document.getElementById('previewEmpty');
+
+            previewImage.addEventListener('load', () => {
+                previewFrame.classList.add('has-image');
+                previewEmpty.style.display = 'none';
+            });
+
+            previewImage.addEventListener('error', () => {
+                previewFrame.classList.remove('has-image');
+                previewEmpty.style.display = 'block';
+            });
 
             // Submit handling
             submitBtn.addEventListener('click', handleSubmit);
@@ -507,7 +585,8 @@
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
             document.getElementById('downloadSection').style.display = 'none';
-            document.getElementById('previewSection').style.display = 'none';
+            document.getElementById('previewFrame').classList.remove('has-image');
+            document.getElementById('previewEmpty').textContent = 'Generating preview...';
 
             try {
                 showStatus('Submitting to Autodesk...', 'pending', true);
@@ -559,9 +638,8 @@
                 }
 
                 if (data.status === 'success') {
-                    const demoNote = data.demo ? '<br><small>(Demo mode - no actual Fusion processing)</small>' : '';
                     showStatus(
-                        `✓ Processing complete! Your modified drum parameters have been applied.${demoNote}`,
+                        '✓ Processing complete! Your modified drum parameters have been applied.',
                         'success'
                     );
                     document.getElementById('submitBtn').disabled = false;
@@ -570,7 +648,8 @@
                 } else if (data.status === 'failed' || data.status === 'cancelled') {
                     showStatus(`✗ Job ${data.status}. Please try again.`, 'error');
                     document.getElementById('submitBtn').disabled = false;
-                    document.getElementById('previewSection').style.display = 'none';
+                    document.getElementById('previewFrame').classList.remove('has-image');
+                    document.getElementById('previewEmpty').textContent = 'Preview unavailable.';
                     clearPreviewRefresh();
                 } else {
                     // Still pending - update status message
@@ -595,7 +674,10 @@
             document.getElementById('submitBtn').disabled = false;
             document.getElementById('status').classList.remove('show');
             document.getElementById('downloadSection').style.display = 'none';
-            document.getElementById('previewSection').style.display = 'none';
+            document.getElementById('previewFrame').classList.remove('has-image');
+            document.getElementById('previewEmpty').textContent = 'Submit a job to generate a preview thumbnail.';
+            document.getElementById('previewImage').removeAttribute('src');
+            document.getElementById('previewLink').setAttribute('href', '#');
             clearPreviewRefresh();
             renderParameters();
         }
@@ -608,14 +690,17 @@
         }
 
         function showPreview(jobId) {
-            const previewSection = document.getElementById('previewSection');
             const previewImage = document.getElementById('previewImage');
             const previewLink = document.getElementById('previewLink');
+            const previewFrame = document.getElementById('previewFrame');
+            const previewEmpty = document.getElementById('previewEmpty');
             const baseUrl = `/api/preview/${jobId}`;
 
             previewImage.src = `${baseUrl}?t=${Date.now()}`;
             previewLink.href = `${baseUrl}?full=1`;
-            previewSection.style.display = 'block';
+            previewFrame.classList.remove('has-image');
+            previewEmpty.textContent = 'Loading preview...';
+            previewEmpty.style.display = 'block';
 
             clearPreviewRefresh();
             let refreshCount = 0;
