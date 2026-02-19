@@ -124,7 +124,7 @@ const buildPreviewSvg = (parameters) => {
     </linearGradient>
   </defs>
   <rect x="0" y="0" width="640" height="360" rx="18" fill="url(#bg)" />
-  <text x="24" y="36" font-family="Verdana, sans-serif" font-size="18" fill="#333">DrumForge Preview</text>
+  <text x="24" y="36" font-family="Verdana, sans-serif" font-size="18" fill="#333">Extrudo Preview</text>
   <g transform="translate(70 90)">
     <ellipse cx="120" cy="50" rx="95" ry="32" fill="#d9d1c7" />
     <ellipse cx="120" cy="50" rx="88" ry="26" fill="#f5f1eb" />
@@ -861,8 +861,9 @@ app.use((req, res) => {
 // Start server
 app.listen(PORT, () => {
   log('');
-  log(`✓ DrumForge Web Server running at http://localhost:${PORT}`);
-  log(`Open http://localhost:${PORT} in your browser to start`);
+  log(`✓ Extrudo Web Server running at http://localhost:${PORT}`);
+  log(`   Home: http://localhost:${PORT}`);
+  log(`   Drum Model: http://localhost:${PORT}/drum.html`);
   log('');
   log('Features:');
   log('  • Modify drum parameters');
