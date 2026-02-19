@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/images/logo.png">
     <title>Parametric Drum - Extrudo</title>
     <style>
         * {
@@ -19,7 +20,7 @@
                 linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
             background-size: 24px 24px;
             min-height: 100vh;
-            padding: 32px;
+            padding: 0 32px 32px;
             color: #0a0a0a;
         }
 
@@ -31,20 +32,8 @@
         .header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-end;
+            align-items: center;
             margin-bottom: 24px;
-        }
-
-        .header h1 {
-            color: #0a0a0a;
-            margin-bottom: 6px;
-            font-size: 30px;
-            letter-spacing: -0.5px;
-        }
-
-        .header p {
-            color: #4c4c4c;
-            font-size: 14px;
         }
 
         .back-link {
@@ -60,12 +49,29 @@
             border-radius: 8px;
             background: #ffffff;
             transition: all 0.2s ease;
-            margin-bottom: 24px;
         }
 
         .back-link:hover {
             background: #f3f3f3;
             border-color: #0a0a0a;
+        }
+
+        .header-logo {
+            width: min(140px, 32vw);
+            height: auto;
+            margin: 0;
+            display: block;
+            object-fit: contain;
+            border: none;
+            border-radius: 0;
+            padding: 0;
+            background: transparent;
+        }
+
+        .description {
+            color: #4c4c4c;
+            font-size: 14px;
+            margin-bottom: 20px;
         }
 
         .layout {
@@ -199,6 +205,16 @@
             font-weight: 600;
             color: #1c1c1c;
             margin-bottom: 6px;
+            cursor: help;
+            display: inline-block;
+            transition: color 0.2s ease;
+        }
+
+        .parameter-group label:hover {
+            color: #0a0a0a;
+            text-decoration: underline;
+            text-decoration-style: dotted;
+            text-underline-offset: 3px;
         }
 
         .parameter-group input {
@@ -208,6 +224,7 @@
             font-size: 13px;
             font-family: "IBM Plex Mono", "Menlo", monospace;
             transition: border-color 0.2s ease;
+            cursor: help;
         }
 
         .parameter-group input:focus {
@@ -443,19 +460,17 @@
 </head>
 <body>
     <div class="container">
-        <a href="/" class="back-link">
-            ← Back to Models
-        </a>
         <div class="header">
-            <div>
-                <h1>Parametric Drum</h1>
-                <p>Customize drum shell parameters and generate your design</p>
-            </div>
+            <a href="/" class="back-link">
+                ← Back to Models
+            </a>
+            <img class="header-logo" src="/images/logo.png" alt="Extrudo logo">
         </div>
 
         <div class="layout">
             <div class="panel">
                 <div class="panel-header">Configuration</div>
+                <p class="description">Welcome to the Extrudo drum modeler. We built this tool so you can quickly generate the exact shell geometry you need for your custom electronic drum kit. Just enter your desired dimensions and lug hole spacing to see a live preview. When everything looks perfect, hit generate to download a clean file that is ready for your printer.</p>
 
                 <!-- Parameters Section -->
                 <div class="section">
@@ -543,7 +558,7 @@
             grid.innerHTML = '';
 
             const labelMap = {
-                NumSegments: 'Segment count',
+                NumSegments: 'Number of Pieces',
                 ShellThick: 'Shell thickness',
                 ShellHeight: 'Shell height',
                 ShellDiam: 'Shell diameter',
@@ -553,17 +568,30 @@
                 LugHoleDiam: 'Lug hole diameter'
             };
 
+            const descriptionMap = {
+                NumSegments: 'Number of pieces you will need to print and assemble to create the full drum shell. More segments can allow for larger drums on smaller printers, but may require more assembly.',
+                ShellThick: 'Thickness of the drum shell wall.',
+                ShellHeight: 'Total height of the drum shell from bottom to the peak of the bearing edge.',
+                ShellDiam: 'Outer diameter of the drum shell, determining the overall size.',
+                LugTopDist: 'Distance from the peak of the bearing edge to the center of the first lug mounting hole.',
+                LugSpacing: 'Vertical spacing between lug mounting holes. This will determine the what type of size lugs you need to use.',
+                LapSizePercent: 'Size of the lap joint as a percetage of the shell piece angle (e.g. 25% means the lap joint will cover 1/4 of the shell piece).',
+                LugHoleDiam: 'Diameter of the holes for mounting tension lugs to the shell.'
+            };
+
             for (const [key, param] of Object.entries(config.parameters)) {
                 const group = document.createElement('div');
                 group.className = 'parameter-group';
                 const label = labelMap[key] || key;
+                const description = descriptionMap[key] || '';
                 group.innerHTML = `
-                    <label for="${key}">${label}</label>
+                    <label for="${key}" title="${description}">${label}</label>
                     <input 
                         type="text" 
                         id="${key}" 
                         value="${param.default}"
                         placeholder="${param.default}"
+                        title="${description}"
                     >
                     <div class="parameter-note">Default: ${param.default}</div>
                 `;

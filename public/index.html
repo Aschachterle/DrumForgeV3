@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/images/logo.png">
     <title>Extrudo - Parametric Design Automation</title>
     <style>
         * {
@@ -19,7 +20,7 @@
                 linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
             background-size: 24px 24px;
             min-height: 100vh;
-            padding: 32px;
+            padding: 0 32px 32px;
             color: #0a0a0a;
         }
 
@@ -30,15 +31,19 @@
 
         .header {
             text-align: center;
-            margin-bottom: 48px;
+            margin-bottom: 40px;
         }
 
-        .header h1 {
-            color: #0a0a0a;
-            font-size: 48px;
-            font-weight: 700;
-            letter-spacing: -1px;
-            margin-bottom: 12px;
+        .header-logo {
+            width: min(360px, 92vw);
+            height: auto;
+            margin: 0 auto 16px;
+            display: block;
+            object-fit: contain;
+            border: none;
+            border-radius: 0;
+            padding: 0;
+            background: transparent;
         }
 
         .header .tagline {
@@ -82,8 +87,13 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 32px;
             margin-bottom: 20px;
+        }
+
+        .model-icon img {
+            width: 36px;
+            height: 36px;
+            object-fit: contain;
         }
 
         .model-card h2 {
@@ -149,13 +159,15 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Extrudo</h1>
+            <img class="header-logo" src="/images/logo.png" alt="Extrudo logo">
             <p class="tagline">Parametric Design Automation Platform</p>
         </div>
 
         <div class="models-grid">
             <a href="/drum.html" class="model-card">
-                <div class="model-icon">🥁</div>
+                <div class="model-icon">
+                    <img src="/images/logo.png" alt="Extrudo logo">
+                </div>
                 <h2>Parametric Drum</h2>
                 <p>Design custom drum shells with adjustable segments, dimensions, lug placement, and more. Perfect for custom drum builders and manufacturers.</p>
                 <div class="model-meta">
