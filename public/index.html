@@ -312,6 +312,52 @@
             margin-top: 15px;
         }
 
+        .preview {
+            margin-top: 15px;
+            background: #f7f7fb;
+            border: 1px solid #e3e3f4;
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .preview-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .preview img {
+            width: 100%;
+            display: block;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            background: #fff;
+        }
+
+        .preview-note {
+            font-size: 11px;
+            color: #777;
+            margin-top: 6px;
+        }
+
+        .preview-actions {
+            margin-top: 10px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .preview-link {
+            font-size: 12px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .preview-link:hover {
+            text-decoration: underline;
+        }
+
         @media (max-width: 600px) {
             .container {
                 padding: 20px;
@@ -373,6 +419,14 @@
                     ⬇️ Download Modified Drum File
                 </button>
             </div>
+            <div id="previewSection" class="preview" style="display: none;">
+                <div class="preview-title">Preview</div>
+                <img id="previewImage" alt="Modified drum preview">
+                <div class="preview-note">Preview is illustrative and based on submitted parameters.</div>
+                <div class="preview-actions">
+                    <a id="previewLink" class="preview-link" href="#" target="_blank" rel="noopener">View full size</a>
+                </div>
+            </div>
         </div>
 
         <div class="info-box">
@@ -383,6 +437,7 @@
     <script>
         let config = {};
         let currentJobId = null;
+        let previewRefreshTimer = null;
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
@@ -451,6 +506,8 @@
             
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
+            document.getElementById('downloadSection').style.display = 'none';
+            document.getElementById('previewSection').style.display = 'none';
 
             try {
                 showStatus('Submitting to Autodesk...', 'pending', true);
@@ -509,9 +566,12 @@
                     );
                     document.getElementById('submitBtn').disabled = false;
                     document.getElementById('downloadSection').style.display = 'block';
+                    showPreview(currentJobId);
                 } else if (data.status === 'failed' || data.status === 'cancelled') {
                     showStatus(`✗ Job ${data.status}. Please try again.`, 'error');
                     document.getElementById('submitBtn').disabled = false;
+                    document.getElementById('previewSection').style.display = 'none';
+                    clearPreviewRefresh();
                 } else {
                     // Still pending - update status message
                     const progressPercent = data.progress !== undefined ? ` ${data.progress}%` : '';
@@ -535,7 +595,37 @@
             document.getElementById('submitBtn').disabled = false;
             document.getElementById('status').classList.remove('show');
             document.getElementById('downloadSection').style.display = 'none';
+            document.getElementById('previewSection').style.display = 'none';
+            clearPreviewRefresh();
             renderParameters();
+        }
+
+        function clearPreviewRefresh() {
+            if (previewRefreshTimer) {
+                clearInterval(previewRefreshTimer);
+                previewRefreshTimer = null;
+            }
+        }
+
+        function showPreview(jobId) {
+            const previewSection = document.getElementById('previewSection');
+            const previewImage = document.getElementById('previewImage');
+            const previewLink = document.getElementById('previewLink');
+            const baseUrl = `/api/preview/${jobId}`;
+
+            previewImage.src = `${baseUrl}?t=${Date.now()}`;
+            previewLink.href = `${baseUrl}?full=1`;
+            previewSection.style.display = 'block';
+
+            clearPreviewRefresh();
+            let refreshCount = 0;
+            previewRefreshTimer = setInterval(() => {
+                refreshCount += 1;
+                previewImage.src = `${baseUrl}?t=${Date.now()}`;
+                if (refreshCount >= 20) {
+                    clearPreviewRefresh();
+                }
+            }, 3000);
         }
 
         async function handleDownload() {

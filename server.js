@@ -52,6 +52,91 @@ const drumFilePath = path.join(__dirname, 'Resources', 'ParametricDrum.f3d');
 
 const mockJobs = new Map();
 const jobMetadata = new Map(); // Store OSS bucket/object info for real jobs
+const JOB_METADATA_FILE = path.join(__dirname, 'output', 'job-metadata.json');
+
+const loadJobMetadata = () => {
+  if (!fs.existsSync(JOB_METADATA_FILE)) {
+    return;
+  }
+
+  try {
+    const data = JSON.parse(fs.readFileSync(JOB_METADATA_FILE, 'utf-8'));
+    for (const [jobId, metadata] of Object.entries(data)) {
+      jobMetadata.set(jobId, metadata);
+    }
+  } catch (error) {
+    logError('Failed to load job metadata', error);
+  }
+};
+
+const saveJobMetadata = () => {
+  try {
+    const outputDir = path.dirname(JOB_METADATA_FILE);
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    const data = Object.fromEntries(jobMetadata.entries());
+    fs.writeFileSync(JOB_METADATA_FILE, JSON.stringify(data, null, 2));
+  } catch (error) {
+    logError('Failed to save job metadata', error);
+  }
+};
+
+loadJobMetadata();
+
+const getJobParameters = (jobId) => {
+  if (mockJobs.has(jobId)) {
+    return mockJobs.get(jobId).parameters;
+  }
+  return jobMetadata.get(jobId)?.parameters || null;
+};
+
+const escapeXml = (value) => {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+};
+
+const buildPreviewSvg = (parameters) => {
+  const lines = Object.entries(parameters || {}).slice(0, 6).map(([key, value]) => {
+    return `${key}: ${value}`;
+  });
+
+  const lineElements = lines.map((line, index) => {
+    const y = 120 + index * 22;
+    return `<text x="330" y="${y}" font-family="Verdana, sans-serif" font-size="14" fill="#1f1f1f">${escapeXml(line)}</text>`;
+  }).join('');
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8f9ff" />
+      <stop offset="100%" stop-color="#e8ebff" />
+    </linearGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#764ba2" />
+      <stop offset="100%" stop-color="#667eea" />
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="640" height="360" rx="18" fill="url(#bg)" />
+  <text x="24" y="36" font-family="Verdana, sans-serif" font-size="18" fill="#333">DrumForge Preview</text>
+  <g transform="translate(70 90)">
+    <ellipse cx="120" cy="50" rx="95" ry="32" fill="#d9d1c7" />
+    <ellipse cx="120" cy="50" rx="88" ry="26" fill="#f5f1eb" />
+    <rect x="25" y="50" width="190" height="130" rx="18" fill="#c2b4a5" />
+    <ellipse cx="120" cy="180" rx="95" ry="32" fill="#b7a89a" />
+    <ellipse cx="120" cy="50" rx="102" ry="35" fill="none" stroke="url(#rim)" stroke-width="6" />
+    <ellipse cx="120" cy="180" rx="102" ry="35" fill="none" stroke="url(#rim)" stroke-width="6" />
+  </g>
+  <text x="330" y="92" font-family="Verdana, sans-serif" font-size="14" fill="#667eea">Parameters</text>
+  ${lineElements}
+</svg>`;
+};
 
 // Initialize API client
 let apiClient;
@@ -144,6 +229,7 @@ app.post('/api/submit', async (req, res) => {
       parameters,
       submittedAt: new Date()
     });
+    saveJobMetadata();
 
     res.json({
       success: true,
@@ -298,6 +384,64 @@ app.get('/api/download/:id', async (req, res) => {
       details: 'Check server logs for details.'
     });
   }
+});
+
+/**
+ * GET /api/preview/:id - Preview thumbnail of modified drum
+ */
+app.get('/api/preview/:id', (req, res) => {
+  const jobId = req.params.id;
+  if (!jobId) {
+    return res.status(400).json({ error: 'Job ID required' });
+  }
+
+  log(`Preview request for job ${jobId} (${req.path})`);
+
+  if (mockJobs.has(jobId)) {
+    const svg = buildPreviewSvg(mockJobs.get(jobId).parameters);
+    res.set('Content-Type', 'image/svg+xml');
+    res.set('Cache-Control', 'no-store');
+    return res.send(svg);
+  }
+
+  const metadata = jobMetadata.get(jobId);
+  if (!metadata || !apiClient) {
+    log(`Preview unavailable for job ${jobId}. Metadata: ${!!metadata} API: ${!!apiClient}`);
+    return res.status(404).json({ error: 'Preview not available' });
+  }
+
+  const objectUrn = apiClient.createObjectUrn(metadata.bucketKey, metadata.outputObjectKey);
+  const encodedUrn = apiClient.encodeUrn(objectUrn);
+
+  const sendSvgFallback = () => {
+    const svg = buildPreviewSvg(metadata.parameters || {});
+    res.set('Content-Type', 'image/svg+xml');
+    res.set('Cache-Control', 'no-store');
+    res.send(svg);
+  };
+
+  apiClient.getDerivativeManifest(encodedUrn)
+    .then((manifest) => {
+      log(`Derivative manifest for ${jobId}: ${manifest.status} (${manifest.progress})`);
+      const status = manifest.status || '';
+      const progress = String(manifest.progress || '').toLowerCase();
+      if (status !== 'success' || progress !== 'complete') {
+        return apiClient.startDerivativeJob(encodedUrn).then(sendSvgFallback).catch(sendSvgFallback);
+      }
+
+      return apiClient.getDerivativeThumbnail(encodedUrn)
+        .then((result) => {
+          res.set('Content-Type', result.contentType);
+          res.set('Cache-Control', 'no-store');
+          res.send(result.buffer);
+        })
+        .catch(sendSvgFallback);
+    })
+    .catch(() => {
+      log(`Derivative manifest missing for ${jobId}, starting job.`);
+      apiClient.startDerivativeJob(encodedUrn).then(sendSvgFallback).catch(sendSvgFallback);
+    });
+
 });
 
 /**
@@ -710,6 +854,7 @@ app.use((err, req, res, next) => {
  * 404 handler
  */
 app.use((req, res) => {
+  log(`404 Not found: ${req.method} ${req.path}`);
   res.status(404).json({ error: 'Not found' });
 });
 

@@ -93,6 +93,72 @@ class AutodeskAPIClient {
     }
   }
 
+  encodeUrn(urn) {
+    return Buffer.from(urn)
+      .toString('base64')
+      .replace(/=/g, '')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_');
+  }
+
+  createObjectUrn(bucketKey, objectKey) {
+    return `urn:adsk.objects:os.object:${bucketKey}/${objectKey}`;
+  }
+
+  async getDerivativeManifest(encodedUrn) {
+    const accessToken = await this.getAccessToken();
+    const response = await axios.get(
+      `${this.baseUrl}/modelderivative/v2/designdata/${encodedUrn}/manifest`,
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      }
+    );
+
+    return response.data;
+  }
+
+  async startDerivativeJob(encodedUrn) {
+    const accessToken = await this.getAccessToken();
+
+    await axios.post(
+      `${this.baseUrl}/modelderivative/v2/designdata/job`,
+      {
+        input: { urn: encodedUrn },
+        output: {
+          formats: [
+            { type: 'svf', views: ['2d', '3d'] }
+          ]
+        }
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+  }
+
+  async getDerivativeThumbnail(encodedUrn) {
+    const accessToken = await this.getAccessToken();
+    const response = await axios.get(
+      `${this.baseUrl}/modelderivative/v2/designdata/${encodedUrn}/thumbnail`,
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        },
+        responseType: 'arraybuffer'
+      }
+    );
+
+    return {
+      buffer: response.data,
+      contentType: response.headers['content-type'] || 'image/png'
+    };
+  }
+
   /**
    * Submit F3D file for modification
    * @param {string} filePath - Path to the F3D file
