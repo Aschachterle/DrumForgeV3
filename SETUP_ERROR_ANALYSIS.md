@@ -54,8 +54,7 @@ Comprehensive troubleshooting with:
 ### 4. **Improved Documentation**
 
 - **README.md** - Quick reference and commands
-- **GETTING_STARTED.md** - Updated to mention diagnostics first
-- **TROUBLESHOOTING.md** - New comprehensive guide
+- **TROUBLESHOOTING.md** - Comprehensive guide
 - **BUILT_IN_SETUP.md** - API endpoint reference
 
 ## What You Need to Do

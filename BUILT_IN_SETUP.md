@@ -202,10 +202,9 @@ Once the setup endpoints are run:
    - Ready to accept jobs
 
 2. **You Must Upload AppBundle Code** (Next step)
-   - Package plugin: `zip -r drumforge_appbundle.zip src/appbundle/`
-   - Upload to Azure Blob or AWS S3
-   - Create a version pointing to the upload URL
-   - See FILE_PROCESSING_SETUP.md for details
+  - Package the TypeScript bundle: `zip -r drumforge_appbundle.zip src/appbundle/DrumModifier.bundle`
+  - Upload to Azure Blob or AWS S3
+  - Create a version pointing to the upload URL
 
 3. **Then You Can Process Files** (Final step)
    - Start server: `npm run web`
@@ -253,10 +252,10 @@ This is not an error - it means your AppBundle is already created. You can proce
 After running the setup:
 
 1. **Upload AppBundle to Cloud Storage**
-   ```bash
-   zip -r drumforge_appbundle.zip src/appbundle/
-   # Upload to Azure Blob or AWS S3
-   ```
+  ```bash
+  zip -r drumforge_appbundle.zip src/appbundle/DrumModifier.bundle
+  # Upload to Azure Blob or AWS S3
+  ```
 
 2. **Create AppBundle Version**
    - Point to the upload URL in Autodesk Design Automation dashboard
@@ -270,4 +269,4 @@ After running the setup:
    # Open http://localhost:3000
    ```
 
-For detailed instructions, see [FILE_PROCESSING_SETUP.md](FILE_PROCESSING_SETUP.md)
+For additional help, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md)

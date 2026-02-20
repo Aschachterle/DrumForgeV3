@@ -1,6 +1,18 @@
-# Autodesk F3D File Submission Application
+# DrumForge: Autodesk F3D File Submission
 
-A Node.js application for submitting Fusion 360 F3D files to Autodesk API for modification and processing.
+Node.js app for submitting Fusion 360 F3D files to Autodesk Design Automation, with a local web UI for parameterized drum edits.
+
+## Quick Start
+
+```bash
+npm install
+cp .env.example .env
+# Add Autodesk credentials to .env
+npm run web
+# Open http://localhost:3000
+```
+
+For full setup and AppBundle deployment, see [BUILT_IN_SETUP.md](BUILT_IN_SETUP.md).
 
 ## Features
 
@@ -62,46 +74,36 @@ AUTODESK_PERSONAL_ACCESS_TOKEN=your_personal_access_token_here
 
 ## Usage
 
-### Basic Setup
+### Web UI (Recommended)
 
-1. **Import the API client in your code:**
+1. **Follow the built-in setup guide**
+
+See [BUILT_IN_SETUP.md](BUILT_IN_SETUP.md) to initialize Design Automation, create the AppBundle/Activity, and upload the bundle.
+
+2. **Start the server and open the UI**
+
+```bash
+npm run web
+# Open http://localhost:3000
+```
+
+3. **Submit jobs**
+
+Use the form to set drum parameters and submit a job. Status and download links appear in the UI.
+
+### API Client (Advanced)
+
+If you want to drive submissions programmatically, import the client:
 
 ```javascript
 import AutodeskAPIClient from './src/autodesk-api.js';
 import { config, validateConfig } from './src/config.js';
 
-// Validate configuration
 validateConfig();
-
-// Initialize client
 const apiClient = new AutodeskAPIClient(config);
 ```
 
-### Submit an F3D File
-
-```javascript
-const filePath = './path/to/your/file.f3d';
-const modificationParams = {
-  operation: 'modify',
-  // Add your specific modification parameters
-};
-
-const submission = await apiClient.submitF3DFile(filePath, modificationParams);
-console.log('Submission ID:', submission.id);
-```
-
-### Check Submission Status
-
-```javascript
-const status = await apiClient.getSubmissionStatus(submissionId);
-console.log('Current status:', status);
-```
-
-### Download Modified File
-
-```javascript
-await apiClient.downloadModifiedFile(submissionId, './output/modified.f3d');
-```
+Then use `submitF3DFile()`, `getSubmissionStatus()`, and `downloadModifiedFile()` as needed.
 
 ## API Client Methods
 
@@ -197,7 +199,8 @@ MIT
 
 ## Support
 
-For detailed help with setup issues, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
+- Setup and deployment: [BUILT_IN_SETUP.md](BUILT_IN_SETUP.md)
+- Common issues: [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 
 For issues with the Autodesk API, visit the [Autodesk Developer Documentation](https://developer.autodesk.com/docs).
 

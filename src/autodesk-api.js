@@ -450,8 +450,8 @@ class AutodeskAPIClient {
         // Upload the plugin code
         if (createResponse.data.uploadParameters) {
           console.log('   Packaging plugin code...');
-          const appbundlePath = path.join(__dirname, 'appbundle', 'DrumModifier');
-          const zipPath = path.join(__dirname, '../output', 'DrumModifier.zip');
+          const appbundlePath = path.join(__dirname, 'appbundle', 'DrumModifier.bundle');
+          const zipPath = path.join(__dirname, '../output', 'DrumModifier.bundle.zip');
           
           // Ensure output directory exists
           const outputDir = path.dirname(zipPath);
