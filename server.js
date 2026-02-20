@@ -627,7 +627,9 @@ app.post('/api/setup/activity', async (req, res) => {
     }
 
     console.log('🚀 Starting Activity setup...');
-    const result = await apiClient.setupActivity();
+    const bundleVersion = Number(req.body?.bundleVersion || 1);
+    const nickname = req.body?.nickname || 'drumforge_app';
+    const result = await apiClient.setupActivity(bundleVersion, nickname);
     
     res.json({
       success: true,
@@ -654,7 +656,8 @@ app.post('/api/setup/alias', async (req, res) => {
 
     console.log('🚀 Starting Activity Alias setup...');
     const aliasVersion = Number(req.body?.version || 1);
-    const result = await apiClient.setupActivityAlias(aliasVersion);
+    const nickname = req.body?.nickname || 'drumforge_app';
+    const result = await apiClient.setupActivityAlias(aliasVersion, nickname);
     
     res.json({
       success: true,
@@ -781,22 +784,38 @@ app.post('/api/setup/deploy', async (req, res) => {
     try {
       results.appBundle = await apiClient.setupAppBundle();
     } catch (error) {
-      console.error('AppBundle error details:', {
+      const errorDetails = {
         message: error.message,
         status: error.response?.status,
         data: error.response?.data,
         fullError: error.toString()
-      });
+      };
+      console.error('❌ AppBundle setup error:', JSON.stringify(errorDetails, null, 2));
+      logError('AppBundle setup failed', error);
+      
       return res.status(500).json({
         error: 'AppBundle setup failed',
-        details: error.response?.data?.developerMessage || error.response?.data?.message || error.message,
-        fullError: error.toString(),
+        details: error.response?.data?.developerMessage || error.response?.data?.message || error.response?.data?.Detail || JSON.stringify(error.response?.data) || error.message,
+        errorData: error.response?.data,
+        status: error.response?.status,
         results
       });
     }
 
     try {
-      results.activity = await apiClient.setupActivity();
+      const bundleVersion = results.appBundle?.version || 1;
+      const nickname = results.appBundle?.nickname || 'drumforge_app';
+      results.appBundleAlias = await apiClient.setupAppBundleAlias(bundleVersion, nickname);
+    } catch (error) {
+      return res.status(500).json({
+        error: 'AppBundle alias setup failed',
+        details: error.message,
+        results
+      });
+    }
+
+    try {
+      results.activity = await apiClient.setupActivity(results.appBundle?.version || 1, results.appBundle?.nickname || 'drumforge_app');
     } catch (error) {
       return res.status(500).json({
         error: 'Activity setup failed',
@@ -807,7 +826,8 @@ app.post('/api/setup/deploy', async (req, res) => {
 
     try {
       const activityVersion = results.activity?.version || 1;
-      results.alias = await apiClient.setupActivityAlias(activityVersion);
+      const nickname = results.appBundle?.nickname || 'drumforge_app';
+      results.alias = await apiClient.setupActivityAlias(activityVersion, nickname);
     } catch (error) {
       return res.status(500).json({
         error: 'Alias setup failed',
