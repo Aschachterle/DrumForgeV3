@@ -35,7 +35,14 @@ class AutodeskAPIClient {
 
       archive.on('error', (err) => reject(err));
       archive.pipe(output);
-      archive.directory(sourceDir, false);
+      
+      // Add all files inside a root folder with .bundle extension
+      // Autodesk Design Automation requires this structure:
+      // DrumModifier.bundle/
+      //   PackageContents.xml
+      //   Contents/
+      //     main.ts
+      archive.directory(sourceDir, 'DrumModifier.bundle');
       archive.finalize();
     });
   }
