@@ -43,11 +43,35 @@ class AutodeskAPIClient {
   /**
    * Upload file to a signed URL
    */
-  async uploadFileToSignedUrl(filePath, uploadUrl) {
+  async uploadFileToSignedUrl(filePath, uploadParameters) {
+    if (!uploadParameters) {
+      throw new Error('Missing upload parameters');
+    }
+
+    const endpointURL = uploadParameters.endpointURL || uploadParameters;
+    const formFields = uploadParameters.formData;
+
+    if (formFields && typeof formFields === 'object') {
+      const form = new FormData();
+      Object.entries(formFields).forEach(([key, value]) => {
+        form.append(key, value);
+      });
+      form.append('file', fs.createReadStream(filePath));
+
+      await axios.post(endpointURL, form, {
+        headers: {
+          ...form.getHeaders()
+        },
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity
+      });
+      return;
+    }
+
     const fileBuffer = fs.readFileSync(filePath);
     const fileStats = fs.statSync(filePath);
-    
-    await axios.put(uploadUrl, fileBuffer, {
+
+    await axios.put(endpointURL, fileBuffer, {
       headers: {
         'Content-Type': 'application/octet-stream',
         'Content-Length': fileStats.size
@@ -395,10 +419,39 @@ class AutodeskAPIClient {
   }
 
   /**
+   * Delete existing AppBundle (for fresh setup)
+   */
+  async deleteAppBundle(bundleName) {
+    try {
+      const accessToken = await this.getAccessToken();
+      
+      const response = await axios.delete(
+        `${this.baseUrl}/da/us-east/v3/appbundles/${encodeURIComponent(bundleName)}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'X-Autodesk-Personal-Access-Token': this.personalAccessToken
+          }
+        }
+      );
+      
+      console.log(`   ✓ Deleted AppBundle: ${bundleName}`);
+      return true;
+    } catch (error) {
+      if (error.response?.status === 404) {
+        console.log(`   AppBundle not found (already deleted)`);
+        return true;
+      }
+      console.log(`   Could not delete AppBundle: ${error.response?.status}`);
+      return false;
+    }
+  }
+
+  /**
    * Create or update AppBundle
    */
   async setupAppBundle() {
-    const NICKNAME = 'drumforge_app';
+    let NICKNAME = 'drumforge_app';
     const BUNDLE_NAME = 'DrumModifier';
     const bundleId = `${NICKNAME}.${BUNDLE_NAME}`;
 
@@ -419,7 +472,12 @@ class AutodeskAPIClient {
         throw new Error('Design Automation setup required');
       }
 
-      console.log(`✓ Design Automation account verified (${daStatus.nickname})`);
+      // Use the nickname from the API response if available
+      if (daStatus.nickname) {
+        NICKNAME = daStatus.nickname;
+      }
+      
+      console.log(`✓ Design Automation account verified (${NICKNAME})`);
 
       const accessToken = await this.getAccessToken();
 
@@ -464,8 +522,7 @@ class AutodeskAPIClient {
           
           // Upload to signed URL
           console.log('   Uploading plugin code...');
-          const uploadUrl = createResponse.data.uploadParameters.endpointURL;
-          await this.uploadFileToSignedUrl(zipPath, uploadUrl);
+          await this.uploadFileToSignedUrl(zipPath, createResponse.data.uploadParameters);
           
           console.log('   ✓ Plugin code uploaded');
           
@@ -476,21 +533,83 @@ class AutodeskAPIClient {
         return {
           id: createResponse.data.id,
           version: createResponse.data.version,
-          created: true
+          created: true,
+          nickname: NICKNAME
         };
-      } catch (error) {
-        // If we get 409 Conflict, the AppBundle already exists
-        if (error.response?.status === 409) {
-          console.log('✓ AppBundle already exists');
-          return {
-            id: bundleId,
-            version: 1,
-            created: false
-          };
+        } catch (error) {
+          // If we get 409 Conflict, the AppBundle already exists
+          if (error.response?.status === 409) {
+            console.log('✓ AppBundle already exists - deleting to recreate with code...');
+            
+            try {
+              // Delete the existing bundle
+              await this.deleteAppBundle(BUNDLE_NAME);
+              
+              // Now try to create it again
+              console.log('\n📦 Creating fresh AppBundle with code...');
+              const retryResponse = await axios.post(
+                `${this.baseUrl}/da/us-east/v3/appbundles`,
+                bundlePayload,
+                {
+                  headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json',
+                    'X-Autodesk-Personal-Access-Token': this.personalAccessToken
+                  }
+                }
+              );
+              
+              console.log(`✓ AppBundle created: ${retryResponse.data.id}`);
+              
+              // Upload the plugin code
+              if (retryResponse.data.uploadParameters) {
+                console.log('   Packaging plugin code...');
+                const appbundlePath = path.join(__dirname, 'appbundle', 'DrumModifier.bundle');
+                const zipPath = path.join(__dirname, '../output', 'DrumModifier.bundle.zip');
+                
+                const outputDir = path.dirname(zipPath);
+                if (!fs.existsSync(outputDir)) {
+                  fs.mkdirSync(outputDir, { recursive: true });
+                }
+                
+                await this.createZipFromDirectory(appbundlePath, zipPath);
+                
+                console.log('   Uploading plugin code...');
+                try {
+                  await this.uploadFileToSignedUrl(zipPath, retryResponse.data.uploadParameters);
+                  console.log('   ✓ Plugin code uploaded');
+                } catch (uploadErr) {
+                  console.log('   ✗ Upload failed:', uploadErr.message);
+                  throw uploadErr;
+                }
+                fs.unlinkSync(zipPath);
+              }
+              
+              return {
+                id: retryResponse.data.id,
+                version: retryResponse.data.version,
+                created: true,
+                nickname: NICKNAME
+              };
+            } catch (retryError) {
+              console.log('✗ Could not recreate AppBundle:');
+              console.log('  Error:', retryError.message);
+              if (retryError.response?.status) {
+                console.log('  Status:', retryError.response.status);
+                console.log('  Data:', retryError.response.data);
+              }
+              console.log('   Will use existing version...');
+              return {
+                id: bundleId,
+                version: 1,
+                created: false,
+                nickname: NICKNAME
+              };
+            }
+          }
+          // Otherwise, this is a real error
+          throw error;
         }
-        // Otherwise, this is a real error
-        throw error;
-      }
     } catch (error) {
       console.error('\n❌ Failed to set up AppBundle:');
       if (error.response?.data) {
@@ -505,12 +624,11 @@ class AutodeskAPIClient {
   /**
    * Create or update Activity
    */
-  async setupActivity() {
-    const NICKNAME = 'drumforge_app';
+  async setupActivity(bundleVersion = 1, nickname = 'drumforge_app') {
     const BUNDLE_NAME = 'DrumModifier';
     const ACTIVITY_NAME = 'DrumModifierActivity';
-    const bundleId = `${NICKNAME}.${BUNDLE_NAME}`;
-    const activityId = `${NICKNAME}.${ACTIVITY_NAME}`;
+    const bundleId = `${nickname}.${BUNDLE_NAME}`;
+    const activityId = `${nickname}.${ACTIVITY_NAME}`;
 
     try {
       const accessToken = await this.getAccessToken();
@@ -518,9 +636,9 @@ class AutodeskAPIClient {
       console.log(`\n⚙️  Setting up Activity: ${activityId}`);
 
       const activityPayload = {
-        id: ACTIVITY_NAME,  // Unqualified - API will add nickname automatically
+        id: ACTIVITY_NAME,  // Unqualified - API will add nickname automatically  
         engine: 'Autodesk.Fusion+Latest',
-        appbundles: [`${bundleId}+Latest`],
+        appbundles: [`${bundleId}+current`],  // Use the alias 'current' (not $LATEST or Latest)
         commandLine: [],
         parameters: {
           inputFile: {
@@ -626,10 +744,9 @@ class AutodeskAPIClient {
   /**
    * Create Activity alias
    */
-  async setupActivityAlias(version = 1) {
-    const NICKNAME = 'drumforge_app';
+  async setupActivityAlias(version = 1, nickname = 'drumforge_app') {
     const ACTIVITY_NAME = 'DrumModifierActivity';
-    const activityId = `${NICKNAME}.${ACTIVITY_NAME}`;
+    const activityId = `${nickname}.${ACTIVITY_NAME}`;
 
     try {
       const accessToken = await this.getAccessToken();
@@ -680,6 +797,71 @@ class AutodeskAPIClient {
       }
     } catch (error) {
       console.error('\n❌ Failed to set up Activity alias:');
+      if (error.response?.data?.developerMessage) {
+        console.error('   ', error.response.data.developerMessage);
+      } else {
+        console.error('   ', error.message);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Create AppBundle alias
+   */
+  async setupAppBundleAlias(version = 1, nickname = 'drumforge_app') {
+    const BUNDLE_NAME = 'DrumModifier';
+    const bundleId = `${nickname}.${BUNDLE_NAME}`;
+
+    try {
+      const accessToken = await this.getAccessToken();
+
+      console.log(`\n🔗 Setting up AppBundle Alias (version ${version})`);
+
+      try {
+        // Use unqualified name in URL path
+        const response = await axios.post(
+          `${this.baseUrl}/da/us-east/v3/appbundles/${encodeURIComponent(BUNDLE_NAME)}/aliases`,
+          { id: 'current', version },
+          {
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/json',
+              'X-Autodesk-Personal-Access-Token': this.personalAccessToken
+            }
+          }
+        );
+
+        console.log('✓ AppBundle alias created: +current');
+        return { id: 'current', created: true };
+      } catch (error) {
+        // Log full error details
+        console.log('AppBundle alias creation error:', {
+          status: error.response?.status,
+          data: error.response?.data
+        });
+        
+        if (error.response?.status === 409) {
+          console.log('✓ AppBundle alias already exists: +current');
+          const patchResponse = await axios.patch(
+            `${this.baseUrl}/da/us-east/v3/appbundles/${encodeURIComponent(BUNDLE_NAME)}/aliases/current`,
+            { version },
+            {
+              headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+                'X-Autodesk-Personal-Access-Token': this.personalAccessToken
+              }
+            }
+          );
+
+          console.log(`✓ AppBundle alias updated to version ${patchResponse.data.version}`);
+          return { id: 'current', created: false, version: patchResponse.data.version };
+        }
+        throw error;
+      }
+    } catch (error) {
+      console.error('\n❌ Failed to set up AppBundle alias:');
       if (error.response?.data?.developerMessage) {
         console.error('   ', error.response.data.developerMessage);
       } else {

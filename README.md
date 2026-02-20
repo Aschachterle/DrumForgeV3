@@ -74,6 +74,38 @@ AUTODESK_PERSONAL_ACCESS_TOKEN=your_personal_access_token_here
 
 ## Usage
 
+## Design Automation Workflow
+
+### Fresh setup (new AppBundle + Activity + WorkItem)
+
+1. Create a Design Automation nickname (one-time, in Autodesk APS console).
+2. Create an AppBundle: `POST /appbundles` with `{ id, engine, description }`.
+3. Upload the AppBundle code using `uploadParameters` from the create response.
+  - If `uploadParameters.formData` is present, upload via multipart POST.
+  - Otherwise, upload via PUT to `uploadParameters.endpointURL`.
+4. Create an AppBundle alias: `POST /appbundles/:id/aliases` with `{ id: "current", version }`.
+5. Create an Activity: `POST /activities` with `appbundles: ["nickname.Bundle+current"]`.
+6. Create an Activity alias: `POST /activities/:id/aliases` with `{ id: "current", version }`.
+7. Submit a WorkItem: `POST /workitems` with `activityId: "nickname.Activity+current"` and arguments.
+8. Poll WorkItem status until it completes, then download the output.
+
+### Updating an existing AppBundle (new code)
+
+1. Create a new AppBundle version: `POST /appbundles/:id/versions` with `{ engine }`.
+2. Upload the new code using the returned `uploadParameters`.
+3. Move the AppBundle alias: `PATCH /appbundles/:id/aliases/current` with `{ version: <newVersion> }`.
+
+### Updating an existing Activity (new parameters/command line)
+
+1. Create a new Activity version: `POST /activities/:id/versions` with the updated payload.
+2. Move the Activity alias: `PATCH /activities/:id/aliases/current` with `{ version: <newVersion> }`.
+
+### Important rules
+
+- Use fully qualified IDs with aliases (example: `nickname.Bundle+current`).
+- Do not use `$LATEST` in references; it is only for listing.
+- Use aliases like `current` so WorkItems do not need to change when versions update.
+
 ### Web UI (Recommended)
 
 1. **Follow the built-in setup guide**
