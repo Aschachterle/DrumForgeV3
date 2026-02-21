@@ -15,4 +15,3 @@ yarn-error.log*
 *.swo
 *~
 output/
-.github/copilot-instructions.md

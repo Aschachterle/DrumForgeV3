@@ -105,7 +105,7 @@ class AutodeskAPIClient {
           client_id: this.clientId,
           client_secret: this.clientSecret,
           grant_type: 'client_credentials',
-          scope: 'code:all data:read data:write data:create bucket:create bucket:read bucket:delete'
+          scope: 'code:all data:read data:write data:create bucket:create bucket:read bucket:delete viewables:read'
         },
         {
           headers: {
@@ -153,23 +153,33 @@ class AutodeskAPIClient {
   async startDerivativeJob(encodedUrn) {
     const accessToken = await this.getAccessToken();
 
-    await axios.post(
-      `${this.baseUrl}/modelderivative/v2/designdata/job`,
-      {
-        input: { urn: encodedUrn },
-        output: {
-          formats: [
-            { type: 'svf', views: ['2d', '3d'] }
-          ]
+    try {
+      const response = await axios.post(
+        `${this.baseUrl}/modelderivative/v2/designdata/job`,
+        {
+          input: { urn: encodedUrn },
+          output: {
+            destination: { region: 'US' },
+            formats: [
+              { type: 'svf2', views: ['2d', '3d'] }
+            ]
+          }
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+            'x-ads-force': 'true'
+          }
         }
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
+      );
+      console.log(`Derivative job started: ${response.data?.result || response.status}`);
+      return response.data;
+    } catch (error) {
+      const errData = error.response?.data || error.message;
+      console.error(`Derivative job failed: ${JSON.stringify(errData)}`);
+      throw error;
+    }
   }
 
   async getDerivativeThumbnail(encodedUrn) {

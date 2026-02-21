@@ -518,12 +518,12 @@
             <div class="panel">
                 <div class="panel-header">Preview</div>
                 <div class="preview-frame" id="previewFrame">
-                    <div class="preview-empty" id="previewEmpty">Submit a job to generate a preview thumbnail.</div>
+                    <div class="preview-empty" id="previewEmpty">Loading preview...</div>
                     <img id="previewImage" alt="Modified drum preview">
                 </div>
                 <div class="preview-actions">
-                    <span>Preview updates automatically.</span>
-                    <a id="previewLink" class="preview-link" href="#" target="_blank" rel="noopener">Open full size</a>
+                    <span>Preview updates as you adjust parameters.</span>
+                    <a id="previewLink" class="preview-link" href="#" target="_blank" rel="noopener" style="display:none;">Open full size</a>
                 </div>
             </div>
         </div>
@@ -535,11 +535,14 @@
         let previewRefreshTimer = null;
         let previewObjectUrl = null;
         let previewRequestInFlight = false;
+        let livePreviewDebounce = null;
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
             await loadConfig();
             setupEventListeners();
+            // Show live preview immediately
+            updateLivePreview();
         });
 
         async function loadConfig() {
@@ -551,6 +554,66 @@
                 console.error('Error loading config:', error);
                 showStatus('Error loading configuration', 'error');
             }
+        }
+
+        function getParameters() {
+            const parameters = {};
+            for (const [key, param] of Object.entries(config.parameters)) {
+                const input = document.getElementById(key);
+                if (input) {
+                    let value = input.value;
+                    if (param.type === 'number' || !isNaN(value)) {
+                        value = parseFloat(value);
+                    }
+                    parameters[key] = value;
+                }
+            }
+            return parameters;
+        }
+
+        async function updateLivePreview() {
+            if (previewRequestInFlight) return;
+            previewRequestInFlight = true;
+
+            const previewFrame = document.getElementById('previewFrame');
+            const previewImage = document.getElementById('previewImage');
+            const previewEmpty = document.getElementById('previewEmpty');
+
+            try {
+                const parameters = getParameters();
+                const response = await fetch('/api/preview-svg', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ parameters })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Preview fetch failed: ${response.status}`);
+                }
+
+                const blob = await response.blob();
+                if (previewObjectUrl) {
+                    URL.revokeObjectURL(previewObjectUrl);
+                }
+                previewObjectUrl = URL.createObjectURL(blob);
+                previewImage.src = previewObjectUrl;
+                previewFrame.classList.add('has-image');
+                previewEmpty.style.display = 'none';
+            } catch (error) {
+                console.error('Error fetching live preview:', error);
+                previewEmpty.textContent = 'Preview unavailable.';
+                previewEmpty.style.display = 'block';
+                previewFrame.classList.remove('has-image');
+            } finally {
+                previewRequestInFlight = false;
+            }
+        }
+
+        function debouncedUpdatePreview() {
+            if (livePreviewDebounce) {
+                clearTimeout(livePreviewDebounce);
+            }
+            livePreviewDebounce = setTimeout(updateLivePreview, 150);
         }
 
         function renderParameters() {
@@ -596,6 +659,11 @@
                     <div class="parameter-note">Default: ${param.default}</div>
                 `;
                 grid.appendChild(group);
+
+                // Add live preview update on input change
+                const input = group.querySelector('input');
+                input.addEventListener('input', debouncedUpdatePreview);
+                input.addEventListener('change', debouncedUpdatePreview);
             }
         }
 
@@ -624,26 +692,13 @@
         }
 
         async function handleSubmit() {
-            const parameters = {};
-            for (const [key, param] of Object.entries(config.parameters)) {
-                const input = document.getElementById(key);
-                let value = input.value;
-                
-                // Convert to appropriate type based on parameter config
-                if (param.type === 'number' || !isNaN(value)) {
-                    value = parseFloat(value);
-                }
-                
-                parameters[key] = value;
-            }
+            const parameters = getParameters();
 
             console.log('📤 Sending parameters:', JSON.stringify(parameters, null, 2));
             
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
             document.getElementById('downloadSection').style.display = 'none';
-            document.getElementById('previewFrame').classList.remove('has-image');
-            document.getElementById('previewEmpty').textContent = 'Generating preview...';
 
             try {
                 showStatus('Submitting to Autodesk...', 'pending', true);
@@ -705,8 +760,6 @@
                 } else if (data.status === 'failed' || data.status === 'cancelled') {
                     showStatus(`✗ Job ${data.status}. Please try again.`, 'error');
                     document.getElementById('submitBtn').disabled = false;
-                    document.getElementById('previewFrame').classList.remove('has-image');
-                    document.getElementById('previewEmpty').textContent = 'Preview unavailable.';
                     clearPreviewRefresh();
                 } else {
                     // Still pending - update status message
@@ -731,16 +784,16 @@
             document.getElementById('submitBtn').disabled = false;
             document.getElementById('status').classList.remove('show');
             document.getElementById('downloadSection').style.display = 'none';
-            document.getElementById('previewFrame').classList.remove('has-image');
-            document.getElementById('previewEmpty').textContent = 'Submit a job to generate a preview thumbnail.';
-            document.getElementById('previewImage').removeAttribute('src');
             if (previewObjectUrl) {
                 URL.revokeObjectURL(previewObjectUrl);
                 previewObjectUrl = null;
             }
             document.getElementById('previewLink').setAttribute('href', '#');
+            document.getElementById('previewLink').style.display = 'none';
             clearPreviewRefresh();
             renderParameters();
+            // Refresh live preview with default values
+            updateLivePreview();
         }
 
         function clearPreviewRefresh() {
@@ -753,6 +806,10 @@
         async function updatePreviewImage(baseUrl) {
             if (previewRequestInFlight) return;
             previewRequestInFlight = true;
+
+            const previewFrame = document.getElementById('previewFrame');
+            const previewImage = document.getElementById('previewImage');
+            const previewEmpty = document.getElementById('previewEmpty');
 
             try {
                 const response = await fetch(`${baseUrl}?t=${Date.now()}`, { cache: 'no-store' });
@@ -768,45 +825,31 @@
                 }
 
                 previewObjectUrl = URL.createObjectURL(blob);
-                const previewImage = document.getElementById('previewImage');
                 previewImage.src = previewObjectUrl;
                 previewImage.dataset.contentType = contentType;
+                previewFrame.classList.add('has-image');
+                previewEmpty.style.display = 'none';
 
                 if (!contentType.includes('svg')) {
                     clearPreviewRefresh();
                 }
             } catch (error) {
                 console.error('Error fetching preview:', error);
-                const previewEmpty = document.getElementById('previewEmpty');
-                previewEmpty.textContent = 'Preview unavailable.';
-                previewEmpty.style.display = 'block';
             } finally {
                 previewRequestInFlight = false;
             }
         }
 
         function showPreview(jobId) {
-            const previewImage = document.getElementById('previewImage');
             const previewLink = document.getElementById('previewLink');
-            const previewFrame = document.getElementById('previewFrame');
-            const previewEmpty = document.getElementById('previewEmpty');
             const baseUrl = `/api/preview/${jobId}`;
 
             previewLink.href = `${baseUrl}?full=1`;
-            previewFrame.classList.remove('has-image');
-            previewEmpty.textContent = 'Loading preview...';
-            previewEmpty.style.display = 'block';
+            previewLink.style.display = 'inline';
 
             clearPreviewRefresh();
-            let refreshCount = 0;
+            // Refresh the preview from the job endpoint
             updatePreviewImage(baseUrl);
-            previewRefreshTimer = setInterval(() => {
-                refreshCount += 1;
-                updatePreviewImage(baseUrl);
-                if (refreshCount >= 20) {
-                    clearPreviewRefresh();
-                }
-            }, 3000);
         }
 
         async function handleDownload() {
@@ -863,6 +906,25 @@
             statusText.innerHTML = message;
             progress.style.display = showProgress ? 'block' : 'none';
         }
+
+        // Auto-reload when server restarts
+        let serverWasDown = false;
+        setInterval(async () => {
+            try {
+                const response = await fetch('/api/health');
+                if (response.ok) {
+                    if (serverWasDown) {
+                        console.log('Server is back online, reloading page...');
+                        window.location.reload();
+                    }
+                    serverWasDown = false;
+                } else {
+                    serverWasDown = true;
+                }
+            } catch (error) {
+                serverWasDown = true;
+            }
+        }, 500); // Check every 500ms
     </script>
 </body>
 </html>
