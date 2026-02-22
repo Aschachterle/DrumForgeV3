@@ -22,6 +22,12 @@
             min-height: 100vh;
             padding: 0 32px 32px;
             color: #0a0a0a;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        body.loaded {
+            opacity: 1;
         }
 
         .container {
@@ -32,11 +38,13 @@
         .header {
             text-align: center;
             margin-bottom: 40px;
+            min-height: 150px; /* Prevent layout shift */
         }
 
         .header-logo {
             width: min(360px, 92vw);
             height: auto;
+            min-height: 100px; /* Reserve space while loading */
             margin: 0 auto 16px;
             display: block;
             object-fit: contain;
@@ -190,5 +198,16 @@
             <p>Powered by Autodesk Design Automation</p>
         </div>
     </div>
+
+    <script>
+        // Fade in page once loaded to avoid layout shift flash
+        window.addEventListener('load', () => {
+            document.body.classList.add('loaded');
+        });
+        // Fallback in case load event already fired
+        if (document.readyState === 'complete') {
+            document.body.classList.add('loaded');
+        }
+    </script>
 </body>
 </html>

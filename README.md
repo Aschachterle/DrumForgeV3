@@ -49,15 +49,59 @@ Or manually:
 
 ### 2. Deploy AppBundle & Activity
 
+**Recommended: One-command deployment**
+
 ```bash
 # Start server
 npm start
 
-# In another terminal, run setup
-curl -X POST http://localhost:3000/api/setup/appbundle
-curl -X POST http://localhost:3000/api/setup/activity
-curl -X POST http://localhost:3000/api/setup/alias
+# In another terminal, run full deployment (creates all 4 required components)
+curl -X POST http://localhost:3000/api/setup/deploy
 ```
+
+This creates:
+1. **AppBundle** - The Fusion 360 plugin code (creates version N)
+2. **AppBundle Alias** - Points `+current` to AppBundle version N
+3. **Activity** - Defines the Design Automation workflow (creates version M)
+4. **Activity Alias** - Points `+current` to Activity version M
+
+> **Critical**: All aliases must point to valid versions. The `/api/setup/deploy` 
+> endpoint handles this automatically by passing the correct version numbers 
+> between steps.
+
+**Alternative: Manual step-by-step deployment**
+
+If you need to deploy components individually:
+
+```bash
+# All 4 steps are required for a working deployment
+
+# Step 1: Create AppBundle
+curl -X POST http://localhost:3000/api/setup/appbundle
+# Response: {"result": {"id": "drumforge_app.DrumModifier", "version": 1, ...}}
+#                                                              ^^^^^^^^^^^
+#                                         AppBundle version is created here
+# AppBundle alias (+current) is auto-created pointing to this version
+
+# Step 2: Create Activity
+curl -X POST http://localhost:3000/api/setup/activity
+# Response: {"result": {"id": "drumforge_app.DrumModifierActivity", "version": 28, ...}}
+#                                                                   ^^^^^^^^^^^^
+#                                             Activity version is created here
+
+# Step 3: Create Activity alias - MUST use the version from Step 2 response
+curl -X POST http://localhost:3000/api/setup/alias \
+  -H "Content-Type: application/json" \
+  -d '{"version": 28}'  # <-- Use the exact version number from Step 2 response
+```
+
+> **Important Version Requirements**:
+> - The **AppBundle alias** (`+current`) must point to an existing AppBundle version
+> - The **Activity alias** (`+current`) must point to an existing Activity version
+> - The **Activity** must reference the AppBundle using `+current` (handled automatically)
+> - If any alias points to a non-existent version, jobs will fail with "not found" errors
+>
+> When in doubt, run `curl -X POST http://localhost:3000/api/setup/deploy` to recreate everything with correct version alignment.
 
 Or use the web UI at http://localhost:3000 and click "Setup" buttons.
 
@@ -89,9 +133,10 @@ Use the web interface at http://localhost:3000/drum.html to:
 |----------|--------|-------------|
 | `/api/submit` | POST | Submit a drum modification job |
 | `/api/job-status/:id` | GET | Check job status |
-| `/api/setup/appbundle` | POST | Create/update AppBundle |
+| `/api/setup/deploy` | POST | **Recommended**: Full deployment (all 4 components) |
+| `/api/setup/appbundle` | POST | Create/update AppBundle + AppBundle alias |
 | `/api/setup/activity` | POST | Create/update Activity |
-| `/api/setup/alias` | POST | Create Activity alias |
+| `/api/setup/alias` | POST | Create/update Activity alias |
 
 ## Available Commands
 
@@ -104,7 +149,33 @@ npm run setup       # Run setup diagnostics
 
 ## Troubleshooting
 
-See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for common issues.
+### Common Deployment Issues
+
+**"The App drumforge_app.DrumModifier+current could not be found"**
+
+This means the AppBundle alias is missing. Run the full deployment:
+```bash
+curl -X POST http://localhost:3000/api/setup/deploy
+```
+
+**"Activity version mismatch"**
+
+The Activity alias may be pointing to an old version. Update it:
+```bash
+# First, check what Activity version exists
+curl -X POST http://localhost:3000/api/setup/activity
+# Note the version number from the response, then update the alias:
+curl -X POST http://localhost:3000/api/setup/alias -H "Content-Type: application/json" -d '{"version": VERSION}'
+```
+
+**Jobs fail after code changes**
+
+After modifying `src/appbundle/DrumModifier.bundle/Contents/main.ts`:
+```bash
+curl -X POST http://localhost:3000/api/setup/deploy
+```
+
+See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for more issues.
 
 ## License
 

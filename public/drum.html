@@ -22,6 +22,12 @@
             min-height: 100vh;
             padding: 0 32px 32px;
             color: #0a0a0a;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        body.loaded {
+            opacity: 1;
         }
 
         .container {
@@ -34,6 +40,7 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 24px;
+            min-height: 50px; /* Prevent layout shift */
         }
 
         .back-link {
@@ -59,6 +66,7 @@
         .header-logo {
             width: min(140px, 32vw);
             height: auto;
+            min-height: 40px; /* Reserve space while loading */
             margin: 0;
             display: block;
             object-fit: contain;
@@ -193,6 +201,7 @@
             grid-template-columns: 1fr 1fr;
             gap: 15px;
             margin-bottom: 20px;
+            min-height: 320px; /* Prevent layout shift while JS loads parameters */
         }
 
         .parameter-group {
@@ -233,6 +242,23 @@
             box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
         }
 
+        .input-with-unit {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-with-unit input {
+            flex: 1;
+        }
+
+        .unit-suffix {
+            font-size: 13px;
+            font-family: "IBM Plex Mono", "Menlo", monospace;
+            color: #5a5a5a;
+            min-width: 28px;
+        }
+
         .parameter-note {
             font-size: 11px;
             color: #7a7a7a;
@@ -265,6 +291,41 @@
         .btn-submit:disabled {
             opacity: 0.6;
             cursor: not-allowed;
+        }
+
+        .btn-submit.loading,
+        .btn-secondary.loading {
+            position: relative;
+            color: transparent;
+            pointer-events: none;
+        }
+
+        .btn-submit.loading::after,
+        .btn-secondary.loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 50%;
+            left: 50%;
+            margin-left: -8px;
+            margin-top: -8px;
+            border: 2px solid transparent;
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        .btn-submit.loading::after {
+            border-top-color: #ffffff;
+        }
+
+        .btn-secondary.loading::after {
+            border-top-color: #0a0a0a;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         .btn-secondary {
@@ -450,6 +511,7 @@
 
             .parameters-grid {
                 grid-template-columns: 1fr;
+                min-height: 640px; /* Taller for single column layout */
             }
 
             .button-group {
@@ -518,12 +580,12 @@
             <div class="panel">
                 <div class="panel-header">Preview</div>
                 <div class="preview-frame" id="previewFrame">
-                    <div class="preview-empty" id="previewEmpty">Submit a job to generate a preview thumbnail.</div>
+                    <div class="preview-empty" id="previewEmpty">Loading preview...</div>
                     <img id="previewImage" alt="Modified drum preview">
                 </div>
                 <div class="preview-actions">
-                    <span>Preview updates automatically.</span>
-                    <a id="previewLink" class="preview-link" href="#" target="_blank" rel="noopener">Open full size</a>
+                    <span>Preview updates as you adjust parameters.</span>
+                    <a id="previewLink" class="preview-link" href="#" target="_blank" rel="noopener" style="display:none;">Open full size</a>
                 </div>
             </div>
         </div>
@@ -535,11 +597,14 @@
         let previewRefreshTimer = null;
         let previewObjectUrl = null;
         let previewRequestInFlight = false;
+        let livePreviewDebounce = null;
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
             await loadConfig();
             setupEventListeners();
+            // Show live preview immediately
+            updateLivePreview();
         });
 
         async function loadConfig() {
@@ -551,6 +616,72 @@
                 console.error('Error loading config:', error);
                 showStatus('Error loading configuration', 'error');
             }
+        }
+
+        function getParameters() {
+            const parameters = {};
+            for (const [key, param] of Object.entries(config.parameters)) {
+                const input = document.getElementById(key);
+                if (input) {
+                    let value = input.value;
+                    if (param.type === 'number') {
+                        value = parseFloat(value);
+                    } else if (param.type === 'dimension') {
+                        // Append unit to numeric value for dimension fields
+                        const numValue = parseFloat(value);
+                        if (!isNaN(numValue)) {
+                            value = `${numValue} ${param.unit}`;
+                        }
+                    }
+                    parameters[key] = value;
+                }
+            }
+            return parameters;
+        }
+
+        async function updateLivePreview() {
+            if (previewRequestInFlight) return;
+            previewRequestInFlight = true;
+
+            const previewFrame = document.getElementById('previewFrame');
+            const previewImage = document.getElementById('previewImage');
+            const previewEmpty = document.getElementById('previewEmpty');
+
+            try {
+                const parameters = getParameters();
+                const response = await fetch('/api/preview-svg', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ parameters })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Preview fetch failed: ${response.status}`);
+                }
+
+                const blob = await response.blob();
+                if (previewObjectUrl) {
+                    URL.revokeObjectURL(previewObjectUrl);
+                }
+                previewObjectUrl = URL.createObjectURL(blob);
+                previewImage.src = previewObjectUrl;
+                previewFrame.classList.add('has-image');
+                previewEmpty.style.display = 'none';
+            } catch (error) {
+                console.error('Error fetching live preview:', error);
+                previewEmpty.textContent = 'Preview unavailable.';
+                previewEmpty.style.display = 'block';
+                previewFrame.classList.remove('has-image');
+            } finally {
+                previewRequestInFlight = false;
+            }
+        }
+
+        function debouncedUpdatePreview() {
+            if (livePreviewDebounce) {
+                clearTimeout(livePreviewDebounce);
+            }
+            livePreviewDebounce = setTimeout(updateLivePreview, 150);
         }
 
         function renderParameters() {
@@ -584,18 +715,47 @@
                 group.className = 'parameter-group';
                 const label = labelMap[key] || key;
                 const description = descriptionMap[key] || '';
+                
+                // Determine input type and formatting based on parameter type
+                const isNumeric = param.type === 'number' || param.type === 'dimension';
+                const unitSuffix = param.unit ? `<span class="unit-suffix">${param.unit}</span>` : '';
+                const defaultDisplay = param.unit ? `${param.default} ${param.unit}` : param.default;
+                
                 group.innerHTML = `
                     <label for="${key}" title="${description}">${label}</label>
-                    <input 
-                        type="text" 
-                        id="${key}" 
-                        value="${param.default}"
-                        placeholder="${param.default}"
-                        title="${description}"
-                    >
-                    <div class="parameter-note">Default: ${param.default}</div>
+                    <div class="input-with-unit">
+                        <input 
+                            type="text"
+                            inputmode="${isNumeric ? 'decimal' : 'text'}"
+                            id="${key}" 
+                            value="${param.default}"
+                            placeholder="${param.default}"
+                            title="${description}"
+                        >
+                        ${unitSuffix}
+                    </div>
+                    <div class="parameter-note">Default: ${defaultDisplay}</div>
                 `;
                 grid.appendChild(group);
+
+                // Add live preview update on input change
+                const input = group.querySelector('input');
+                
+                // For number/dimension inputs, strip any non-numeric characters
+                if (param.type === 'number' || param.type === 'dimension') {
+                    input.addEventListener('input', (e) => {
+                        // Allow only digits, decimal point, and minus sign at start
+                        const cleaned = e.target.value.replace(/[^0-9.\-]/g, '')
+                            .replace(/(?!^)-/g, '')  // minus only at start
+                            .replace(/(\..*)\./g, '$1');  // only one decimal
+                        if (cleaned !== e.target.value) {
+                            e.target.value = cleaned;
+                        }
+                    });
+                }
+                
+                input.addEventListener('input', debouncedUpdatePreview);
+                input.addEventListener('change', debouncedUpdatePreview);
             }
         }
 
@@ -624,26 +784,14 @@
         }
 
         async function handleSubmit() {
-            const parameters = {};
-            for (const [key, param] of Object.entries(config.parameters)) {
-                const input = document.getElementById(key);
-                let value = input.value;
-                
-                // Convert to appropriate type based on parameter config
-                if (param.type === 'number' || !isNaN(value)) {
-                    value = parseFloat(value);
-                }
-                
-                parameters[key] = value;
-            }
+            const parameters = getParameters();
 
             console.log('📤 Sending parameters:', JSON.stringify(parameters, null, 2));
             
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
+            submitBtn.classList.add('loading');
             document.getElementById('downloadSection').style.display = 'none';
-            document.getElementById('previewFrame').classList.remove('has-image');
-            document.getElementById('previewEmpty').textContent = 'Generating preview...';
 
             try {
                 showStatus('Submitting to Autodesk...', 'pending', true);
@@ -674,6 +822,7 @@
                 console.error('Error submitting job:', error);
                 showStatus(`Submission error: ${error.message}`, 'error');
                 submitBtn.disabled = false;
+                submitBtn.classList.remove('loading');
             }
         }
 
@@ -700,13 +849,13 @@
                         'success'
                     );
                     document.getElementById('submitBtn').disabled = false;
+                    document.getElementById('submitBtn').classList.remove('loading');
                     document.getElementById('downloadSection').style.display = 'block';
                     showPreview(currentJobId);
                 } else if (data.status === 'failed' || data.status === 'cancelled') {
                     showStatus(`✗ Job ${data.status}. Please try again.`, 'error');
                     document.getElementById('submitBtn').disabled = false;
-                    document.getElementById('previewFrame').classList.remove('has-image');
-                    document.getElementById('previewEmpty').textContent = 'Preview unavailable.';
+                    document.getElementById('submitBtn').classList.remove('loading');
                     clearPreviewRefresh();
                 } else {
                     // Still pending - update status message
@@ -729,18 +878,19 @@
         function handleReset() {
             currentJobId = null;
             document.getElementById('submitBtn').disabled = false;
+            document.getElementById('submitBtn').classList.remove('loading');
             document.getElementById('status').classList.remove('show');
             document.getElementById('downloadSection').style.display = 'none';
-            document.getElementById('previewFrame').classList.remove('has-image');
-            document.getElementById('previewEmpty').textContent = 'Submit a job to generate a preview thumbnail.';
-            document.getElementById('previewImage').removeAttribute('src');
             if (previewObjectUrl) {
                 URL.revokeObjectURL(previewObjectUrl);
                 previewObjectUrl = null;
             }
             document.getElementById('previewLink').setAttribute('href', '#');
+            document.getElementById('previewLink').style.display = 'none';
             clearPreviewRefresh();
             renderParameters();
+            // Refresh live preview with default values
+            updateLivePreview();
         }
 
         function clearPreviewRefresh() {
@@ -753,6 +903,10 @@
         async function updatePreviewImage(baseUrl) {
             if (previewRequestInFlight) return;
             previewRequestInFlight = true;
+
+            const previewFrame = document.getElementById('previewFrame');
+            const previewImage = document.getElementById('previewImage');
+            const previewEmpty = document.getElementById('previewEmpty');
 
             try {
                 const response = await fetch(`${baseUrl}?t=${Date.now()}`, { cache: 'no-store' });
@@ -768,45 +922,31 @@
                 }
 
                 previewObjectUrl = URL.createObjectURL(blob);
-                const previewImage = document.getElementById('previewImage');
                 previewImage.src = previewObjectUrl;
                 previewImage.dataset.contentType = contentType;
+                previewFrame.classList.add('has-image');
+                previewEmpty.style.display = 'none';
 
                 if (!contentType.includes('svg')) {
                     clearPreviewRefresh();
                 }
             } catch (error) {
                 console.error('Error fetching preview:', error);
-                const previewEmpty = document.getElementById('previewEmpty');
-                previewEmpty.textContent = 'Preview unavailable.';
-                previewEmpty.style.display = 'block';
             } finally {
                 previewRequestInFlight = false;
             }
         }
 
         function showPreview(jobId) {
-            const previewImage = document.getElementById('previewImage');
             const previewLink = document.getElementById('previewLink');
-            const previewFrame = document.getElementById('previewFrame');
-            const previewEmpty = document.getElementById('previewEmpty');
             const baseUrl = `/api/preview/${jobId}`;
 
             previewLink.href = `${baseUrl}?full=1`;
-            previewFrame.classList.remove('has-image');
-            previewEmpty.textContent = 'Loading preview...';
-            previewEmpty.style.display = 'block';
+            previewLink.style.display = 'inline';
 
             clearPreviewRefresh();
-            let refreshCount = 0;
+            // Refresh the preview from the job endpoint
             updatePreviewImage(baseUrl);
-            previewRefreshTimer = setInterval(() => {
-                refreshCount += 1;
-                updatePreviewImage(baseUrl);
-                if (refreshCount >= 20) {
-                    clearPreviewRefresh();
-                }
-            }, 3000);
         }
 
         async function handleDownload() {
@@ -818,7 +958,8 @@
             try {
                 const downloadBtn = document.getElementById('downloadBtn');
                 downloadBtn.disabled = true;
-                downloadBtn.textContent = '⬇️ Downloading...';
+                downloadBtn.classList.add('loading');
+                downloadBtn.textContent = '⬇️ Downloading...'
 
                 const response = await fetch(`/api/download/${currentJobId}`);
                 if (!response.ok) {
@@ -845,12 +986,15 @@
                 window.URL.revokeObjectURL(url);
 
                 downloadBtn.disabled = false;
+                downloadBtn.classList.remove('loading');
                 downloadBtn.textContent = '⬇️ Download Modified Drum File';
             } catch (error) {
                 console.error('Error downloading file:', error);
                 showStatus(`Download error: ${error.message}`, 'error');
-                document.getElementById('downloadBtn').disabled = false;
-                document.getElementById('downloadBtn').textContent = '⬇️ Download Modified Drum File';
+                const downloadBtn = document.getElementById('downloadBtn');
+                downloadBtn.disabled = false;
+                downloadBtn.classList.remove('loading');
+                downloadBtn.textContent = '⬇️ Download Modified Drum File';
             }
         }
 
@@ -862,6 +1006,43 @@
             status.className = `status show ${type}`;
             statusText.innerHTML = message;
             progress.style.display = showProgress ? 'block' : 'none';
+        }
+
+        // Auto-reload when server restarts (dev mode only)
+        // Requires multiple consecutive failures to avoid false positives during navigation
+        let serverDownCount = 0;
+        const REQUIRED_DOWN_COUNT = 3; // Must fail 3 times in a row (1.5 seconds)
+        
+        setInterval(async () => {
+            // Don't poll when page is hidden (user navigated away)
+            if (document.hidden) {
+                serverDownCount = 0;
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/health');
+                if (response.ok) {
+                    if (serverDownCount >= REQUIRED_DOWN_COUNT) {
+                        console.log('Server is back online, reloading page...');
+                        window.location.reload();
+                    }
+                    serverDownCount = 0;
+                } else {
+                    serverDownCount++;
+                }
+            } catch (error) {
+                serverDownCount++;
+            }
+        }, 500); // Check every 500ms
+
+        // Fade in page once loaded to avoid layout shift flash
+        window.addEventListener('load', () => {
+            document.body.classList.add('loaded');
+        });
+        // Fallback in case load event already fired
+        if (document.readyState === 'complete') {
+            document.body.classList.add('loaded');
         }
     </script>
 </body>

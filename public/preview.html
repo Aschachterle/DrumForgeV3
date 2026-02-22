@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drum Preview Tool</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      color: #fff;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    header h1 {
+      font-size: 2rem;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    header p {
+      color: #888;
+      margin-top: 8px;
+    }
+    .main-layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 800px) {
+      .main-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+    .controls {
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 24px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .controls h2 {
+      font-size: 1rem;
+      color: #667eea;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      color: #aaa;
+      margin-bottom: 6px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      font-size: 1rem;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    .form-group input[type="range"] {
+      padding: 0;
+      height: 6px;
+      -webkit-appearance: none;
+      background: rgba(255,255,255,0.1);
+      border-radius: 3px;
+    }
+    .form-group input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      background: #667eea;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    .range-value {
+      display: inline-block;
+      background: rgba(102,126,234,0.2);
+      color: #667eea;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      margin-left: 8px;
+    }
+    .preview-area {
+      background: rgba(255,255,255,0.03);
+      border-radius: 16px;
+      padding: 24px;
+      border: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .preview-area h2 {
+      font-size: 1rem;
+      color: #667eea;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      align-self: flex-start;
+    }
+    #preview-container {
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      width: 100%;
+      max-width: 640px;
+    }
+    #preview-container img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+    .hint {
+      margin-top: 16px;
+      font-size: 0.8rem;
+      color: #666;
+      text-align: center;
+    }
+    .btn-reset {
+      width: 100%;
+      padding: 12px;
+      margin-top: 20px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-reset:hover {
+      background: rgba(255,255,255,0.15);
+    }
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: #667eea;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Drum Preview Tool</h1>
+      <p>Adjust parameters to see how your drum will look</p>
+    </header>
+
+    <div class="main-layout">
+      <div class="controls">
+        <h2>Parameters</h2>
+        
+        <div class="form-group">
+          <label>Shell Diameter <span class="range-value" id="diam-value">12 in</span></label>
+          <input type="range" id="ShellDiam" min="6" max="18" step="0.5" value="12">
+        </div>
+
+        <div class="form-group">
+          <label>Shell Height <span class="range-value" id="height-value">6 in</span></label>
+          <input type="range" id="ShellHeight" min="3" max="16" step="0.5" value="6">
+        </div>
+
+        <div class="form-group">
+          <label>Shell Thickness <span class="range-value" id="thick-value">6 mm</span></label>
+          <input type="range" id="ShellThick" min="3" max="12" step="0.5" value="6">
+        </div>
+
+        <div class="form-group">
+          <label>Number of Segments <span class="range-value" id="seg-value">2</span></label>
+          <input type="range" id="NumSegments" min="1" max="12" step="1" value="2">
+        </div>
+
+        <div class="form-group">
+          <label>Lug Top Distance <span class="range-value" id="lugtop-value">2 in</span></label>
+          <input type="range" id="LugTopDist" min="0.5" max="4" step="0.25" value="2">
+        </div>
+
+        <div class="form-group">
+          <label>Lug Spacing <span class="range-value" id="lugspace-value">2 in</span></label>
+          <input type="range" id="LugSpacing" min="1" max="4" step="0.25" value="2">
+        </div>
+
+        <div class="form-group">
+          <label>Lap Size <span class="range-value" id="lap-value">22%</span></label>
+          <input type="range" id="LapSizePercent" min="5" max="50" step="1" value="22">
+        </div>
+
+        <div class="form-group">
+          <label>Lug Hole Diameter <span class="range-value" id="lughole-value">0.25 in</span></label>
+          <input type="range" id="LugHoleDiam" min="0.125" max="0.5" step="0.0625" value="0.25">
+        </div>
+
+        <button class="btn-reset" onclick="resetDefaults()">Reset to Defaults</button>
+        <a href="/drum.html" class="back-link">← Back to Drum Builder</a>
+      </div>
+
+      <div class="preview-area">
+        <h2>Live Preview</h2>
+        <div id="preview-container">
+          <img id="preview-img" src="" alt="Drum Preview">
+        </div>
+        <p class="hint">Preview updates automatically as you adjust parameters</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const defaults = {
+      ShellDiam: 12,
+      ShellHeight: 6,
+      ShellThick: 6,
+      NumSegments: 2,
+      LugTopDist: 2,
+      LugSpacing: 2,
+      LapSizePercent: 22,
+      LugHoleDiam: 0.25
+    };
+
+    const valueDisplays = {
+      ShellDiam: { el: 'diam-value', suffix: ' in' },
+      ShellHeight: { el: 'height-value', suffix: ' in' },
+      ShellThick: { el: 'thick-value', suffix: ' mm' },
+      NumSegments: { el: 'seg-value', suffix: '' },
+      LugTopDist: { el: 'lugtop-value', suffix: ' in' },
+      LugSpacing: { el: 'lugspace-value', suffix: ' in' },
+      LapSizePercent: { el: 'lap-value', suffix: '%' },
+      LugHoleDiam: { el: 'lughole-value', suffix: ' in' }
+    };
+
+    function getParameters() {
+      return {
+        ShellDiam: document.getElementById('ShellDiam').value + ' in',
+        ShellHeight: document.getElementById('ShellHeight').value + ' in',
+        ShellThick: document.getElementById('ShellThick').value + ' mm',
+        NumSegments: parseInt(document.getElementById('NumSegments').value),
+        LugTopDist: document.getElementById('LugTopDist').value + ' in',
+        LugSpacing: document.getElementById('LugSpacing').value + ' in',
+        LapSizePercent: parseFloat(document.getElementById('LapSizePercent').value),
+        LugHoleDiam: document.getElementById('LugHoleDiam').value + ' in'
+      };
+    }
+
+    function updateValueDisplays() {
+      for (const [param, config] of Object.entries(valueDisplays)) {
+        const input = document.getElementById(param);
+        const display = document.getElementById(config.el);
+        if (input && display) {
+          display.textContent = input.value + config.suffix;
+        }
+      }
+    }
+
+    async function updatePreview() {
+      const params = getParameters();
+      try {
+        const response = await fetch('/api/preview-svg', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ parameters: params })
+        });
+        
+        if (response.ok) {
+          const svgText = await response.text();
+          const blob = new Blob([svgText], { type: 'image/svg+xml' });
+          const url = URL.createObjectURL(blob);
+          document.getElementById('preview-img').src = url;
+        }
+      } catch (err) {
+        console.error('Preview error:', err);
+      }
+    }
+
+    function resetDefaults() {
+      for (const [param, value] of Object.entries(defaults)) {
+        const input = document.getElementById(param);
+        if (input) input.value = value;
+      }
+      updateValueDisplays();
+      updatePreview();
+    }
+
+    // Attach event listeners to all inputs
+    document.querySelectorAll('input[type="range"]').forEach(input => {
+      input.addEventListener('input', () => {
+        updateValueDisplays();
+        updatePreview();
+      });
+    });
+
+    // Initial load
+    updateValueDisplays();
+    updatePreview();
+  </script>
+</body>
+</html>

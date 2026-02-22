@@ -23,7 +23,7 @@ try {
         doc = app.documents.open('input.f3d', false);
         log("Opened input.f3d as document");
     } catch (openError) {
-        log("Open failed: " + openError.toString());
+        log("Open failed: " + String(openError));
         log("Trying import method...");
 
         // Fall back to import
@@ -88,14 +88,14 @@ try {
                     foundParams = true;
                 }
             } catch (parseErr) {
-                log("ERROR: Could not parse JSON: " + parseErr.toString());
+                log("ERROR: Could not parse JSON: " + String(parseErr));
             }
         } else {
             log("ERROR: adsk.parameters is NOT available");
             log("DEBUG: adsk object has parameters property? " + ('parameters' in adsk));
         }
     } catch (e) {
-        log("ERROR: Exception accessing adsk.parameters: " + e.toString());
+        log("ERROR: Exception accessing adsk.parameters: " + String(e));
     }
 
     if (!foundParams) {
@@ -135,7 +135,7 @@ try {
                 for (let i = 0; i < 5; i++) adsk.doEvents();
                 log("AFTER: NumSegments = " + numSegParam.expression);
             } catch (err) {
-                log("ERROR setting NumSegments: " + err.toString());
+                log("ERROR setting NumSegments: " + String(err));
             }
         } else {
             log("NumSegments parameter not found");
@@ -150,7 +150,7 @@ try {
                 for (let i = 0; i < 5; i++) adsk.doEvents();
                 log("AFTER: ShellThick = " + thickParam.expression);
             } catch (err) {
-                log("ERROR setting ShellThick: " + err.toString());
+                log("ERROR setting ShellThick: " + String(err));
             }
         } else {
             log("ShellThick parameter not found");
@@ -165,7 +165,7 @@ try {
                 for (let i = 0; i < 5; i++) adsk.doEvents();
                 log("AFTER: ShellHeight = " + heightParam.expression);
             } catch (err) {
-                log("ERROR setting ShellHeight: " + err.toString());
+                log("ERROR setting ShellHeight: " + String(err));
             }
         } else {
             log("ShellHeight parameter not found");
@@ -180,10 +180,70 @@ try {
                 for (let i = 0; i < 5; i++) adsk.doEvents();
                 log("AFTER: ShellDiam = " + diamParam.expression);
             } catch (err) {
-                log("ERROR setting ShellDiam: " + err.toString());
+                log("ERROR setting ShellDiam: " + String(err));
             }
         } else {
             log("ShellDiam parameter not found");
+        }
+
+        // Update LugTopDist
+        const lugTopParam = userParams.itemByName('LugTopDist');
+        if (lugTopParam) {
+            log("BEFORE: LugTopDist = " + lugTopParam.expression);
+            try {
+                lugTopParam.expression = paramValues.LugTopDist || "2in";
+                for (let i = 0; i < 5; i++) adsk.doEvents();
+                log("AFTER: LugTopDist = " + lugTopParam.expression);
+            } catch (err) {
+                log("ERROR setting LugTopDist: " + String(err));
+            }
+        } else {
+            log("LugTopDist parameter not found");
+        }
+
+        // Update LugSpacing
+        const lugSpaceParam = userParams.itemByName('LugSpacing');
+        if (lugSpaceParam) {
+            log("BEFORE: LugSpacing = " + lugSpaceParam.expression);
+            try {
+                lugSpaceParam.expression = paramValues.LugSpacing || "2in";
+                for (let i = 0; i < 5; i++) adsk.doEvents();
+                log("AFTER: LugSpacing = " + lugSpaceParam.expression);
+            } catch (err) {
+                log("ERROR setting LugSpacing: " + String(err));
+            }
+        } else {
+            log("LugSpacing parameter not found");
+        }
+
+        // Update LapSizePercent
+        const lapParam = userParams.itemByName('LapSizePercent');
+        if (lapParam) {
+            log("BEFORE: LapSizePercent = " + lapParam.expression);
+            try {
+                lapParam.expression = String(paramValues.LapSizePercent || 25);
+                for (let i = 0; i < 5; i++) adsk.doEvents();
+                log("AFTER: LapSizePercent = " + lapParam.expression);
+            } catch (err) {
+                log("ERROR setting LapSizePercent: " + String(err));
+            }
+        } else {
+            log("LapSizePercent parameter not found");
+        }
+
+        // Update LugHoleDiam
+        const lugHoleParam = userParams.itemByName('LugHoleDiam');
+        if (lugHoleParam) {
+            log("BEFORE: LugHoleDiam = " + lugHoleParam.expression);
+            try {
+                lugHoleParam.expression = paramValues.LugHoleDiam || "0.25in";
+                for (let i = 0; i < 5; i++) adsk.doEvents();
+                log("AFTER: LugHoleDiam = " + lugHoleParam.expression);
+            } catch (err) {
+                log("ERROR setting LugHoleDiam: " + String(err));
+            }
+        } else {
+            log("LugHoleDiam parameter not found");
         }
     } else {
         log("No userParameters found in design");
@@ -210,7 +270,7 @@ try {
         for (let i = 0; i < 20; i++) adsk.doEvents();
 
     } catch (regenErr) {
-        log("Regeneration error: " + regenErr.toString());
+        log("Regeneration error: " + String(regenErr));
     }
 
     // Export to output.f3d
@@ -221,7 +281,7 @@ try {
         exportMgr.execute(f3dOptions);
         log("Export complete");
     } catch (err) {
-        log("Fusion archive export failed: " + err.toString());
+        log("Fusion archive export failed: " + String(err));
     }
 
     // Small flush
@@ -229,7 +289,7 @@ try {
 
     log("Script complete");
 } catch (e) {
-    console.error("Script failed: " + (e as any).toString());
+    console.error("Script failed: " + (e as any));
     const stack = (e as any).stack ? (e as any).stack.toString() : "no stack";
     console.error("Stack: " + stack);
     throw e;
