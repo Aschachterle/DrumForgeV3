@@ -273,15 +273,53 @@ try {
         log("Regeneration error: " + String(regenErr));
     }
 
-    // Export to output.f3d
-    log("Exporting Fusion archive to output.f3d...");
+    // Export to output.stl
+    log("Exporting STL to output.stl...");
     try {
         const exportMgr = design.exportManager;
-        const f3dOptions = exportMgr.createFusionArchiveExportOptions('output.f3d');
-        exportMgr.execute(f3dOptions);
-        log("Export complete");
+        const rootComp = design.rootComponent;
+        log("Got exportMgr and rootComp, rootComp name: " + (rootComp ? rootComp.name : "null"));
+        
+        // Check how many bodies exist
+        const allBodies = rootComp.bRepBodies;
+        log("Number of bodies in root component: " + allBodies.count);
+        
+        if (allBodies.count === 0) {
+            // Try getting bodies from all occurrences
+            log("No bodies in root, checking occurrences...");
+            const occs = rootComp.allOccurrences;
+            log("Number of occurrences: " + occs.count);
+            for (let i = 0; i < Math.min(occs.count, 3); i++) {
+                const occ = occs.item(i);
+                log("  Occurrence " + i + ": " + occ.name + " has " + occ.bRepBodies.count + " bodies");
+            }
+        }
+        
+        // Create STL export options - export rootComp to file
+        const stlOptions = exportMgr.createSTLExportOptions(rootComp, 'output.stl');
+        log("Created STL export options");
+        
+        // IMPORTANT: Set to export to file, not print utility
+        stlOptions.sendToPrintUtility = false;
+        log("Set sendToPrintUtility = false");
+        
+        const result = exportMgr.execute(stlOptions);
+        log("STL export execute returned: " + result);
+        log("STL export complete");
     } catch (err) {
-        log("Fusion archive export failed: " + String(err));
+        log("STL export failed: " + String(err));
+        log("Error details: " + JSON.stringify(err));
+        
+        // Last resort: export F3D
+        log("Attempting F3D export as last resort...");
+        try {
+            const exportMgr = design.exportManager;
+            const f3dOptions = exportMgr.createFusionArchiveExportOptions('output.stl');
+            exportMgr.execute(f3dOptions);
+            log("F3D exported with .stl extension");
+        } catch (fallbackErr) {
+            log("F3D fallback also failed: " + String(fallbackErr));
+        }
     }
 
     // Small flush

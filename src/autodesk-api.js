@@ -665,8 +665,8 @@ class AutodeskAPIClient {
           },
           outputFile: {
             verb: 'put',
-            description: 'Output F3D file',
-            localName: 'output.f3d'
+            description: 'Output STL file',
+            localName: 'output.stl'
           },
           TaskParameters: {
             verb: 'read',

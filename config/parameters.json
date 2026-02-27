@@ -1,0 +1,77 @@
+{
+  "activity": "drumforge_app.DrumModifierActivity+current",
+  "parameters": {
+    "NumSegments": {
+      "default": 3,
+      "type": "number",
+      "min": 2,
+      "max": 7,
+      "label": "Number of Pieces",
+      "description": "Number of pieces you will need to print and assemble to create the full drum shell."
+    },
+    "ShellThick": {
+      "default": 5.5,
+      "type": "dimension",
+      "unit": "mm",
+      "min": 3,
+      "max": 20,
+      "label": "Shell thickness",
+      "description": "Thickness of the drum shell wall."
+    },
+    "ShellHeight": {
+      "default": 4.5,
+      "type": "dimension",
+      "unit": "in",
+      "min": 3,
+      "max": 12,
+      "label": "Shell height",
+      "description": "Total height of the drum shell from bottom to the peak of the bearing edge."
+    },
+    "ShellDiam": {
+      "default": 8,
+      "type": "dimension",
+      "unit": "in",
+      "min": 6,
+      "max": 20,
+      "label": "Shell diameter",
+      "description": "Outer diameter of the drum shell, determining the overall size."
+    },
+    "LugTopDist": {
+      "default": 1.5,
+      "type": "dimension",
+      "unit": "in",
+      "min": 0.5,
+      "max": null,
+      "dynamicMax": "ShellHeight - LugSpacing - LugHoleDiam",
+      "label": "Lug offset from top",
+      "description": "Distance from the peak of the bearing edge to the center of the first lug mounting hole."
+    },
+    "LugSpacing": {
+      "default": 1.5,
+      "type": "dimension",
+      "unit": "in",
+      "min": 0.5,
+      "max": null,
+      "dynamicMax": "ShellHeight - LugTopDist - LugHoleDiam",
+      "label": "Lug spacing",
+      "description": "Vertical spacing between lug mounting holes."
+    },
+    "LapSizePercent": {
+      "default": 20,
+      "type": "number",
+      "min": 0,
+      "max": 49,
+      "label": "Lap size (%)",
+      "description": "Size of the lap joint as a percentage of the shell piece angle."
+    },
+    "LugHoleDiam": {
+      "default": 0.25,
+      "type": "dimension",
+      "unit": "in",
+      "min": 0.1,
+      "max": 0.5,
+      "label": "Lug hole diameter",
+      "description": "Diameter of the holes for mounting tension lugs to the shell."
+    }
+  }
+}

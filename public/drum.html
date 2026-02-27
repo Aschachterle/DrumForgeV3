@@ -4,521 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="/images/logo.png">
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/drum.css">
     <title>Parametric Drum - Extrudo</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: "IBM Plex Sans", "Space Grotesk", "Segoe UI", sans-serif;
-            background-color: #f6f6f6;
-            background-image:
-                linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
-            background-size: 24px 24px;
-            min-height: 100vh;
-            padding: 0 32px 32px;
-            color: #0a0a0a;
-            opacity: 0;
-            transition: opacity 0.3s ease-in-out;
-        }
-
-        body.loaded {
-            opacity: 1;
-        }
-
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-            min-height: 50px; /* Prevent layout shift */
-        }
-
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            color: #0a0a0a;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 600;
-            padding: 8px 16px;
-            border: 1px solid #e2e2e2;
-            border-radius: 8px;
-            background: #ffffff;
-            transition: all 0.2s ease;
-        }
-
-        .back-link:hover {
-            background: #f3f3f3;
-            border-color: #0a0a0a;
-        }
-
-        .header-logo {
-            width: min(140px, 32vw);
-            height: auto;
-            min-height: 40px; /* Reserve space while loading */
-            margin: 0;
-            display: block;
-            object-fit: contain;
-            border: none;
-            border-radius: 0;
-            padding: 0;
-            background: transparent;
-        }
-
-        .description {
-            color: #4c4c4c;
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
-
-        .layout {
-            display: grid;
-            grid-template-columns: minmax(320px, 1fr) minmax(320px, 1fr);
-            gap: 24px;
-        }
-
-        .panel {
-            background: #ffffff;
-            border: 1px solid #e2e2e2;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
-        }
-
-        .panel-header {
-            font-size: 13px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: #6b6b6b;
-            margin-bottom: 20px;
-        }
-
-        .section {
-            margin-bottom: 26px;
-        }
-
-        .section-title {
-            font-size: 15px;
-            font-weight: 600;
-            color: #0a0a0a;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .section-icon {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            border: 1px solid #0a0a0a;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: #0a0a0a;
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        .upload-area {
-            border: 2px dashed #667eea;
-            border-radius: 8px;
-            padding: 30px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: #f8f9ff;
-        }
-
-        .upload-area:hover {
-            background: #f0f2ff;
-            border-color: #764ba2;
-        }
-
-        .upload-area.dragover {
-            background: #e8ebff;
-            border-color: #764ba2;
-        }
-
-        .upload-area input[type="file"] {
-            display: none;
-        }
-
-        .upload-icon {
-            font-size: 40px;
-            margin-bottom: 10px;
-        }
-
-        .upload-text {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-
-        .upload-hint {
-            color: #999;
-            font-size: 12px;
-        }
-
-        .file-info {
-            background: #f0f0f0;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-            display: none;
-        }
-
-        .file-info.show {
-            display: block;
-        }
-
-        .file-info-text {
-            color: #333;
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
-
-        .file-name {
-            font-weight: 600;
-            color: #667eea;
-            word-break: break-all;
-        }
-
-        .parameters-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-            min-height: 320px; /* Prevent layout shift while JS loads parameters */
-        }
-
-        .parameter-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .parameter-group label {
-            font-size: 12px;
-            font-weight: 600;
-            color: #1c1c1c;
-            margin-bottom: 6px;
-            cursor: help;
-            display: inline-block;
-            transition: color 0.2s ease;
-        }
-
-        .parameter-group label:hover {
-            color: #0a0a0a;
-            text-decoration: underline;
-            text-decoration-style: dotted;
-            text-underline-offset: 3px;
-        }
-
-        .parameter-group input {
-            padding: 10px 12px;
-            border: 1px solid #d6d6d6;
-            border-radius: 8px;
-            font-size: 13px;
-            font-family: "IBM Plex Mono", "Menlo", monospace;
-            transition: border-color 0.2s ease;
-            cursor: help;
-        }
-
-        .parameter-group input:focus {
-            outline: none;
-            border-color: #0a0a0a;
-            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
-        }
-
-        .input-with-unit {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .input-with-unit input {
-            flex: 1;
-        }
-
-        .unit-suffix {
-            font-size: 13px;
-            font-family: "IBM Plex Mono", "Menlo", monospace;
-            color: #5a5a5a;
-            min-width: 28px;
-        }
-
-        .parameter-note {
-            font-size: 11px;
-            color: #7a7a7a;
-            margin-top: 4px;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        button {
-            flex: 1;
-            padding: 12px 20px;
-            border: 1px solid #0a0a0a;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            background: #0a0a0a;
-            color: #ffffff;
-        }
-
-        .btn-submit:hover:not(:disabled) {
-            transform: translateY(-1px);
-        }
-
-        .btn-submit:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .btn-submit.loading,
-        .btn-secondary.loading {
-            position: relative;
-            color: transparent;
-            pointer-events: none;
-        }
-
-        .btn-submit.loading::after,
-        .btn-secondary.loading::after {
-            content: '';
-            position: absolute;
-            width: 16px;
-            height: 16px;
-            top: 50%;
-            left: 50%;
-            margin-left: -8px;
-            margin-top: -8px;
-            border: 2px solid transparent;
-            border-top-color: currentColor;
-            border-radius: 50%;
-            animation: spin 0.6s linear infinite;
-        }
-
-        .btn-submit.loading::after {
-            border-top-color: #ffffff;
-        }
-
-        .btn-secondary.loading::after {
-            border-top-color: #0a0a0a;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .btn-secondary {
-            background: #ffffff;
-            color: #0a0a0a;
-        }
-
-        .btn-secondary:hover {
-            background: #f0f0f0;
-        }
-
-        .status {
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            display: none;
-            font-size: 14px;
-        }
-
-        .status.show {
-            display: block;
-        }
-
-        .status.pending {
-            background: #f3f3f3;
-            border-left: 4px solid #0a0a0a;
-            color: #2a2a2a;
-        }
-
-        .status.success {
-            background: #f3f3f3;
-            border-left: 4px solid #0a0a0a;
-            color: #1a1a1a;
-        }
-
-        .status.error {
-            background: #f3f3f3;
-            border-left: 4px solid #0a0a0a;
-            color: #1a1a1a;
-        }
-
-        .status-text {
-            margin-bottom: 10px;
-        }
-
-        .status-id {
-            font-family: monospace;
-            font-size: 12px;
-            background: rgba(0, 0, 0, 0.1);
-            padding: 5px 10px;
-            border-radius: 4px;
-            word-break: break-all;
-        }
-
-        .spinner {
-            display: inline-block;
-            width: 14px;
-            height: 14px;
-            border: 2px solid rgba(0, 0, 0, 0.12);
-            border-top-color: #0a0a0a;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .progress {
-            margin-top: 15px;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: #0a0a0a;
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        .info-box {
-            background: #f3f3f3;
-            border-left: 4px solid #0a0a0a;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            color: #2a2a2a;
-            margin-top: 15px;
-        }
-
-        .preview-frame {
-            background: #f8f8f8;
-            border: 1px solid #e2e2e2;
-            border-radius: 12px;
-            padding: 16px;
-            min-height: 320px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .preview-frame img {
-            width: 100%;
-            height: 100%;
-            max-width: none;
-            max-height: none;
-            object-fit: contain;
-            border-radius: 8px;
-            border: 1px solid #d6d6d6;
-            display: none;
-            background: #ffffff;
-        }
-
-        .preview-frame.has-image img {
-            display: block;
-        }
-
-        .preview-empty {
-            font-size: 13px;
-            color: #6b6b6b;
-            text-align: center;
-            max-width: 220px;
-        }
-
-        .preview-actions {
-            margin-top: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            flex-wrap: wrap;
-            gap: 8px 12px;
-            font-size: 12px;
-            color: #6b6b6b;
-        }
-
-        .preview-actions span {
-            flex: 1 1 220px;
-            line-height: 1.4;
-        }
-
-        .preview-link {
-            color: #0a0a0a;
-            text-decoration: none;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        .preview-link:hover {
-            text-decoration: underline;
-        }
-
-        @media (max-width: 900px) {
-            .layout {
-                grid-template-columns: 1fr;
-            }
-
-            .header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-        }
-
-        @media (max-width: 600px) {
-            body {
-                padding: 20px;
-            }
-
-            .parameters-grid {
-                grid-template-columns: 1fr;
-                min-height: 640px; /* Taller for single column layout */
-            }
-
-            .button-group {
-                flex-direction: column;
-            }
-        }
-    </style>
 </head>
 <body>
     <div class="container">
@@ -550,6 +38,9 @@
                     <div class="section-title">
                         <div class="section-icon">2</div>
                         Process Your Drum
+                    </div>
+                    <div class="validation-summary" id="validationSummary">
+                        Please fix the highlighted parameters before generating.
                     </div>
                     <div class="button-group">
                         <button class="btn-submit" id="submitBtn">
@@ -587,6 +78,33 @@
                     <span>Preview updates as you adjust parameters.</span>
                     <a id="previewLink" class="preview-link" href="#" target="_blank" rel="noopener" style="display:none;">Open full size</a>
                 </div>
+            </div>
+        </div>
+
+        <!-- Example Gallery Section -->
+        <div class="gallery-section">
+            <div class="gallery-header">
+                <h2>What You'll Get</h2>
+                <p>See examples of generated drum shells and what they look like printed.</p>
+            </div>
+            <div class="gallery-grid">
+                <div class="gallery-item">
+                    <img src="/images/gallery/fusion-preview.png" alt="Fusion 360 model preview">
+                    <div class="gallery-caption">
+                        <strong>Fusion 360 Output</strong>
+                        <span>The parametric model ready for export</span>
+                    </div>
+                </div>
+                <!-- Future gallery items for 3D printed examples -->
+                <!--
+                <div class="gallery-item">
+                    <img src="/images/gallery/print-example-1.jpg" alt="3D printed drum shell">
+                    <div class="gallery-caption">
+                        <strong>3D Printed Shell</strong>
+                        <span>PLA, 0.2mm layer height</span>
+                    </div>
+                </div>
+                -->
             </div>
         </div>
     </div>
@@ -684,45 +202,142 @@
             livePreviewDebounce = setTimeout(updateLivePreview, 150);
         }
 
+        // Get current parameter values as numbers
+        function getCurrentValues() {
+            const values = {};
+            for (const key of Object.keys(config.parameters)) {
+                const input = document.getElementById(key);
+                if (input) {
+                    values[key] = parseFloat(input.value) || 0;
+                }
+            }
+            return values;
+        }
+
+        // Calculate dynamic max constraints
+        function getDynamicMax(key, values) {
+            const param = config.parameters[key];
+            if (!param) return null;
+            
+            // Dynamic constraints for lug positioning
+            if (key === 'LugTopDist') {
+                // Top hole center must allow: top hole radius fits, and bottom hole fits
+                // LugTopDist + LugSpacing + LugHoleDiam/2 <= ShellHeight
+                // So LugTopDist <= ShellHeight - LugSpacing - LugHoleDiam/2
+                const maxVal = values.ShellHeight - values.LugSpacing - (values.LugHoleDiam / 2);
+                return Math.max(0.5, maxVal);
+            }
+            
+            if (key === 'LugSpacing') {
+                // LugTopDist + LugSpacing + LugHoleDiam/2 <= ShellHeight
+                // So LugSpacing <= ShellHeight - LugTopDist - LugHoleDiam/2
+                const maxVal = values.ShellHeight - values.LugTopDist - (values.LugHoleDiam / 2);
+                return Math.max(0.5, maxVal);
+            }
+            
+            return param.max;
+        }
+
+        // Validate all parameters
+        function validateParameters() {
+            const values = getCurrentValues();
+            const errors = {};
+            let isValid = true;
+
+            for (const [key, param] of Object.entries(config.parameters)) {
+                const value = values[key];
+                const min = param.min;
+                const max = getDynamicMax(key, values) ?? param.max;
+                
+                let error = null;
+                
+                if (isNaN(value) || value === '') {
+                    error = 'Please enter a valid number';
+                } else if (min !== null && min !== undefined && value < min) {
+                    const unit = param.unit || '';
+                    error = `Minimum is ${min}${unit ? ' ' + unit : ''}`;
+                } else if (max !== null && max !== undefined && value > max) {
+                    const unit = param.unit || '';
+                    error = `Maximum is ${max.toFixed(2)}${unit ? ' ' + unit : ''}`;
+                }
+                
+                // Update UI for this parameter
+                const group = document.getElementById(key)?.closest('.parameter-group');
+                const errorDiv = group?.querySelector('.parameter-error');
+                const rangeSpan = group?.querySelector('.dynamic-range');
+                
+                // Update dynamic range display
+                if (rangeSpan && param.dynamicMax) {
+                    const unit = param.unit || '';
+                    rangeSpan.textContent = `${param.min}–${max.toFixed(1)}${unit ? ' ' + unit : ''}`;
+                }
+                
+                if (error) {
+                    errors[key] = error;
+                    isValid = false;
+                    group?.classList.add('invalid');
+                    if (errorDiv) errorDiv.textContent = error;
+                } else {
+                    group?.classList.remove('invalid');
+                }
+            }
+            
+            // Update validation summary and submit button
+            const validationSummary = document.getElementById('validationSummary');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (isValid) {
+                validationSummary?.classList.remove('show');
+                submitBtn.disabled = false;
+            } else {
+                validationSummary?.classList.add('show');
+                submitBtn.disabled = true;
+            }
+            
+            return isValid;
+        }
+
         function renderParameters() {
             const grid = document.getElementById('parametersGrid');
             grid.innerHTML = '';
 
-            const labelMap = {
-                NumSegments: 'Number of Pieces',
-                ShellThick: 'Shell thickness',
-                ShellHeight: 'Shell height',
-                ShellDiam: 'Shell diameter',
-                LugTopDist: 'Lug offset from top',
-                LugSpacing: 'Lug spacing',
-                LapSizePercent: 'Lap size (%)',
-                LugHoleDiam: 'Lug hole diameter'
-            };
-
-            const descriptionMap = {
-                NumSegments: 'Number of pieces you will need to print and assemble to create the full drum shell. More segments can allow for larger drums on smaller printers, but may require more assembly.',
-                ShellThick: 'Thickness of the drum shell wall.',
-                ShellHeight: 'Total height of the drum shell from bottom to the peak of the bearing edge.',
-                ShellDiam: 'Outer diameter of the drum shell, determining the overall size.',
-                LugTopDist: 'Distance from the peak of the bearing edge to the center of the first lug mounting hole.',
-                LugSpacing: 'Vertical spacing between lug mounting holes. This will determine the what type of size lugs you need to use.',
-                LapSizePercent: 'Size of the lap joint as a percetage of the shell piece angle (e.g. 25% means the lap joint will cover 1/4 of the shell piece).',
-                LugHoleDiam: 'Diameter of the holes for mounting tension lugs to the shell.'
-            };
-
             for (const [key, param] of Object.entries(config.parameters)) {
                 const group = document.createElement('div');
                 group.className = 'parameter-group';
-                const label = labelMap[key] || key;
-                const description = descriptionMap[key] || '';
+                const label = param.label || key;
+                const description = param.description || '';
                 
                 // Determine input type and formatting based on parameter type
                 const isNumeric = param.type === 'number' || param.type === 'dimension';
                 const unitSuffix = param.unit ? `<span class="unit-suffix">${param.unit}</span>` : '';
                 const defaultDisplay = param.unit ? `${param.default} ${param.unit}` : param.default;
                 
+                // Build range note
+                let rangeNote = '';
+                if (param.min !== null && param.min !== undefined && param.max !== null && param.max !== undefined) {
+                    const unit = param.unit || '';
+                    rangeNote = ` (${param.min}–${param.max}${unit ? ' ' + unit : ''})`;
+                } else if (param.min !== null && param.min !== undefined) {
+                    const unit = param.unit || '';
+                    rangeNote = ` (min: ${param.min}${unit ? ' ' + unit : ''})`;
+                } else if (param.max !== null && param.max !== undefined) {
+                    const unit = param.unit || '';
+                    rangeNote = ` (max: ${param.max}${unit ? ' ' + unit : ''})`;
+                }
+                // For dynamic constraints, calculate initial max and show it
+                if (param.dynamicMax) {
+                    const unit = param.unit || '';
+                    // Calculate initial max using defaults
+                    const defaults = {};
+                    for (const [k, p] of Object.entries(config.parameters)) {
+                        defaults[k] = p.default;
+                    }
+                    const initialMax = getDynamicMax(key, defaults);
+                    rangeNote = ` (<span class="dynamic-range">${param.min}–${initialMax.toFixed(1)}${unit ? ' ' + unit : ''}</span>)`;
+                }
+                
                 group.innerHTML = `
-                    <label for="${key}" title="${description}">${label}</label>
+                    <label data-description="${description}">${label}<span class="label-tooltip">${description}</span></label>
                     <div class="input-with-unit">
                         <input 
                             type="text"
@@ -730,11 +345,11 @@
                             id="${key}" 
                             value="${param.default}"
                             placeholder="${param.default}"
-                            title="${description}"
                         >
                         ${unitSuffix}
                     </div>
-                    <div class="parameter-note">Default: ${defaultDisplay}</div>
+                    <div class="parameter-note">Default: ${defaultDisplay}${rangeNote}</div>
+                    <div class="parameter-error"></div>
                 `;
                 grid.appendChild(group);
 
@@ -754,9 +369,41 @@
                     });
                 }
                 
-                input.addEventListener('input', debouncedUpdatePreview);
-                input.addEventListener('change', debouncedUpdatePreview);
+                input.addEventListener('input', () => {
+                    debouncedUpdatePreview();
+                    validateParameters();
+                });
+                input.addEventListener('change', () => {
+                    debouncedUpdatePreview();
+                    validateParameters();
+                });
+                
+                // Label click to show tooltip
+                const labelEl = group.querySelector('label');
+                const tooltip = group.querySelector('.label-tooltip');
+                if (labelEl && tooltip) {
+                    labelEl.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        // Hide all other tooltips first
+                        document.querySelectorAll('.label-tooltip.show').forEach(t => {
+                            if (t !== tooltip) t.classList.remove('show');
+                        });
+                        tooltip.classList.toggle('show');
+                    });
+                }
             }
+            
+            // Close tooltips when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('label')) {
+                    document.querySelectorAll('.label-tooltip.show').forEach(t => {
+                        t.classList.remove('show');
+                    });
+                }
+            });
+            
+            // Initial validation
+            validateParameters();
         }
 
         function setupEventListeners() {
@@ -968,7 +615,7 @@
 
                 // Get filename from response header or use default
                 const contentDisposition = response.headers.get('content-disposition');
-                let filename = 'modified_drum.f3d';
+                let filename = 'modified_drum.stl';
                 if (contentDisposition) {
                     const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
                     if (filenameMatch) filename = filenameMatch[1];

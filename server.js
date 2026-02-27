@@ -317,7 +317,7 @@ app.get('/api/download/:id', async (req, res) => {
     }
 
     // Download file from OSS to temp location
-    const outputPath = path.join(__dirname, 'output', `result_${jobId}.f3d`);
+    const outputPath = path.join(__dirname, 'output', `result_${jobId}.stl`);
     await apiClient.downloadModifiedFile(
       metadata.bucketKey,
       metadata.outputObjectKey,
@@ -325,7 +325,7 @@ app.get('/api/download/:id', async (req, res) => {
     );
 
     // Send file to client
-    res.download(outputPath, 'modified_drum.f3d', (err) => {
+    res.download(outputPath, 'modified_drum.stl', (err) => {
       if (err) {
         console.error('Error sending file:', err);
       }
@@ -391,19 +391,14 @@ app.get('/api/preview/:id', (req, res) => {
  * GET /api/config - Get UI configuration
  */
 app.get('/api/config', (req, res) => {
-  res.json({
-    activity: 'drumforge_app.DrumModifierActivity+current',
-    parameters: {
-      NumSegments: { default: 2, type: 'number' },
-      ShellThick: { default: 6, type: 'dimension', unit: 'mm' },
-      ShellHeight: { default: 6, type: 'dimension', unit: 'in' },
-      ShellDiam: { default: 12, type: 'dimension', unit: 'in' },
-      LugTopDist: { default: 2, type: 'dimension', unit: 'in' },
-      LugSpacing: { default: 2, type: 'dimension', unit: 'in' },
-      LapSizePercent: { default: 22, type: 'number' },
-      LugHoleDiam: { default: 0.25, type: 'dimension', unit: 'in' }
-    }
-  });
+  try {
+    const configPath = path.join(__dirname, 'config', 'parameters.json');
+    const configData = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+    res.json(configData);
+  } catch (error) {
+    console.error('Error reading config:', error);
+    res.status(500).json({ error: 'Failed to load configuration' });
+  }
 });
 
 /**
