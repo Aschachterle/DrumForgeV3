@@ -86,6 +86,80 @@ const saveJobMetadata = () => {
 
 loadJobMetadata();
 
+// Cleanup old jobs (older than MAX_JOB_AGE_DAYS) from metadata and OSS
+const MAX_JOB_AGE_DAYS = 7;
+
+const cleanupOldJobs = async () => {
+  if (!apiClient) {
+    console.log('⚠️ API client not available, skipping cleanup');
+    return;
+  }
+
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - MAX_JOB_AGE_DAYS);
+  
+  const jobsToDelete = [];
+  for (const [jobId, metadata] of jobMetadata.entries()) {
+    const submittedAt = new Date(metadata.submittedAt);
+    if (submittedAt < cutoffDate) {
+      jobsToDelete.push({ jobId, metadata });
+    }
+  }
+
+  if (jobsToDelete.length === 0) {
+    log(`✓ No jobs older than ${MAX_JOB_AGE_DAYS} days to clean up`);
+    return;
+  }
+
+  log(`🧹 Cleaning up ${jobsToDelete.length} jobs older than ${MAX_JOB_AGE_DAYS} days...`);
+  
+  let ossDeleted = 0;
+  let ossFailed = 0;
+  
+  for (const { jobId, metadata } of jobsToDelete) {
+    try {
+      // Delete input and output files from OSS
+      const objectsToDelete = [metadata.inputObjectKey, metadata.outputObjectKey].filter(Boolean);
+      if (objectsToDelete.length > 0 && metadata.bucketKey) {
+        const result = await apiClient.deleteObjectsFromOSS(metadata.bucketKey, objectsToDelete);
+        ossDeleted += result.deleted;
+        ossFailed += result.failed;
+      }
+      
+      // Remove from local metadata
+      jobMetadata.delete(jobId);
+    } catch (error) {
+      logError(`Failed to cleanup job ${jobId}`, error);
+    }
+  }
+  
+  saveJobMetadata();
+  log(`✓ Cleanup complete: ${jobsToDelete.length} jobs removed, ${ossDeleted} OSS objects deleted, ${ossFailed} failed`);
+};
+
+// Helper to delete a single job's OSS files and metadata
+const deleteJobData = async (jobId) => {
+  const metadata = jobMetadata.get(jobId);
+  if (!metadata) return;
+
+  try {
+    if (apiClient && metadata.bucketKey) {
+      const objectsToDelete = [metadata.inputObjectKey, metadata.outputObjectKey].filter(Boolean);
+      if (objectsToDelete.length > 0) {
+        await apiClient.deleteObjectsFromOSS(metadata.bucketKey, objectsToDelete);
+      }
+    }
+    jobMetadata.delete(jobId);
+    saveJobMetadata();
+    log(`✓ Cleaned up job ${jobId}`);
+  } catch (error) {
+    logError(`Failed to delete job data for ${jobId}`, error);
+  }
+};
+
+// Run cleanup on startup (async, don't block server start)
+setTimeout(() => cleanupOldJobs(), 5000);
+
 const getJobParameters = (jobId) => {
   if (mockJobs.has(jobId)) {
     return mockJobs.get(jobId).parameters;
@@ -331,6 +405,9 @@ app.get('/api/download/:id', async (req, res) => {
       }
       // Clean up temp file
       fs.unlinkSync(outputPath);
+      
+      // Clean up job data from OSS and metadata after successful download
+      deleteJobData(jobId);
     });
   } catch (error) {
     logError('Error downloading file', error);

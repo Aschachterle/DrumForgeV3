@@ -1154,6 +1154,55 @@ class AutodeskAPIClient {
       throw error;
     }
   }
+
+  /**
+   * Delete object from OSS
+   * @param {string} bucketKey - OSS bucket key
+   * @param {string} objectKey - Object key to delete
+   */
+  async deleteObjectFromOSS(bucketKey, objectKey) {
+    try {
+      const accessToken = await this.getAccessToken();
+      const encodedObjectKey = encodeURIComponent(objectKey);
+      
+      await axios.delete(
+        `${this.baseUrl}/oss/v2/buckets/${bucketKey}/objects/${encodedObjectKey}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
+        }
+      );
+      console.log(`   ✓ Deleted from OSS: ${objectKey}`);
+      return true;
+    } catch (error) {
+      // 404 means already deleted, which is fine
+      if (error.response?.status === 404) {
+        console.log(`   Object already deleted: ${objectKey}`);
+        return true;
+      }
+      console.error('Failed to delete from OSS:', error.response?.data || error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete multiple objects from OSS (for cleanup)
+   * @param {string} bucketKey - OSS bucket key
+   * @param {string[]} objectKeys - Array of object keys to delete
+   */
+  async deleteObjectsFromOSS(bucketKey, objectKeys) {
+    const results = { deleted: 0, failed: 0 };
+    for (const objectKey of objectKeys) {
+      try {
+        await this.deleteObjectFromOSS(bucketKey, objectKey);
+        results.deleted++;
+      } catch (error) {
+        results.failed++;
+      }
+    }
+    return results;
+  }
 }
 
 export default AutodeskAPIClient;
