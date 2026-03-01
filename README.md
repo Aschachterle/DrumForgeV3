@@ -177,6 +177,14 @@ curl -X POST http://localhost:3000/api/setup/deploy
 
 See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for more issues.
 
+## Maintenance
+
+See [MAINTENANCE.md](MAINTENANCE.md) for:
+- Adding new parameters to the drum model
+- Understanding the deploy process
+- Cleanup tasks
+- Updating the base F3D model
+
 ## License
 
 MIT

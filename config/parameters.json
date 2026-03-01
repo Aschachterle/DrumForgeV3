@@ -4,13 +4,14 @@
     "NumSegments": {
       "default": 3,
       "type": "number",
+      "unit": "pc",
       "min": 2,
       "max": 7,
       "label": "Number of Pieces",
       "description": "Number of pieces you will need to print and assemble to create the full drum shell."
     },
     "ShellThick": {
-      "default": 5.5,
+      "default": 6,
       "type": "dimension",
       "unit": "mm",
       "min": 3,
@@ -28,7 +29,7 @@
       "description": "Total height of the drum shell from bottom to the peak of the bearing edge."
     },
     "ShellDiam": {
-      "default": 8,
+      "default": 10,
       "type": "dimension",
       "unit": "in",
       "min": 6,
@@ -42,7 +43,7 @@
       "unit": "in",
       "min": 0.5,
       "max": null,
-      "dynamicMax": "ShellHeight - LugSpacing - LugHoleDiam",
+      "dynamicMax": "ShellHeight - LugSpacing - LugHoleDiam/2 - 0.5",
       "label": "Lug offset from top",
       "description": "Distance from the peak of the bearing edge to the center of the first lug mounting hole."
     },
@@ -52,7 +53,7 @@
       "unit": "in",
       "min": 0.5,
       "max": null,
-      "dynamicMax": "ShellHeight - LugTopDist - LugHoleDiam",
+      "dynamicMax": "ShellHeight - LugTopDist - LugHoleDiam/2 - 0.5",
       "label": "Lug spacing",
       "description": "Vertical spacing between lug mounting holes."
     },
@@ -72,6 +73,17 @@
       "max": 0.5,
       "label": "Lug hole diameter",
       "description": "Diameter of the holes for mounting tension lugs to the shell."
+    },
+    "OutputHoleDiam": {
+      "default": 0.375,
+      "type": "dimension",
+      "unit": "in",
+      "min": 0.125,
+      "max": 0.5,
+      "label": "Stereo output jack",
+      "description": "Diameter of the hole for the output jack. Uncheck to remove the hole.",
+      "toggleable": true,
+      "disabledValue": 0.001
     }
   }
 }

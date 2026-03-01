@@ -1,6 +1,6 @@
 /**
  * SVG Preview Generation for Drum Shell
- * Simple 2D views: Top and Side
+ * Simple 2D views: Top, Side, and Piezo Sensor Platform
  */
 
 /**
@@ -21,7 +21,7 @@ export const parseDimension = (value, defaultVal = 0) => {
 };
 
 /**
- * Build SVG preview with Top and Side views
+ * Build SVG preview with Top, Side, and Piezo Sensor Platform views
  * @param {Object} parameters - Drum configuration parameters
  * @returns {string} SVG markup
  */
@@ -38,6 +38,8 @@ export const buildPreviewSvg = (parameters) => {
   const lugSpace = parseDimension(p.LugSpacing, 2);
   const lapPct = parseFloat(p.LapSizePercent) || 22;
   const lugDiam = parseDimension(p.LugHoleDiam, 0.25);
+  const outputHoleDiam = parseDimension(p.OutputHoleDiam, 0.375);
+  const outputHoleEnabled = outputHoleDiam > 0.01; // Disabled value is 0.001
 
   // Scale: 8px per inch for tighter fit, clamped for display
   const scale = 8;
@@ -51,25 +53,68 @@ export const buildPreviewSvg = (parameters) => {
   const thickPx = Math.max(2, thick * scale);
   const lugR = Math.max(2, (lugDiam * scale) / 2);
 
-  // Tighter layout
+  // Tighter layout - all views stacked vertically
   const padding = 50;
   const leftMargin = 55; // Extra space for left dimension labels
   const topCx = leftMargin + topRadius;
   const topCy = padding + topRadius;
   const sideX = leftMargin;
   const sideY = padding + topRadius * 2 + 75;
+  
+  // Platform view position (below side view)
+  const platformCx = topCx;
+  const platformCy = sideY + sideHeight + 100 + topRadius;
 
-  const svgWidth = leftMargin + Math.max(topRadius * 2, sideWidth) + 50;
-  const svgHeight = sideY + sideHeight + 75; // Space for thickness dimension below
+  const svgWidth = topCx + topRadius + 60;
+  const svgHeight = platformCy + topRadius + 50; // Space for platform label below
 
   // Clamp visual thickness to max 1/4 of radius for reasonable display
   const visualThickPx = Math.min(thickPx, topRadius / 4);
+  const innerRadius = topRadius - visualThickPx;
+  
+  // Platform calculations
+  const centerCircleMm = 37;
+  const centerCircleInches = centerCircleMm / 25.4;
+  const centerCircleRadiusPx = (centerCircleInches / 2) * scale;
+  
+  // Arc angles for platform (formulas from user)
+  // Outer arc angle: (360 * 2) / (PI * ShellDiam)
+  const platformOuterArcDeg = (360 * 2) / (Math.PI * diam);
+  // Inner connection angle: (360 * 6) / (PI * ShellDiam)
+  const platformInnerArcDeg = (360 * 6) / (Math.PI * diam);
+  
+  // Platform wedge centered at top (90 degrees = pointing up)
+  const platformCenterAngle = -90; // Center the platform at top
+  const outerStartAngle = platformCenterAngle - platformOuterArcDeg / 2;
+  const outerEndAngle = platformCenterAngle + platformOuterArcDeg / 2;
+  const innerStartAngle = platformCenterAngle - platformInnerArcDeg / 2;
+  const innerEndAngle = platformCenterAngle + platformInnerArcDeg / 2;
+  
+  // Convert to radians
+  const outerStartRad = (outerStartAngle * Math.PI) / 180;
+  const outerEndRad = (outerEndAngle * Math.PI) / 180;
+  const innerStartRad = (innerStartAngle * Math.PI) / 180;
+  const innerEndRad = (innerEndAngle * Math.PI) / 180;
+  
+  // Platform points (using inner drum radius for outer edge)
+  const platformOuterRadius = innerRadius;
+  const pOuterStartX = platformCx + platformOuterRadius * Math.cos(outerStartRad);
+  const pOuterStartY = platformCy + platformOuterRadius * Math.sin(outerStartRad);
+  const pOuterEndX = platformCx + platformOuterRadius * Math.cos(outerEndRad);
+  const pOuterEndY = platformCy + platformOuterRadius * Math.sin(outerEndRad);
+  
+  const pInnerStartX = platformCx + centerCircleRadiusPx * Math.cos(innerStartRad);
+  const pInnerStartY = platformCy + centerCircleRadiusPx * Math.sin(innerStartRad);
+  const pInnerEndX = platformCx + centerCircleRadiusPx * Math.cos(innerEndRad);
+  const pInnerEndY = platformCy + centerCircleRadiusPx * Math.sin(innerEndRad);
+  
+  // Platform path: outer arc -> line to inner -> inner arc -> line back
+  const platformPath = `M${pOuterStartX},${pOuterStartY} A${platformOuterRadius},${platformOuterRadius} 0 0,1 ${pOuterEndX},${pOuterEndY} L${pInnerEndX},${pInnerEndY} A${centerCircleRadiusPx},${centerCircleRadiusPx} 0 0,0 ${pInnerStartX},${pInnerStartY} Z`;
   
   // Top view: pie slices, cut lines and lap joints
   let topPieSlices = '';
   let topCutLines = '';
   const segAngle = 360 / segments;
-  const innerRadius = topRadius - visualThickPx;
   const midRadius = topRadius - visualThickPx / 2; // Middle of shell thickness
   
   // Calculate lap arc angle
@@ -106,33 +151,38 @@ export const buildPreviewSvg = (parameters) => {
     const angle = i * segAngle;
     const angleRad = (angle * Math.PI) / 180;
     
-    // Cut line extends from outer to inner radius (dotted)
+    // Cut line extends from outer to inner radius
     const outerX = topCx + topRadius * Math.cos(angleRad);
     const outerY = topCy + topRadius * Math.sin(angleRad);
     const innerX = topCx + innerRadius * Math.cos(angleRad);
     const innerY = topCy + innerRadius * Math.sin(angleRad);
+    const midX = topCx + midRadius * Math.cos(angleRad);
+    const midY = topCy + midRadius * Math.sin(angleRad);
     
-    // One segment showing the cut through the shell thickness
-    topCutLines += `<line x1="${outerX}" y1="${outerY}" x2="${innerX}" y2="${innerY}" stroke="#333" stroke-width="0" stroke-dasharray="2,3"/>`;
+
     
-    // Lap joint arc - curved line showing overlap region through middle of shell
-    const lapStartAngle = angle;
+    // Lap joint step visualization - showing where shell becomes half thickness
     const lapEndAngle = angle - lapAngleDeg;
-    const lapStartRad = (lapStartAngle * Math.PI) / 180;
     const lapEndRad = (lapEndAngle * Math.PI) / 180;
     
-    const lapStartX = topCx + midRadius * Math.cos(lapStartRad);
-    const lapStartY = topCy + midRadius * Math.sin(lapStartRad);
-    const lapEndX = topCx + midRadius * Math.cos(lapEndRad);
-    const lapEndY = topCy + midRadius * Math.sin(lapEndRad);
+    const lapEndMidX = topCx + midRadius * Math.cos(lapEndRad);
+    const lapEndMidY = topCy + midRadius * Math.sin(lapEndRad);
+    const lapEndInnerX = topCx + innerRadius * Math.cos(lapEndRad);
+    const lapEndInnerY = topCy + innerRadius * Math.sin(lapEndRad);
     
-    // Lap arc with lighter color and different dash pattern to distinguish from cuts
-    topCutLines += `<path d="M${lapStartX},${lapStartY} A${midRadius},${midRadius} 0 0,0 ${lapEndX},${lapEndY}" fill="none" stroke="#3889fb" stroke-width="1" stroke-dasharray="1,1"/>`;
+    // Half-thickness cut line (from outer to mid at the boundary)
+    topCutLines += `<line x1="${outerX}" y1="${outerY}" x2="${midX}" y2="${midY}" stroke="#3889fb" stroke-width=".5"/>`;
+    // Arc at midRadius showing the step edge
+    topCutLines += `<path d="M${midX},${midY} A${midRadius},${midRadius} 0 0,0 ${lapEndMidX},${lapEndMidY}" fill="none" stroke="#3889fb" stroke-width=".5"/>`;
+    // Radial line at lap end (from mid to inner)
+    topCutLines += `<line x1="${lapEndMidX}" y1="${lapEndMidY}" x2="${lapEndInnerX}" y2="${lapEndInnerY}" stroke="#3889fb" stroke-width=".5"/>`;
   }
 
-  // Side view: lug hole positions
-  const lugTopPx = Math.min(lugTop * scale, sideHeight - 10);
-  const lugBottomPx = Math.min(lugTopPx + lugSpace * scale, sideHeight - 10);
+  // Side view: lug hole positions - ensure minimum spacing of lug hole diameter
+  const minLugSpacingPx = lugR * 2; // Minimum visual spacing = lug diameter
+  const lugTopPx = Math.min(lugTop * scale, sideHeight - minLugSpacingPx - lugR);
+  const rawLugBottomPx = lugTopPx + lugSpace * scale;
+  const lugBottomPx = Math.max(rawLugBottomPx, lugTopPx + minLugSpacingPx);
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}">
@@ -159,7 +209,7 @@ export const buildPreviewSvg = (parameters) => {
   <line x1="${topCx - topRadius}" y1="${topCy + topRadius + 15}" x2="${topCx + topRadius}" y2="${topCy + topRadius + 15}" stroke="#3889fb" stroke-width=".5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
   <text x="${topCx}" y="${topCy + topRadius + 28}" font-family="Arial, sans-serif" font-size="10" text-anchor="middle">⌀${diam}"</text>
   
-  <!-- Dividing line between views -->
+  <!-- Dividing line between top and side views -->
   <line x1="20" y1="${sideY - 40}" x2="${svgWidth - 20}" y2="${sideY - 40}" stroke="#e2e2e2" stroke-width="1"/>
   
   <!-- SIDE VIEW -->
@@ -212,6 +262,29 @@ export const buildPreviewSvg = (parameters) => {
   <line x1="${sideX - 18}" y1="${sideY + lugTopPx}" x2="${sideX - 18}" y2="${sideY + lugBottomPx}" stroke="#3889fb" stroke-width=".5"/>
   <line x1="${sideX - 22}" y1="${sideY + lugBottomPx}" x2="${sideX - 14}" y2="${sideY + lugBottomPx}" stroke="#3889fb" stroke-width=".5"/>
   <text x="${sideX - 28}" y="${sideY + (lugTopPx + lugBottomPx) / 2}" font-family="Arial, sans-serif" font-size="8" text-anchor="end" dominant-baseline="middle">${lugSpace}"</text>
+  
+  <!-- Dividing line between side and platform views -->
+  <line x1="20" y1="${platformCy - topRadius - 40}" x2="${svgWidth - 20}" y2="${platformCy - topRadius - 40}" stroke="#e2e2e2" stroke-width="1"/>
+  
+  <!-- PIEZO SENSOR PLATFORM -->
+  <text x="${platformCx}" y="${platformCy - topRadius - 18}" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">PIEZO SENSOR PLATFORM</text>
+  
+  <!-- Reference circle (drum inner edge) - dashed -->
+  <circle cx="${platformCx}" cy="${platformCy}" r="${platformOuterRadius}" fill="none" stroke="#ccc" stroke-width="1" stroke-dasharray="4,4"/>
+  
+  <!-- Center circle (37mm sensor mount) -->
+  <circle cx="${platformCx}" cy="${platformCy}" r="${centerCircleRadiusPx}" fill="#f5f5f5" stroke="#000" stroke-width="1"/>
+  
+  <!-- Platform wedge -->
+  <path d="${platformPath}" fill="#e8f4ff" stroke="#000" stroke-width="1"/>
+  
+  <!-- Output jack hole (when enabled) -->
+  ${outputHoleEnabled ? `
+  <circle cx="${platformCx}" cy="${platformCy - (centerCircleRadiusPx + platformOuterRadius) / 2}" r="${(outputHoleDiam * scale) / 2}" fill="#fff" stroke="#000" stroke-width="1"/>
+  ` : ''}
+  
+  <!-- Center circle size label (below circle) -->
+  <text x="${platformCx}" y="${platformCy + centerCircleRadiusPx + 12}" font-family="Arial, sans-serif" font-size="8" text-anchor="middle">${centerCircleMm}mm</text>
   
   <!-- Arrow markers -->
   <defs>

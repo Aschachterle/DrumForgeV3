@@ -54,7 +54,8 @@ try {
         LugTopDist: "2.5in",
         LugSpacing: "2.5in",
         LapSizePercent: 25,
-        LugHoleDiam: "0.3in"
+        LugHoleDiam: "0.3in",
+        OutputHoleDiam: "0.375in"
     };
 
     // Method 1: Use Fusion's adsk.parameters (official way to access WorkItem TaskParameters)
@@ -244,6 +245,21 @@ try {
             }
         } else {
             log("LugHoleDiam parameter not found");
+        }
+
+        // Update OutputHoleDiam
+        const outputHoleParam = userParams.itemByName('OutputHoleDiam');
+        if (outputHoleParam) {
+            log("BEFORE: OutputHoleDiam = " + outputHoleParam.expression);
+            try {
+                outputHoleParam.expression = paramValues.OutputHoleDiam || "0.375in";
+                for (let i = 0; i < 5; i++) adsk.doEvents();
+                log("AFTER: OutputHoleDiam = " + outputHoleParam.expression);
+            } catch (err) {
+                log("ERROR setting OutputHoleDiam: " + String(err));
+            }
+        } else {
+            log("OutputHoleDiam parameter not found");
         }
     } else {
         log("No userParameters found in design");
