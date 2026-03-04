@@ -6,7 +6,7 @@
     <link rel="icon" href="/images/logo.png">
     <link rel="stylesheet" href="/css/common.css">
     <link rel="stylesheet" href="/css/drum.css">
-    <title>Parametric Drum - Extrudo</title>
+    <title>E-Drum Modeler - Extrudo</title>
 </head>
 <body>
     <div class="container">
@@ -31,8 +31,16 @@
                     <button class="carousel-btn carousel-next" id="carouselNext">›</button>
                     <div class="carousel-dots" id="carouselDots"></div>
                 </div>
-                <div class="panel-header">Electronic Drum Forge</div>
-                <p class="description">Welcome to the Extrudo E-Drum modeler. I built this tool as a proof of concept using Fusion 360's API and Autodesk's Design Automation service. You can modify the drum parameters below to create a custom 3d printable E-drum shell along with a matching sensor platform. Once you are happy with your drum size, lug spacing, and other parameters, you can generate the final STL file for 3D printing. Currently I only have a developer license so once my API usage limits are reached it may stop processing requests until the limit resets.</p>
+                <div class="panel-header">E-Drum STL Generator</div>
+                <div class="description">
+                    <p>Welcome to the Extrudo Electronic Drum STL generator. I created this tool after realizing the retail cost of an electronic drum far exceeds the sum of its parts. Building your own is a great alternative that saves money and lets you craft a drum with a highly realistic size and appearance, completely bypassing the undersized pads major manufacturers usually offer.</p>
+                    
+                    <p>I built this tool as a proof of concept using the Fusion 360 API and Autodesk Design Automation service. You can modify the parameters below to create a fully custom 3D printable drum shell and a matching sensor platform.</p>
+                    
+                    <p><strong>Already have a shell?</strong> You can skip printing the shell entirely. If you want to use a preexisting acoustic shell, simply enter its diameter, thickness, height, and lug hole parameters. The modeler will output a custom piezo sensor platform tailored exactly to your drum—just delete the shell STL and print the sensor platform.</p>
+                    
+                    <p class="description-note">Once you're happy with your settings, generate the final STL file for 3D printing. Note: I'm currently using a developer license, so the tool may temporarily pause if API usage limits are reached.</p>
+                </div>
                 <a href="#partsList" class="parts-link">View required parts & materials ↓</a>
 
                 <!-- Parameters Section -->
@@ -167,7 +175,7 @@
                     <div class="material-icon">🔺</div>
                     <div class="material-info">
                         <strong>Foam Piezo Sensor Cone</strong>
-                        <span>Improves sensitivity and protects the piezo element from direct impact</span>
+                        <span>Transfers input from the drumhead to the piezo sensor</span>
                     </div>
                 </div>
             </div>

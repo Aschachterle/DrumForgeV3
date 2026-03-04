@@ -122,6 +122,25 @@
     color: #4c4c4c;
     font-size: 14px;
     margin-bottom: 20px;
+    line-height: 1.6;
+}
+
+.description p {
+    margin: 0 0 12px 0;
+}
+
+.description p:last-of-type {
+    margin-bottom: 0;
+}
+
+.description strong {
+    color: #0a0a0a;
+}
+
+.description-note {
+    font-size: 13px;
+    color: #6b6b6b;
+    font-style: italic;
 }
 
 .parts-link {
