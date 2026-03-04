@@ -47,6 +47,12 @@
     height: 280px;
     object-fit: cover;
     flex-shrink: 0;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.carousel-track img:hover {
+    opacity: 0.9;
 }
 
 .carousel-btn {
