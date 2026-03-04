@@ -51,7 +51,7 @@ export const buildPreviewSvg = (parameters) => {
   const sideWidth = clampedDiam * scale;
   const sideHeight = clampedHeight * scale;
   const thickPx = thick * scale;
-  const lugR = Math.max(2, (lugDiam * scale) / 2);
+  const lugR = (lugDiam * scale) / 2;
 
   // Tighter layout - all views stacked vertically
   const padding = 50;

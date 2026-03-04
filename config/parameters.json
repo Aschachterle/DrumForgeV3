@@ -69,7 +69,7 @@
       "default": 0.25,
       "type": "dimension",
       "unit": "in",
-      "min": 0.1,
+      "min": 0.125,
       "max": 0.5,
       "label": "Lug hole diameter",
       "description": "Diameter of the holes for mounting tension lugs to the shell."

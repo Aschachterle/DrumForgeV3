@@ -196,6 +196,58 @@
             <div class="lightbox-caption" id="lightboxCaption"></div>
         </div>
 
+        <!-- Print Instructions Modal -->
+        <div id="printInstructionsModal" class="instructions-modal">
+            <div class="instructions-modal-content">
+                <span class="instructions-modal-close">&times;</span>
+                <h2>🎉 Your Drum File is Ready!</h2>
+                <p class="instructions-intro">Follow these steps to prepare your model for 3D printing:</p>
+                
+                <div class="instruction-steps">
+                    <div class="print-step">
+                        <div class="print-step-number">1</div>
+                        <div class="print-step-content">
+                            <h3>Download Your File</h3>
+                            <p>Click the button below to download your custom drum STL file.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="print-step">
+                        <div class="print-step-number">2</div>
+                        <div class="print-step-content">
+                            <h3>Open in Orca Slicer</h3>
+                            <p>Open the STL file in <strong>Orca Slicer</strong> (or your preferred slicer).</p>
+                        </div>
+                    </div>
+                    
+                    <div class="print-step">
+                        <div class="print-step-number">3</div>
+                        <div class="print-step-content">
+                            <h3>Split Into Parts</h3>
+                            <p>Right-click on the model and select <strong>"Split to Parts"</strong> to separate each shell segment and the piezo platform.</p>
+                        </div>
+                    </div>
+                    
+                    
+                    <div class="print-step">
+                        <div class="print-step-number">4</div>
+                        <div class="print-step-content">
+                            <h3>Recommended Settings</h3>
+                            <p><strong>Layer height:</strong> 0.2mm<br>
+                            <strong>Shell infill:</strong> 100% or fill with walls for the fastest print<br>
+                            <strong>Platform infill:</strong> 15-20%<br>
+                            <strong>Material:</strong> PLA or PETG</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-button-group">
+                    <button class="instructions-modal-btn primary" id="modalDownloadBtn">⬇️ Download STL File</button>
+                    <button class="instructions-modal-btn secondary" id="printInstructionsOkBtn">Close</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Assembly Instructions Section (hidden until real images are added) -->
         <div class="instructions-section" style="display: none;">
             <div class="instructions-header">
@@ -375,7 +427,7 @@
             const sideWidth = clampedDiam * scale;
             const sideHeight = clampedHeight * scale;
             const thickPx = thick * scale;
-            const lugR = Math.max(2, (lugDiam * scale) / 2);
+            const lugR = (lugDiam * scale) / 2;
 
             // Layout
             const padding = 50;
@@ -1087,6 +1139,7 @@
                     document.getElementById('submitBtn').classList.remove('loading');
                     document.getElementById('downloadSection').style.display = 'block';
                     showPreview(currentJobId);
+                    showPrintInstructionsModal();
                 } else if (data.status === 'failed' || data.status === 'cancelled') {
                     showStatus(`✗ Job ${data.status}. Please try again.`, 'error');
                     document.getElementById('submitBtn').disabled = false;
@@ -1241,6 +1294,42 @@
             status.className = `status show ${type}`;
             statusText.innerHTML = message;
             progress.style.display = showProgress ? 'block' : 'none';
+        }
+
+        function showPrintInstructionsModal() {
+            const modal = document.getElementById('printInstructionsModal');
+            modal.classList.add('active');
+            
+            // Close handlers
+            const closeBtn = modal.querySelector('.instructions-modal-close');
+            const okBtn = document.getElementById('printInstructionsOkBtn');
+            const downloadBtn = document.getElementById('modalDownloadBtn');
+            
+            const closeModal = () => {
+                modal.classList.remove('active');
+            };
+            
+            closeBtn.onclick = closeModal;
+            okBtn.onclick = closeModal;
+            
+            // Download button triggers the main download handler
+            downloadBtn.onclick = () => {
+                handleDownload();
+            };
+            
+            // Close on backdrop click
+            modal.onclick = (e) => {
+                if (e.target === modal) closeModal();
+            };
+            
+            // Close on Escape key
+            const escHandler = (e) => {
+                if (e.key === 'Escape') {
+                    closeModal();
+                    document.removeEventListener('keydown', escHandler);
+                }
+            };
+            document.addEventListener('keydown', escHandler);
         }
 
         // Auto-reload when server restarts (dev mode only)
