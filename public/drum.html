@@ -19,7 +19,17 @@
 
         <div class="layout">
             <div class="panel">
-                <img class="hero-image" src="/images/gallery/printed-drum.png" alt="3D printed drum shell">
+                <div class="hero-carousel" id="heroCarousel">
+                    <div class="carousel-track" id="carouselTrack">
+                        <img src="/images/descriptionGallery/printed-drum.png" alt="3D printed drum shell">
+                        <img src="/images/descriptionGallery/fusion-preview.png" alt="Fusion 360 model preview">
+                        <img src="/images/descriptionGallery/IMG_0659.png" alt="Drum build example">
+                        <img src="/images/descriptionGallery/IMG_0660.png" alt="Drum build example">
+                    </div>
+                    <button class="carousel-btn carousel-prev" id="carouselPrev">‹</button>
+                    <button class="carousel-btn carousel-next" id="carouselNext">›</button>
+                    <div class="carousel-dots" id="carouselDots"></div>
+                </div>
                 <div class="panel-header">Electronic Drum Forge</div>
                 <p class="description">Welcome to the Extrudo E-Drum modeler. I built this tool as a proof of concept using Fusion 360's API and Autodesk's Design Automation service. You can modify the drum parameters below to create a custom 3d printable E-drum shell along with a matching sensor platform. Once you are happy with your drum size, lug spacing, and other parameters, you can generate the final STL file for 3D printing. Currently I only have a developer license so once my API usage limits are reached it may stop processing requests until the limit resets.</p>
 
@@ -78,40 +88,6 @@
                 <div class="preview-actions">
                     <span>Preview updates as you adjust parameters.</span>
                 </div>
-            </div>
-        </div>
-
-        <!-- Example Gallery Section -->
-        <div class="gallery-section">
-            <div class="gallery-header">
-                <h2>What You'll Get</h2>
-                <p>See examples of generated drum shells and what they look like printed.</p>
-            </div>
-            <div class="gallery-grid">
-                <div class="gallery-item">
-                    <img src="/images/gallery/fusion-preview.png" alt="Fusion 360 model preview">
-                    <div class="gallery-caption">
-                        <strong>STL Output Example</strong>
-                        <span>The STL file ready for 3D printing</span>
-                    </div>
-                </div>
-                <div class="gallery-item">
-                    <img src="/images/gallery/printed-drum.png" alt="Fusion 360 model preview">
-                    <div class="gallery-caption">
-                        <strong>Printed and Assembled Example</strong>
-                        <span>A 3D printed and assembled drum shell</span>
-                    </div>
-                </div>
-                <!-- Future gallery items for 3D printed examples -->
-                <!--
-                <div class="gallery-item">
-                    <img src="/images/gallery/print-example-1.jpg" alt="3D printed drum shell">
-                    <div class="gallery-caption">
-                        <strong>3D Printed Shell</strong>
-                        <span>PLA, 0.2mm layer height</span>
-                    </div>
-                </div>
-                -->
             </div>
         </div>
 
@@ -334,9 +310,80 @@
         document.addEventListener('DOMContentLoaded', async () => {
             await loadConfig();
             setupEventListeners();
+            initCarousel();
             // Show live preview immediately
             updateLivePreview();
         });
+
+        // Hero Carousel
+        function initCarousel() {
+            const track = document.getElementById('carouselTrack');
+            const images = track.querySelectorAll('img');
+            const prevBtn = document.getElementById('carouselPrev');
+            const nextBtn = document.getElementById('carouselNext');
+            const dotsContainer = document.getElementById('carouselDots');
+            
+            let currentIndex = 0;
+            const totalSlides = images.length;
+            
+            // Create dots
+            images.forEach((_, i) => {
+                const dot = document.createElement('button');
+                dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+                dot.addEventListener('click', () => goToSlide(i));
+                dotsContainer.appendChild(dot);
+            });
+            
+            const dots = dotsContainer.querySelectorAll('.carousel-dot');
+            
+            function updateCarousel() {
+                track.style.transform = `translateX(-${currentIndex * 100}%)`;
+                dots.forEach((dot, i) => {
+                    dot.classList.toggle('active', i === currentIndex);
+                });
+            }
+            
+            function goToSlide(index) {
+                currentIndex = index;
+                updateCarousel();
+            }
+            
+            function nextSlide() {
+                currentIndex = (currentIndex + 1) % totalSlides;
+                updateCarousel();
+            }
+            
+            function prevSlide() {
+                currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
+                updateCarousel();
+            }
+            
+            prevBtn.addEventListener('click', prevSlide);
+            nextBtn.addEventListener('click', nextSlide);
+            
+            // Touch/swipe support
+            let touchStartX = 0;
+            let touchEndX = 0;
+            
+            track.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
+            
+            track.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                const diff = touchStartX - touchEndX;
+                if (Math.abs(diff) > 50) {
+                    if (diff > 0) {
+                        nextSlide();
+                    } else {
+                        prevSlide();
+                    }
+                }
+            }, { passive: true });
+            
+            // Optional: auto-advance every 5 seconds
+            // setInterval(nextSlide, 5000);
+        }
 
         async function loadConfig() {
             try {

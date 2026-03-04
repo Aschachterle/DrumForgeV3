@@ -24,12 +24,92 @@
     background: transparent;
 }
 
-.hero-image {
+/* Hero Carousel */
+.hero-carousel {
+    position: relative;
     width: 100%;
     max-height: 280px;
-    object-fit: cover;
     border-radius: 12px;
     margin-bottom: 16px;
+    overflow: hidden;
+    background: #f8f8f8;
+}
+
+.carousel-track {
+    display: flex;
+    transition: transform 0.3s ease;
+    height: 280px;
+}
+
+.carousel-track img {
+    min-width: 100%;
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s ease;
+    color: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.carousel-btn:hover {
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.carousel-prev {
+    left: 10px;
+}
+
+.carousel-next {
+    right: 10px;
+}
+
+.carousel-dots {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+}
+
+.carousel-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+.carousel-dot.active {
+    background: #fff;
+    transform: scale(1.2);
+}
+
+.carousel-dot:hover {
+    background: rgba(255, 255, 255, 0.8);
 }
 
 .description {
@@ -520,77 +600,6 @@ button {
 
 .preview-link:hover {
     text-decoration: underline;
-}
-
-/* Gallery Section */
-.gallery-section {
-    margin-top: 40px;
-    padding-top: 32px;
-    border-top: 1px solid #e2e2e2;
-}
-
-.gallery-header {
-    text-align: center;
-    margin-bottom: 24px;
-}
-
-.gallery-header h2 {
-    font-size: 20px;
-    font-weight: 600;
-    color: #0a0a0a;
-    margin-bottom: 8px;
-}
-
-.gallery-header p {
-    font-size: 14px;
-    color: #6b6b6b;
-}
-
-.gallery-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
-}
-
-.gallery-item {
-    background: #ffffff;
-    border: 1px solid #e2e2e2;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-    transition: all 0.2s ease;
-}
-
-.gallery-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-    border-color: #d0d0d0;
-}
-
-.gallery-item img {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    display: block;
-    background: #f8f8f8;
-}
-
-.gallery-caption {
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.gallery-caption strong {
-    font-size: 14px;
-    font-weight: 600;
-    color: #0a0a0a;
-}
-
-.gallery-caption span {
-    font-size: 12px;
-    color: #6b6b6b;
 }
 
 /* Assembly Instructions Section */
