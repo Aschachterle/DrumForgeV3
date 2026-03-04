@@ -50,7 +50,7 @@ export const buildPreviewSvg = (parameters) => {
   const topRadius = (clampedDiam * scale) / 2;
   const sideWidth = clampedDiam * scale;
   const sideHeight = clampedHeight * scale;
-  const thickPx = Math.max(2, thick * scale);
+  const thickPx = thick * scale;
   const lugR = Math.max(2, (lugDiam * scale) / 2);
 
   // Tighter layout - all views stacked vertically
@@ -68,8 +68,8 @@ export const buildPreviewSvg = (parameters) => {
   const svgWidth = topCx + topRadius + 60;
   const svgHeight = platformCy + topRadius + 50; // Space for platform label below
 
-  // Clamp visual thickness to max 1/4 of radius for reasonable display
-  const visualThickPx = Math.min(thickPx, topRadius / 4);
+  // Exaggerate shell thickness for better lap joint visibility (1.5x actual)
+  const visualThickPx = Math.min(thickPx * 1.5, topRadius / 3);
   const innerRadius = topRadius - visualThickPx;
   
   // Platform calculations

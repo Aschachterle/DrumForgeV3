@@ -116,6 +116,65 @@
             </div>
         </div>
 
+        <!-- Materials & Parts Section -->
+        <div class="materials-section">
+            <div class="materials-header">
+                <h2>Additional Parts & Materials</h2>
+                <p>You'll need these items to complete your drum build.</p>
+            </div>
+            <div class="materials-grid">
+                <div class="material-item">
+                    <div class="material-icon">🥁</div>
+                    <div class="material-info">
+                        <strong>Mesh Drumhead</strong>
+                        <span>Sized to match your shell diameter. I used a Remo Silentstroke.</span>
+                    </div>
+                </div>
+                <div class="material-item">
+                    <div class="material-icon">🔩</div>
+                    <div class="material-info">
+                        <strong>Drum Lugs</strong>
+                        <span>Quantity: 2× the number of shell segments (e.g., 6 lugs for 3 segments)</span>
+                    </div>
+                </div>
+                <div class="material-item">
+                    <div class="material-icon">🧪</div>
+                    <div class="material-info">
+                        <strong>CA Glue (Super Glue)</strong>
+                        <span>For bonding the lap joints between shell segments</span>
+                    </div>
+                </div>
+                <div class="material-item">
+                    <div class="material-icon">📄</div>
+                    <div class="material-info">
+                        <strong>Sandpaper</strong>
+                        <span>For smoothing lap joints before gluing (150-220 grit)</span>
+                    </div>
+                </div>
+                <div class="material-item">
+                    <div class="material-icon">⚡</div>
+                    <div class="material-info">
+                        <strong>27mm Piezo Sensor</strong>
+                        <span>Main trigger sensor - mounts to the center platform</span>
+                    </div>
+                </div>
+                <div class="material-item">
+                    <div class="material-icon">⚡</div>
+                    <div class="material-info">
+                        <strong>37mm Piezo Sensor</strong>
+                        <span>Rim trigger sensor (optional for dual-zone)</span>
+                    </div>
+                </div>
+                <div class="material-item">
+                    <div class="material-icon">⚡</div>
+                    <div class="material-info">
+                        <strong>Female Stereo Output Jack</strong>
+                        <span>1/4" TRS jack for connecting to your drum module</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Image Lightbox Modal -->
         <div id="lightboxModal" class="lightbox-modal">
             <span class="lightbox-close">&times;</span>
@@ -301,7 +360,7 @@
             const topRadius = (clampedDiam * scale) / 2;
             const sideWidth = clampedDiam * scale;
             const sideHeight = clampedHeight * scale;
-            const thickPx = Math.max(2, thick * scale);
+            const thickPx = thick * scale;
             const lugR = Math.max(2, (lugDiam * scale) / 2);
 
             // Layout
@@ -317,7 +376,8 @@
             const svgWidth = topCx + topRadius + 60;
             const svgHeight = platformCy + topRadius + 50;
 
-            const visualThickPx = Math.min(thickPx, topRadius / 4);
+            // Exaggerate shell thickness for better lap joint visibility (1.5x actual)
+            const visualThickPx = Math.min(thickPx * 1.5, topRadius / 3);
             const innerRadius = topRadius - visualThickPx;
 
             // Platform calculations
