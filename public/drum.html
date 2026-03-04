@@ -77,7 +77,6 @@
                 </div>
                 <div class="preview-actions">
                     <span>Preview updates as you adjust parameters.</span>
-                    <a id="previewLink" class="preview-link" href="#" target="_blank" rel="noopener" style="display:none;">Open full size</a>
                 </div>
             </div>
         </div>
@@ -329,8 +328,6 @@
         let config = {};
         let currentJobId = null;
         let previewRefreshTimer = null;
-        let previewObjectUrl = null;
-        let previewRequestInFlight = false;
         let livePreviewDebounce = null;
 
         // Initialize
@@ -1169,12 +1166,6 @@
             document.getElementById('submitBtn').classList.remove('loading');
             document.getElementById('status').classList.remove('show');
             document.getElementById('downloadSection').style.display = 'none';
-            if (previewObjectUrl) {
-                URL.revokeObjectURL(previewObjectUrl);
-                previewObjectUrl = null;
-            }
-            document.getElementById('previewLink').setAttribute('href', '#');
-            document.getElementById('previewLink').style.display = 'none';
             clearPreviewRefresh();
             renderParameters();
             // Refresh live preview with default values
@@ -1188,53 +1179,9 @@
             }
         }
 
-        async function updatePreviewImage(baseUrl) {
-            if (previewRequestInFlight) return;
-            previewRequestInFlight = true;
-
-            const previewFrame = document.getElementById('previewFrame');
-            const previewImage = document.getElementById('previewImage');
-            const previewEmpty = document.getElementById('previewEmpty');
-
-            try {
-                const response = await fetch(`${baseUrl}?t=${Date.now()}`, { cache: 'no-store' });
-                if (!response.ok) {
-                    throw new Error(`Preview fetch failed: ${response.status}`);
-                }
-
-                const contentType = response.headers.get('content-type') || '';
-                const blob = await response.blob();
-
-                if (previewObjectUrl) {
-                    URL.revokeObjectURL(previewObjectUrl);
-                }
-
-                previewObjectUrl = URL.createObjectURL(blob);
-                previewImage.src = previewObjectUrl;
-                previewImage.dataset.contentType = contentType;
-                previewFrame.classList.add('has-image');
-                previewEmpty.style.display = 'none';
-
-                if (!contentType.includes('svg')) {
-                    clearPreviewRefresh();
-                }
-            } catch (error) {
-                console.error('Error fetching preview:', error);
-            } finally {
-                previewRequestInFlight = false;
-            }
-        }
-
         function showPreview(jobId) {
-            const previewLink = document.getElementById('previewLink');
-            const baseUrl = `/api/preview/${jobId}`;
-
-            previewLink.href = `${baseUrl}?full=1`;
-            previewLink.style.display = 'inline';
-
+            // Client-side preview already visible - just clear any refresh timers
             clearPreviewRefresh();
-            // Refresh the preview from the job endpoint
-            updatePreviewImage(baseUrl);
         }
 
         async function handleDownload() {
