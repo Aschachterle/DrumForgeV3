@@ -172,6 +172,20 @@
                         <span>1/4" TRS jack for connecting to your drum module</span>
                     </div>
                 </div>
+                <div class="material-item">
+                    <div class="material-icon">⭕</div>
+                    <div class="material-info">
+                        <strong>Drum Hoop</strong>
+                        <span>Sized to match your shell diameter</span>
+                    </div>
+                </div>
+                <div class="material-item">
+                    <div class="material-icon">🔘</div>
+                    <div class="material-info">
+                        <strong>Rubber Drum Hoop Cover</strong>
+                        <span>Protects sticks and reduces rim noise on cross-stick hits</span>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -417,24 +431,63 @@
             const midRadius = topRadius - visualThickPx / 2;
             const lapAngleDeg = segAngle * (lapPct / 100);
 
+            // Distinct colors for each segment
+            const segmentColors = [
+                '#FFB3BA', // light pink
+                '#BAFFC9', // light green
+                '#BAE1FF', // light blue
+                '#FFFFBA', // light yellow
+                '#FFDFbA', // light peach
+                '#E0BBE4', // light lavender
+                '#B5EAD7', // light mint
+                '#FFDAC1', // light coral
+                '#C7CEEA', // light periwinkle
+                '#F0E68C', // khaki
+                '#DDA0DD', // plum
+                '#98D8C8'  // seafoam
+            ];
+
             for (let i = 0; i < segments; i++) {
                 const startAngle = i * segAngle;
                 const endAngle = (i + 1) * segAngle;
+                const lapBoundaryAngle = endAngle - lapAngleDeg;
+                
                 const startRad = (startAngle * Math.PI) / 180;
+                const lapBoundaryRad = (lapBoundaryAngle * Math.PI) / 180;
                 const endRad = (endAngle * Math.PI) / 180;
 
+                const segColor = segmentColors[i % segmentColors.length];
+                const nextColor = segmentColors[((i + 1) % segments) % segmentColors.length];
+                
+                // Main body: from startAngle to lap boundary (full thickness)
+                const mainLargeArc = (lapBoundaryAngle - startAngle) > 180 ? 1 : 0;
                 const outerStartX = topCx + topRadius * Math.cos(startRad);
                 const outerStartY = topCy + topRadius * Math.sin(startRad);
-                const outerEndX = topCx + topRadius * Math.cos(endRad);
-                const outerEndY = topCy + topRadius * Math.sin(endRad);
+                const outerLapX = topCx + topRadius * Math.cos(lapBoundaryRad);
+                const outerLapY = topCy + topRadius * Math.sin(lapBoundaryRad);
                 const innerStartX = topCx + innerRadius * Math.cos(startRad);
                 const innerStartY = topCy + innerRadius * Math.sin(startRad);
+                const innerLapX = topCx + innerRadius * Math.cos(lapBoundaryRad);
+                const innerLapY = topCy + innerRadius * Math.sin(lapBoundaryRad);
+                
+                topPieSlices += `<path d="M${outerStartX},${outerStartY} A${topRadius},${topRadius} 0 ${mainLargeArc},1 ${outerLapX},${outerLapY} L${innerLapX},${innerLapY} A${innerRadius},${innerRadius} 0 ${mainLargeArc},0 ${innerStartX},${innerStartY} Z" fill="${segColor}" stroke="none"/>`;
+                
+                // Lap overlap region: from lap boundary to end
+                const lapLargeArc = lapAngleDeg > 180 ? 1 : 0;
+                const midLapX = topCx + midRadius * Math.cos(lapBoundaryRad);
+                const midLapY = topCy + midRadius * Math.sin(lapBoundaryRad);
+                const outerEndX = topCx + topRadius * Math.cos(endRad);
+                const outerEndY = topCy + topRadius * Math.sin(endRad);
+                const midEndX = topCx + midRadius * Math.cos(endRad);
+                const midEndY = topCy + midRadius * Math.sin(endRad);
                 const innerEndX = topCx + innerRadius * Math.cos(endRad);
                 const innerEndY = topCy + innerRadius * Math.sin(endRad);
-
-                const largeArc = segAngle > 180 ? 1 : 0;
-                const fill = i % 2 === 0 ? '#f5f5f5' : '#fff';
-                topPieSlices += `<path d="M${outerStartX},${outerStartY} A${topRadius},${topRadius} 0 ${largeArc},1 ${outerEndX},${outerEndY} L${innerEndX},${innerEndY} A${innerRadius},${innerRadius} 0 ${largeArc},0 ${innerStartX},${innerStartY} Z" fill="${fill}" stroke="none"/>`;
+                
+                // Inner half of lap (next segment - underneath)
+                topPieSlices += `<path d="M${midLapX},${midLapY} A${midRadius},${midRadius} 0 ${lapLargeArc},1 ${midEndX},${midEndY} L${innerEndX},${innerEndY} A${innerRadius},${innerRadius} 0 ${lapLargeArc},0 ${innerLapX},${innerLapY} Z" fill="${nextColor}" stroke="none"/>`;
+                
+                // Outer half of lap (current segment's color - on top)
+                topPieSlices += `<path d="M${outerLapX},${outerLapY} A${topRadius},${topRadius} 0 ${lapLargeArc},1 ${outerEndX},${outerEndY} L${midEndX},${midEndY} A${midRadius},${midRadius} 0 ${lapLargeArc},0 ${midLapX},${midLapY} Z" fill="${segColor}" stroke="none"/>`;
             }
 
             for (let i = 0; i < segments; i++) {

@@ -120,31 +120,64 @@ export const buildPreviewSvg = (parameters) => {
   // Calculate lap arc angle
   const lapAngleDeg = segAngle * (lapPct / 100);
   
-  // Create pie slices (ring segments) with alternating fills
+  // Distinct colors for each segment
+  const segmentColors = [
+    '#FFB3BA', // light pink
+    '#BAFFC9', // light green
+    '#BAE1FF', // light blue
+    '#FFFFBA', // light yellow
+    '#FFDFbA', // light peach
+    '#E0BBE4', // light lavender
+    '#B5EAD7', // light mint
+    '#FFDAC1', // light coral
+    '#C7CEEA', // light periwinkle
+    '#F0E68C', // khaki
+    '#DDA0DD', // plum
+    '#98D8C8'  // seafoam
+  ];
+  
+  // Create pie slices (ring segments) with lap joint color splits
   for (let i = 0; i < segments; i++) {
     const startAngle = i * segAngle;
     const endAngle = (i + 1) * segAngle;
-    const startRad = (startAngle * Math.PI) / 180;
-    const endRad = (endAngle * Math.PI) / 180;
+    const lapBoundaryAngle = endAngle - lapAngleDeg;
     
-    // Outer arc points
+    const startRad = (startAngle * Math.PI) / 180;
+    const lapBoundaryRad = (lapBoundaryAngle * Math.PI) / 180;
+    const endRad = (endAngle * Math.PI) / 180;
+
+    const segColor = segmentColors[i % segmentColors.length];
+    const nextColor = segmentColors[((i + 1) % segments) % segmentColors.length];
+    
+    // Main body: from startAngle to lap boundary (full thickness)
+    const mainLargeArc = (lapBoundaryAngle - startAngle) > 180 ? 1 : 0;
     const outerStartX = topCx + topRadius * Math.cos(startRad);
     const outerStartY = topCy + topRadius * Math.sin(startRad);
-    const outerEndX = topCx + topRadius * Math.cos(endRad);
-    const outerEndY = topCy + topRadius * Math.sin(endRad);
-    
-    // Inner arc points
+    const outerLapX = topCx + topRadius * Math.cos(lapBoundaryRad);
+    const outerLapY = topCy + topRadius * Math.sin(lapBoundaryRad);
     const innerStartX = topCx + innerRadius * Math.cos(startRad);
     const innerStartY = topCy + innerRadius * Math.sin(startRad);
+    const innerLapX = topCx + innerRadius * Math.cos(lapBoundaryRad);
+    const innerLapY = topCy + innerRadius * Math.sin(lapBoundaryRad);
+    
+    topPieSlices += `<path d="M${outerStartX},${outerStartY} A${topRadius},${topRadius} 0 ${mainLargeArc},1 ${outerLapX},${outerLapY} L${innerLapX},${innerLapY} A${innerRadius},${innerRadius} 0 ${mainLargeArc},0 ${innerStartX},${innerStartY} Z" fill="${segColor}" stroke="none"/>`;
+    
+    // Lap overlap region: from lap boundary to end
+    const lapLargeArc = lapAngleDeg > 180 ? 1 : 0;
+    const midLapX = topCx + midRadius * Math.cos(lapBoundaryRad);
+    const midLapY = topCy + midRadius * Math.sin(lapBoundaryRad);
+    const outerEndX = topCx + topRadius * Math.cos(endRad);
+    const outerEndY = topCy + topRadius * Math.sin(endRad);
+    const midEndX = topCx + midRadius * Math.cos(endRad);
+    const midEndY = topCy + midRadius * Math.sin(endRad);
     const innerEndX = topCx + innerRadius * Math.cos(endRad);
     const innerEndY = topCy + innerRadius * Math.sin(endRad);
     
-    // Large arc flag (1 if segment > 180 degrees)
-    const largeArc = segAngle > 180 ? 1 : 0;
+    // Inner half of lap (next segment - underneath)
+    topPieSlices += `<path d="M${midLapX},${midLapY} A${midRadius},${midRadius} 0 ${lapLargeArc},1 ${midEndX},${midEndY} L${innerEndX},${innerEndY} A${innerRadius},${innerRadius} 0 ${lapLargeArc},0 ${innerLapX},${innerLapY} Z" fill="${nextColor}" stroke="none"/>`;
     
-    // Pie slice path: outer arc -> line to inner -> inner arc (reverse) -> line back
-    const fill = i % 2 === 0 ? '#f5f5f5' : '#fff';
-    topPieSlices += `<path d="M${outerStartX},${outerStartY} A${topRadius},${topRadius} 0 ${largeArc},1 ${outerEndX},${outerEndY} L${innerEndX},${innerEndY} A${innerRadius},${innerRadius} 0 ${largeArc},0 ${innerStartX},${innerStartY} Z" fill="${fill}" stroke="none"/>`;
+    // Outer half of lap (current segment's color - on top)
+    topPieSlices += `<path d="M${outerLapX},${outerLapY} A${topRadius},${topRadius} 0 ${lapLargeArc},1 ${outerEndX},${outerEndY} L${midEndX},${midEndY} A${midRadius},${midRadius} 0 ${lapLargeArc},0 ${midLapX},${midLapY} Z" fill="${segColor}" stroke="none"/>`;
   }
   
   for (let i = 0; i < segments; i++) {
