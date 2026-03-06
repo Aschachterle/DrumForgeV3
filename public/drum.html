@@ -32,16 +32,22 @@
                     <div class="carousel-dots" id="carouselDots"></div>
                 </div>
                 <div class="panel-header">E-Drum STL Generator</div>
-                <div class="description">
-                    <p>Welcome to the Extrudo Electronic Drum STL generator. I created this tool after realizing the retail cost of an electronic drum far exceeds the sum of its parts. Building your own is a great alternative that saves money and lets you craft a drum with a highly realistic size and appearance, completely bypassing the undersized pads major manufacturers usually offer.</p>
-                    
-                    <p>I built this tool as a proof of concept using the Fusion 360 API and Autodesk Design Automation service. You can modify the parameters below to create a fully custom 3D printable drum shell and a matching sensor platform.</p>
-                    
-                    <p><strong>Already have a shell?</strong> You can skip printing the shell entirely. If you want to use a preexisting acoustic shell, simply enter its diameter, thickness, height, and lug hole parameters. The modeler will output a custom piezo sensor platform tailored exactly to your drum—just delete the shell STL and print the sensor platform.</p>
-                    
-                    <p class="description-note">Once you're happy with your settings, generate the final STL file for 3D printing. Note: I'm currently using a developer license, so the tool may temporarily pause if API usage limits are reached.</p>
+                <div class="description-collapsible">
+                    <button class="description-toggle" id="descriptionToggle">
+                        <span>About this tool</span>
+                        <span class="toggle-icon">▼</span>
+                    </button>
+                    <div class="description-content" id="descriptionContent">
+                        <p>Welcome to the Extrudo Electronic Drum STL generator. I created this tool after realizing the retail cost of an electronic drum far exceeds the sum of its parts. Building your own is a great alternative that saves money and lets you craft a drum with a highly realistic size and appearance, completely bypassing the undersized pads major manufacturers usually offer.</p>
+                        
+                        <p>I built this tool as a proof of concept using the Fusion 360 API and Autodesk Design Automation service. You can modify the parameters below to create a fully custom 3D printable drum shell and a matching sensor platform.</p>
+                        
+                        <p><strong>Already have a shell?</strong> You can skip printing the shell entirely. If you want to use a preexisting acoustic shell, simply enter its diameter, thickness, height, and lug hole parameters. The modeler will output a custom piezo sensor platform tailored exactly to your drum—just delete the shell STL and print the sensor platform.</p>
+                        
+                        <p class="description-note">Once you're happy with your settings, generate the final STL file for 3D printing. Note: I'm currently using a developer license, so the tool may temporarily pause if API usage limits are reached.</p>
+                        <a href="#partsList" class="parts-link">View required parts & materials ↓</a>
+                    </div>
                 </div>
-                <a href="#partsList" class="parts-link">View required parts & materials ↓</a>
 
                 <!-- Parameters Section -->
                 <div class="section">
@@ -328,9 +334,20 @@
             await loadConfig();
             setupEventListeners();
             initCarousel();
+            initDescriptionToggle();
             // Show live preview immediately
             updateLivePreview();
         });
+
+        // Description Toggle
+        function initDescriptionToggle() {
+            const toggle = document.getElementById('descriptionToggle');
+            const container = toggle.closest('.description-collapsible');
+            
+            toggle.addEventListener('click', () => {
+                container.classList.toggle('collapsed');
+            });
+        }
 
         // Hero Carousel
         function initCarousel() {
