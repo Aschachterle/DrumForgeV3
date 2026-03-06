@@ -190,7 +190,9 @@
         <!-- Image Lightbox Modal -->
         <div id="lightboxModal" class="lightbox-modal">
             <span class="lightbox-close">&times;</span>
+            <button class="lightbox-nav lightbox-prev" id="lightboxPrev">‹</button>
             <img class="lightbox-image" id="lightboxImage" alt="">
+            <button class="lightbox-nav lightbox-next" id="lightboxNext">›</button>
             <div class="lightbox-caption" id="lightboxCaption"></div>
         </div>
 
@@ -1403,14 +1405,36 @@
             const modalImg = document.getElementById('lightboxImage');
             const modalCaption = document.getElementById('lightboxCaption');
             const closeBtn = modal.querySelector('.lightbox-close');
+            const prevBtn = document.getElementById('lightboxPrev');
+            const nextBtn = document.getElementById('lightboxNext');
+            
+            // Collect all carousel images for navigation
+            const carouselImages = Array.from(document.querySelectorAll('.carousel-track img'));
+            let currentLightboxIndex = 0;
+            
+            function showImage(index) {
+                if (carouselImages.length === 0) return;
+                currentLightboxIndex = (index + carouselImages.length) % carouselImages.length;
+                const img = carouselImages[currentLightboxIndex];
+                modalImg.src = img.src;
+                modalImg.alt = img.alt;
+                modalCaption.innerHTML = img.alt || '';
+            }
+            
+            function nextImage() {
+                showImage(currentLightboxIndex + 1);
+            }
+            
+            function prevImage() {
+                showImage(currentLightboxIndex - 1);
+            }
 
             // Add click handlers to carousel images
-            document.querySelectorAll('.carousel-track img').forEach(img => {
+            carouselImages.forEach((img, index) => {
                 img.style.cursor = 'pointer';
                 img.addEventListener('click', function() {
-                    modalImg.src = this.src;
-                    modalImg.alt = this.alt;
-                    modalCaption.innerHTML = this.alt || '';
+                    currentLightboxIndex = index;
+                    showImage(index);
                     modal.classList.add('active');
                     document.body.style.overflow = 'hidden';
                 });
@@ -1431,6 +1455,17 @@
                     document.body.style.overflow = 'hidden';
                 });
             });
+            
+            // Navigation buttons
+            prevBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                prevImage();
+            });
+            
+            nextBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                nextImage();
+            });
 
             // Close modal on X click
             closeBtn.addEventListener('click', closeLightbox);
@@ -1442,12 +1477,35 @@
                 }
             });
 
-            // Close modal on Escape key
+            // Keyboard navigation
             document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && modal.classList.contains('active')) {
+                if (!modal.classList.contains('active')) return;
+                
+                if (e.key === 'Escape') {
                     closeLightbox();
+                } else if (e.key === 'ArrowRight') {
+                    nextImage();
+                } else if (e.key === 'ArrowLeft') {
+                    prevImage();
                 }
             });
+            
+            // Touch/swipe support for lightbox
+            let lightboxTouchStartX = 0;
+            modalImg.addEventListener('touchstart', (e) => {
+                lightboxTouchStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
+            
+            modalImg.addEventListener('touchend', (e) => {
+                const diff = lightboxTouchStartX - e.changedTouches[0].screenX;
+                if (Math.abs(diff) > 50) {
+                    if (diff > 0) {
+                        nextImage();
+                    } else {
+                        prevImage();
+                    }
+                }
+            }, { passive: true });
 
             function closeLightbox() {
                 modal.classList.remove('active');
