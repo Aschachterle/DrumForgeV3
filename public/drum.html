@@ -935,10 +935,10 @@
                     const hasSlider = param.min != null && param.max != null;
                     group.innerHTML = `
                         <div class="optional-content">
-                            <label class="optional-toggle">
+                            <div class="optional-toggle">
                                 <input type="checkbox" id="${key}_enabled" checked>
-                                <span class="optional-label">Include hole for ${label.toLowerCase()}</span>
-                            </label>
+                                <span class="optional-label" data-description="${description}"> Include hole for ${label.toLowerCase()}<span class="label-tooltip">${description}</span></span>
+                            </div>
                             <div class="optional-input-row" id="${key}_inputRow">
                                 <span class="optional-input-label">Hole diameter:</span>
                                 <div class="input-with-unit">
@@ -1097,11 +1097,12 @@
                 });
                 
                 // Label click to show tooltip
-                const labelEl = group.querySelector('label[data-description]');
+                const labelEl = group.querySelector('label[data-description], .optional-label[data-description]');
                 const tooltip = group.querySelector('.label-tooltip');
                 if (labelEl && tooltip) {
                     labelEl.addEventListener('click', (e) => {
                         e.preventDefault();
+                        e.stopPropagation();
                         // Hide all other tooltips first
                         document.querySelectorAll('.label-tooltip.show').forEach(t => {
                             if (t !== tooltip) t.classList.remove('show');
@@ -1113,7 +1114,7 @@
             
             // Close tooltips when clicking outside
             document.addEventListener('click', (e) => {
-                if (!e.target.closest('label')) {
+                if (!e.target.closest('label') && !e.target.closest('.optional-label')) {
                     document.querySelectorAll('.label-tooltip.show').forEach(t => {
                         t.classList.remove('show');
                     });

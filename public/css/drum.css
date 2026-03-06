@@ -487,6 +487,20 @@
     font-size: 12px;
     line-height: 14px;
     vertical-align: middle;
+    position: relative;
+    cursor: pointer;
+}
+
+.optional-label:hover {
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 3px;
+}
+
+.optional-label .label-tooltip {
+    left: 0;
+    top: 100%;
+    white-space: normal;
 }
 
 .optional-input-row {
