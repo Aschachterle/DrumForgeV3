@@ -188,11 +188,6 @@
     font-style: italic;
 }
 
-.description-content .parts-link {
-    display: inline-block;
-    margin-top: 16px;
-}
-
 .description {
     color: #4c4c4c;
     font-size: 14px;
