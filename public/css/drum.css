@@ -488,10 +488,12 @@
     line-height: 14px;
     vertical-align: middle;
     position: relative;
-    cursor: pointer;
+    cursor: help;
+    display: inline-block;
 }
 
 .optional-label:hover {
+    color: #0a0a0a;
     text-decoration: underline;
     text-decoration-style: dotted;
     text-underline-offset: 3px;
@@ -501,6 +503,7 @@
     left: 0;
     top: 100%;
     white-space: normal;
+    margin-top: 8px;
 }
 
 .optional-input-row {

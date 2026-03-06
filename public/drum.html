@@ -1009,6 +1009,20 @@
                         debouncedUpdatePreview();
                         validateParameters();
                     });
+                    
+                    // Tooltip for toggleable param label
+                    const optionalLabel = group.querySelector('.optional-label[data-description]');
+                    const optionalTooltip = group.querySelector('.label-tooltip');
+                    if (optionalLabel && optionalTooltip) {
+                        optionalLabel.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            document.querySelectorAll('.label-tooltip.show').forEach(t => {
+                                if (t !== optionalTooltip) t.classList.remove('show');
+                            });
+                            optionalTooltip.classList.toggle('show');
+                        });
+                    }
                     continue;
                 }
                 
