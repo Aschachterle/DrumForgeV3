@@ -81,7 +81,7 @@
       "min": 0.125,
       "max": 0.5,
       "label": "Stereo output jack",
-      "description": "Diameter of the hole for the output jack. Uncheck to remove the hole.",
+      "description": "Thread diameter for stereo output jack. Uncheck to remove the hole.",
       "toggleable": true,
       "disabledValue": 0.001
     }
