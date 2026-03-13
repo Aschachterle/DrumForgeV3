@@ -1316,3 +1316,98 @@ button {
     gap: 12px;
     margin-top: 8px;
 }
+
+/* ==========================================================================
+   Mini Drum / Static Download Page Styles
+   ========================================================================== */
+
+.layout.single-column {
+    grid-template-columns: 1fr;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.panel.wide-panel {
+    max-width: 100%;
+}
+
+.download-card {
+    background: #f8f8f8;
+    border: 1px solid #e2e2e2;
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.download-info h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #0a0a0a;
+    margin: 0 0 8px 0;
+}
+
+.download-info p {
+    font-size: 14px;
+    color: #6b6b6b;
+    margin: 0 0 12px 0;
+}
+
+.file-details {
+    display: flex;
+    gap: 16px;
+    font-size: 13px;
+    color: #4c4c4c;
+}
+
+.download-btn {
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.print-settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+.print-setting {
+    background: #f8f8f8;
+    border: 1px solid #e2e2e2;
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.print-setting strong {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b6b6b;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.print-setting span {
+    font-size: 14px;
+    font-weight: 500;
+    color: #0a0a0a;
+}
+
+@media (max-width: 600px) {
+    .download-card {
+        padding: 16px;
+    }
+    
+    .file-details {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .print-settings-grid {
+        grid-template-columns: 1fr;
+    }
+}

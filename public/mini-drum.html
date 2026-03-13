@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/images/logo.png">
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/drum.css">
+    <title>Mini Drum - Extrudo</title>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/" class="back-link">
+                ← Back to Models
+            </a>
+            <img class="header-logo" src="/images/logo.png" alt="Extrudo logo">
+        </div>
+
+        <div class="layout single-column">
+            <div class="panel wide-panel">
+                <div class="hero-carousel" id="heroCarousel">
+                    <div class="carousel-track" id="carouselTrack">
+                        <img src="/images/miniDrumGallery/placeholder.jpg" alt="Mini drum preview">
+                        <!-- Add more images as needed -->
+                    </div>
+                    <button class="carousel-btn carousel-prev" id="carouselPrev">‹</button>
+                    <button class="carousel-btn carousel-next" id="carouselNext">›</button>
+                    <div class="carousel-dots" id="carouselDots"></div>
+                </div>
+                <div class="panel-header">The Mini Drum</div>
+                <div class="description-collapsible">
+                    <button class="description-toggle" id="descriptionToggle">
+                        <span>About this model</span>
+                        <span class="toggle-icon">▼</span>
+                    </button>
+                    <div class="description-content" id="descriptionContent">
+                        <p>The Mini Drum is a compact, pre-designed electronic drum pad perfect for practice setups or portable kits. This ready-to-print STL file requires no customization—just download, slice, and print.</p>
+                        
+                        <p>The design features a simplified construction that's quick to print and easy to assemble. It's ideal for beginners who want to get started with DIY electronic drums without the complexity of a full-sized build.</p>
+                        
+                        <p class="description-note">This is a pre-generated file. No cloud processing required—download starts immediately.</p>
+                    </div>
+                </div>
+                <a href="#partsList" class="parts-link">View required parts & materials ↓</a>
+
+                <!-- Download Section -->
+                <div class="section">
+                    <div class="section-title">
+                        <div class="section-icon">1</div>
+                        Download STL File
+                    </div>
+                    <div class="download-card">
+                        <div class="download-info">
+                            <h3>Mini Drum STL Package</h3>
+                            <p>Includes the drum shell and sensor platform as separate STL files.</p>
+                            <div class="file-details">
+                                <span>📁 2 STL files</span>
+                                <span>📐 ~6" diameter</span>
+                            </div>
+                        </div>
+                        <a href="/downloads/mini-drum.zip" class="btn-submit download-btn" download>
+                            ⬇️ Download STL Files
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Print Settings Section -->
+                <div class="section">
+                    <div class="section-title">
+                        <div class="section-icon">2</div>
+                        Recommended Print Settings
+                    </div>
+                    <div class="print-settings-grid">
+                        <div class="print-setting">
+                            <strong>Layer Height</strong>
+                            <span>0.2mm</span>
+                        </div>
+                        <div class="print-setting">
+                            <strong>Infill (Shell)</strong>
+                            <span>15-20%</span>
+                        </div>
+                        <div class="print-setting">
+                            <strong>Infill (Platform)</strong>
+                            <span>100% or walls only</span>
+                        </div>
+                        <div class="print-setting">
+                            <strong>Supports</strong>
+                            <span>Not required</span>
+                        </div>
+                        <div class="print-setting">
+                            <strong>Material</strong>
+                            <span>PLA or PETG</span>
+                        </div>
+                        <div class="print-setting">
+                            <strong>Est. Print Time</strong>
+                            <span>~4-6 hours</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Materials & Parts Section -->
+        <div class="materials-section" id="partsList">
+            <div class="materials-header">
+                <h2>Additional Parts & Materials</h2>
+                <p>You'll need these items to complete your mini drum build.</p>
+            </div>
+            <div class="materials-grid">
+                <div class="material-item">
+                    <div class="material-icon">🥁</div>
+                    <div class="material-info">
+                        <strong>6" Mesh Drumhead</strong>
+                        <span>A small mesh head sized for the mini drum shell</span>
+                    </div>
+                </div>
+                <div class="material-item">
+                    <div class="material-icon">⚡</div>
+                    <div class="material-info">
+                        <strong>27mm Piezo Sensor</strong>
+                        <span>Main trigger sensor - mounts to the center platform</span>
+                    </div>
+                </div>
+                <div class="material-item">
+                    <div class="material-icon">⚡</div>
+                    <div class="material-info">
+                        <strong>Female Stereo Output Jack</strong>
+                        <span>1/4" TRS jack for connecting to your drum module</span>
+                    </div>
+                </div>
+                <div class="material-item">
+                    <div class="material-icon">🔺</div>
+                    <div class="material-info">
+                        <strong>Foam Piezo Sensor Cone</strong>
+                        <span>Transfers input from the drumhead to the piezo sensor</span>
+                    </div>
+                </div>
+                <div class="material-item">
+                    <div class="material-icon">🔩</div>
+                    <div class="material-info">
+                        <strong>M3 Screws</strong>
+                        <span>For mounting the sensor platform (4-6 screws)</span>
+                    </div>
+                </div>
+                <div class="material-item">
+                    <div class="material-icon">🧪</div>
+                    <div class="material-info">
+                        <strong>CA Glue (Super Glue)</strong>
+                        <span>For bonding components if needed</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Image Lightbox Modal -->
+        <div id="lightboxModal" class="lightbox-modal">
+            <span class="lightbox-close">&times;</span>
+            <button class="lightbox-nav lightbox-prev" id="lightboxPrev">‹</button>
+            <img class="lightbox-image" id="lightboxImage" alt="">
+            <button class="lightbox-nav lightbox-next" id="lightboxNext">›</button>
+            <div class="lightbox-caption" id="lightboxCaption"></div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            initCarousel();
+            initDescriptionToggle();
+            initLightbox();
+        });
+
+        // Description Toggle
+        function initDescriptionToggle() {
+            const toggle = document.getElementById('descriptionToggle');
+            const container = toggle.closest('.description-collapsible');
+            
+            toggle.addEventListener('click', () => {
+                container.classList.toggle('collapsed');
+            });
+        }
+
+        // Hero Carousel
+        function initCarousel() {
+            const track = document.getElementById('carouselTrack');
+            const images = track.querySelectorAll('img');
+            const prevBtn = document.getElementById('carouselPrev');
+            const nextBtn = document.getElementById('carouselNext');
+            const dotsContainer = document.getElementById('carouselDots');
+            
+            let currentIndex = 0;
+            const totalSlides = images.length;
+            
+            // Hide nav if only one image
+            if (totalSlides <= 1) {
+                prevBtn.style.display = 'none';
+                nextBtn.style.display = 'none';
+                return;
+            }
+            
+            // Create dots
+            images.forEach((_, i) => {
+                const dot = document.createElement('button');
+                dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+                dot.addEventListener('click', () => goToSlide(i));
+                dotsContainer.appendChild(dot);
+            });
+            
+            const dots = dotsContainer.querySelectorAll('.carousel-dot');
+            
+            function updateCarousel() {
+                track.style.transform = `translateX(-${currentIndex * 100}%)`;
+                dots.forEach((dot, i) => {
+                    dot.classList.toggle('active', i === currentIndex);
+                });
+            }
+            
+            function goToSlide(index) {
+                currentIndex = index;
+                updateCarousel();
+            }
+            
+            function nextSlide() {
+                currentIndex = (currentIndex + 1) % totalSlides;
+                updateCarousel();
+            }
+            
+            function prevSlide() {
+                currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
+                updateCarousel();
+            }
+            
+            prevBtn.addEventListener('click', prevSlide);
+            nextBtn.addEventListener('click', nextSlide);
+            
+            // Touch/swipe support
+            let touchStartX = 0;
+            track.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
+            
+            track.addEventListener('touchend', (e) => {
+                const diff = touchStartX - e.changedTouches[0].screenX;
+                if (Math.abs(diff) > 50) {
+                    if (diff > 0) nextSlide();
+                    else prevSlide();
+                }
+            }, { passive: true });
+        }
+
+        // Lightbox
+        function initLightbox() {
+            const modal = document.getElementById('lightboxModal');
+            const modalImg = document.getElementById('lightboxImage');
+            const modalCaption = document.getElementById('lightboxCaption');
+            const closeBtn = modal.querySelector('.lightbox-close');
+            const prevBtn = document.getElementById('lightboxPrev');
+            const nextBtn = document.getElementById('lightboxNext');
+            
+            const carouselImages = Array.from(document.querySelectorAll('.carousel-track img'));
+            let currentLightboxIndex = 0;
+            
+            function showImage(index) {
+                if (carouselImages.length === 0) return;
+                currentLightboxIndex = (index + carouselImages.length) % carouselImages.length;
+                const img = carouselImages[currentLightboxIndex];
+                modalImg.src = img.src;
+                modalImg.alt = img.alt;
+                modalCaption.innerHTML = img.alt || '';
+            }
+            
+            function nextImage() {
+                showImage(currentLightboxIndex + 1);
+            }
+            
+            function prevImage() {
+                showImage(currentLightboxIndex - 1);
+            }
+
+            // Click handlers for carousel images
+            carouselImages.forEach((img, index) => {
+                img.style.cursor = 'pointer';
+                img.addEventListener('click', () => {
+                    currentLightboxIndex = index;
+                    showImage(index);
+                    modal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                });
+            });
+            
+            // Navigation
+            prevBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                prevImage();
+            });
+            
+            nextBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                nextImage();
+            });
+
+            closeBtn.addEventListener('click', closeLightbox);
+
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeLightbox();
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (!modal.classList.contains('active')) return;
+                if (e.key === 'Escape') closeLightbox();
+                else if (e.key === 'ArrowRight') nextImage();
+                else if (e.key === 'ArrowLeft') prevImage();
+            });
+            
+            // Touch support for lightbox
+            let touchStartX = 0;
+            modalImg.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
+            
+            modalImg.addEventListener('touchend', (e) => {
+                const diff = touchStartX - e.changedTouches[0].screenX;
+                if (Math.abs(diff) > 50) {
+                    if (diff > 0) nextImage();
+                    else prevImage();
+                }
+            }, { passive: true });
+
+            function closeLightbox() {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Fade in page
+        window.addEventListener('load', () => {
+            document.body.classList.add('loaded');
+        });
+        if (document.readyState === 'complete') {
+            document.body.classList.add('loaded');
+        }
+    </script>
+</body>
+</html>
