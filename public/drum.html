@@ -1378,32 +1378,34 @@
         }
 
         // Auto-reload when server restarts (dev mode only)
-        // Requires multiple consecutive failures to avoid false positives during navigation
-        let serverDownCount = 0;
-        const REQUIRED_DOWN_COUNT = 3; // Must fail 3 times in a row (1.5 seconds)
-        
-        setInterval(async () => {
-            // Don't poll when page is hidden (user navigated away)
-            if (document.hidden) {
-                serverDownCount = 0;
-                return;
-            }
+        // Only runs on localhost to avoid unnecessary polling in production
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            let serverDownCount = 0;
+            const REQUIRED_DOWN_COUNT = 3; // Must fail 3 times in a row (1.5 seconds)
             
-            try {
-                const response = await fetch('/api/health');
-                if (response.ok) {
-                    if (serverDownCount >= REQUIRED_DOWN_COUNT) {
-                        console.log('Server is back online, reloading page...');
-                        window.location.reload();
-                    }
+            setInterval(async () => {
+                // Don't poll when page is hidden (user navigated away)
+                if (document.hidden) {
                     serverDownCount = 0;
-                } else {
+                    return;
+                }
+                
+                try {
+                    const response = await fetch('/api/health');
+                    if (response.ok) {
+                        if (serverDownCount >= REQUIRED_DOWN_COUNT) {
+                            console.log('Server is back online, reloading page...');
+                            window.location.reload();
+                        }
+                        serverDownCount = 0;
+                    } else {
+                        serverDownCount++;
+                    }
+                } catch (error) {
                     serverDownCount++;
                 }
-            } catch (error) {
-                serverDownCount++;
-            }
-        }, 500); // Check every 500ms
+            }, 500); // Check every 500ms
+        }
 
         // Fade in page once loaded to avoid layout shift flash
         window.addEventListener('load', () => {
