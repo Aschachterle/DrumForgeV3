@@ -24,17 +24,30 @@
         .sidebar h2 { font-size: 14px; color: #666; margin-bottom: 12px; text-transform: uppercase; }
         .item-list { list-style: none; }
         .item-list li {
-            padding: 12px;
+            padding: 8px 12px;
             border-radius: 6px;
-            cursor: pointer;
             margin-bottom: 4px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 4px;
         }
         .item-list li:hover { background: #f0f0f0; }
         .item-list li.active { background: #e3f2fd; color: #1976d2; }
         .item-list li.disabled { opacity: 0.6; }
+        .item-list li.dragging { opacity: 0.4; background: #e0e0e0; }
+        .item-list li.drag-over { border-top: 2px solid #1976d2; margin-top: -2px; }
+        .item-list li .drag-handle {
+            cursor: grab;
+            padding: 0 8px;
+            color: #999;
+            font-size: 14px;
+        }
+        .item-list li .drag-handle:active { cursor: grabbing; }
+        .item-list li .item-title {
+            flex: 1;
+            cursor: pointer;
+            padding: 4px 0;
+        }
         .item-list .badge {
             font-size: 10px;
             padding: 2px 6px;
@@ -339,15 +352,86 @@
 
         function renderItemList() {
             const list = document.getElementById('itemList');
-            list.innerHTML = items.map(item => `
+            list.innerHTML = items.map((item, index) => `
                 <li class="${item.slug === currentItem?.slug ? 'active' : ''} ${!item.enabled ? 'disabled' : ''}" 
-                    onclick="selectItem('${item.slug}')">
-                    <span>${item.title}</span>
+                    draggable="true"
+                    data-index="${index}"
+                    data-slug="${item.slug}">
+                    <span class="drag-handle">⋮⋮</span>
+                    <span class="item-title" onclick="selectItem('${item.slug}')">${item.title}</span>
                     <span class="badge ${item.enabled && !item.comingSoon ? 'enabled' : ''}">
                         ${item.comingSoon ? 'Soon' : (item.enabled ? 'Live' : 'Off')}
                     </span>
                 </li>
             `).join('');
+            
+            // Setup drag handlers
+            setupDragAndDrop();
+        }
+        
+        let draggedItem = null;
+        
+        function setupDragAndDrop() {
+            const listItems = document.querySelectorAll('.item-list li');
+            
+            listItems.forEach(li => {
+                li.addEventListener('dragstart', (e) => {
+                    draggedItem = li;
+                    li.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                });
+                
+                li.addEventListener('dragend', () => {
+                    li.classList.remove('dragging');
+                    document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+                    draggedItem = null;
+                });
+                
+                li.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    if (li !== draggedItem) {
+                        li.classList.add('drag-over');
+                    }
+                });
+                
+                li.addEventListener('dragleave', () => {
+                    li.classList.remove('drag-over');
+                });
+                
+                li.addEventListener('drop', async (e) => {
+                    e.preventDefault();
+                    li.classList.remove('drag-over');
+                    
+                    if (li === draggedItem) return;
+                    
+                    const fromIndex = parseInt(draggedItem.dataset.index);
+                    const toIndex = parseInt(li.dataset.index);
+                    
+                    // Reorder items array
+                    const [movedItem] = items.splice(fromIndex, 1);
+                    items.splice(toIndex, 0, movedItem);
+                    
+                    // Save new order
+                    await saveItemOrder();
+                    renderItemList();
+                });
+            });
+        }
+        
+        async function saveItemOrder() {
+            try {
+                const response = await fetch('/api/admin/items/reorder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ slugs: items.map(i => i.slug) })
+                });
+                
+                if (!response.ok) throw new Error('Failed to save order');
+                showToast('Order saved', 'success');
+            } catch (error) {
+                showToast('Failed to save order', 'error');
+                loadItems(); // Reload original order
+            }
         }
 
         function selectItem(slug) {

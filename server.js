@@ -593,6 +593,39 @@ app.post('/api/admin/items', (req, res) => {
 });
 
 /**
+ * POST /api/admin/items/reorder - Reorder items
+ */
+app.post('/api/admin/items/reorder', (req, res) => {
+  try {
+    const { slugs } = req.body;
+    
+    if (!Array.isArray(slugs)) {
+      return res.status(400).json({ error: 'slugs array is required' });
+    }
+    
+    const data = readItems();
+    
+    // Reorder items based on slugs array
+    const reordered = slugs.map(slug => data.items.find(i => i.slug === slug)).filter(Boolean);
+    
+    // Add any items that weren't in the slugs array (shouldn't happen, but safety)
+    data.items.forEach(item => {
+      if (!reordered.find(i => i.slug === item.slug)) {
+        reordered.push(item);
+      }
+    });
+    
+    data.items = reordered;
+    writeItems(data);
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error reordering items:', error);
+    res.status(500).json({ error: 'Failed to reorder items' });
+  }
+});
+
+/**
  * PUT /api/admin/items/:slug - Update existing item
  */
 app.put('/api/admin/items/:slug', (req, res) => {
