@@ -1,0 +1,216 @@
+{
+  "items": [
+    {
+      "slug": "mini-drum",
+      "title": "The Mini Drum",
+      "subtitle": "Compact Practice Pad",
+      "description": [
+        "The Mini Drum is a compact, pre-designed electronic drum pad perfect for practice setups or portable kits. This ready-to-print STL file requires no customization—just download, slice, and print.",
+        "The design features a simplified construction that's quick to print and easy to assemble. It's ideal for beginners who want to get started with DIY electronic drums without the complexity of a full-sized build."
+      ],
+      "note": "This is a pre-generated file. No cloud processing required—download starts immediately.",
+      "images": [
+        {
+          "src": "placeholder.jpg",
+          "alt": "Mini drum preview"
+        }
+      ],
+      "downloadUrl": "/downloads/MiniDrum.zip",
+      "downloadLabel": "Mini Drum STL Package",
+      "downloadDescription": "Includes the drum shell and sensor platform as separate STL files.",
+      "fileDetails": [
+        {
+          "icon": "📁",
+          "text": "2 STL files"
+        },
+        {
+          "icon": "📐",
+          "text": "~6\" diameter"
+        }
+      ],
+      "printSettings": [
+        {
+          "label": "Layer Height",
+          "value": "0.2mm"
+        },
+        {
+          "label": "Infill (Shell)",
+          "value": "15-20%"
+        },
+        {
+          "label": "Infill (Platform)",
+          "value": "100% or walls only"
+        },
+        {
+          "label": "Supports",
+          "value": "Not required"
+        },
+        {
+          "label": "Material",
+          "value": "PLA or PETG"
+        },
+        {
+          "label": "Est. Print Time",
+          "value": "~4-6 hours"
+        }
+      ],
+      "parts": [
+        {
+          "icon": "🥁",
+          "name": "6\" Mesh Drumhead",
+          "description": "A small mesh head sized for the mini drum shell"
+        },
+        {
+          "icon": "⚡",
+          "name": "27mm Piezo Sensor",
+          "description": "Main trigger sensor - mounts to the center platform"
+        },
+        {
+          "icon": "⚡",
+          "name": "Female Stereo Output Jack",
+          "description": "1/4\" TRS jack for connecting to your drum module"
+        },
+        {
+          "icon": "🔺",
+          "name": "Foam Piezo Sensor Cone",
+          "description": "Transfers input from the drumhead to the piezo sensor"
+        },
+        {
+          "icon": "🔩",
+          "name": "M3 Screws",
+          "description": "For mounting the sensor platform (4-6 screws)"
+        },
+        {
+          "icon": "🧪",
+          "name": "CA Glue (Super Glue)",
+          "description": "For bonding components if needed"
+        }
+      ],
+      "enabled": false,
+      "comingSoon": true
+    },
+    {
+      "slug": "t-drum",
+      "title": "Another Mini Drum",
+      "subtitle": "Compact Practice Pad",
+      "description": [
+        "The Mini Drum is a compact, pre-designed electronic drum pad perfect for practice setups or portable kits. This ready-to-print STL file requires no customization—just download, slice, and print.",
+        "The design features a simplified construction that's quick to print and easy to assemble. It's ideal for beginners who want to get started with DIY electronic drums without the complexity of a full-sized build."
+      ],
+      "note": "This is a pre-generated file. No cloud processing required—download starts immediately.",
+      "images": [
+        {
+          "src": "placeholder.jpg",
+          "alt": "Mini drum preview"
+        }
+      ],
+      "downloadUrl": "/downloads/MiniDrum.zip",
+      "downloadLabel": "Mini Drum STL Package",
+      "downloadDescription": "Includes the drum shell and sensor platform as separate STL files.",
+      "fileDetails": [
+        {
+          "icon": "📁",
+          "text": "2 STL files"
+        },
+        {
+          "icon": "📐",
+          "text": "~6\" diameter"
+        }
+      ],
+      "printSettings": [
+        {
+          "label": "Layer Height",
+          "value": "0.2mm"
+        },
+        {
+          "label": "Infill (Shell)",
+          "value": "15-20%"
+        },
+        {
+          "label": "Infill (Platform)",
+          "value": "100% or walls only"
+        },
+        {
+          "label": "Supports",
+          "value": "Not required"
+        },
+        {
+          "label": "Material",
+          "value": "PLA or PETG"
+        },
+        {
+          "label": "Est. Print Time",
+          "value": "~4-6 hours"
+        }
+      ],
+      "parts": [
+        {
+          "icon": "🥁",
+          "name": "6\" Mesh Drumhead",
+          "description": "A small mesh head sized for the mini drum shell"
+        },
+        {
+          "icon": "⚡",
+          "name": "27mm Piezo Sensor",
+          "description": "Main trigger sensor - mounts to the center platform"
+        },
+        {
+          "icon": "⚡",
+          "name": "Female Stereo Output Jack",
+          "description": "1/4\" TRS jack for connecting to your drum module"
+        },
+        {
+          "icon": "🔺",
+          "name": "Foam Piezo Sensor Cone",
+          "description": "Transfers input from the drumhead to the piezo sensor"
+        },
+        {
+          "icon": "🔩",
+          "name": "M3 Screws",
+          "description": "For mounting the sensor platform (4-6 screws)"
+        },
+        {
+          "icon": "🧪",
+          "name": "CA Glue (Super Glue)",
+          "description": "For bonding components if needed"
+        }
+      ],
+      "enabled": true,
+      "comingSoon": false
+    },
+    {
+      "slug": "generic-cup-holder",
+      "title": "Generic Question Mark Cup Holder",
+      "subtitle": "",
+      "description": [
+        "This is a completely generic cubic cup holder with a question mark on it. It is sized to fit your generic insulated stainless steel tumbler, and can also hold most ceramic mugs. It has a slot on the side for the mug handle, as well as two counter sunk screw holes on the back in case you want to mount it somewhere. Maybe on a generic video game arcade machine."
+      ],
+      "note": "",
+      "images": [
+        {
+          "src": "Screenshot_2026-03-13_at_4.51.22___PM.png",
+          "alt": "FusionView"
+        }
+      ],
+      "downloadUrl": "/downloads/GenericQuestionMarkCupHolder.stl",
+      "downloadLabel": "cup-holder",
+      "downloadDescription": "Includes cup-holder STL",
+      "fileDetails": [
+        {
+          "icon": "📁",
+          "text": "1 File"
+        }
+      ],
+      "printSettings": [],
+      "parts": [
+        {
+          "icon": "",
+          "name": "Screws",
+          "description": "2 Screws Needed for mounting"
+        }
+      ],
+      "enabled": false,
+      "comingSoon": true
+    }
+  ]
+}

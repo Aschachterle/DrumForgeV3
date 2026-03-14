@@ -15,40 +15,34 @@
             <p class="tagline">Parametric Design Automation Platform</p>
         </div>
 
-        <div class="models-grid">
-            <a href="/drum.html" class="model-card">
-                <div class="model-thumbnail">
-                    <img src="/images/descriptionGallery/printed-drum.jpg" alt="E-Drum preview">
-                </div>
-                <h2>E-Drum STL Generator</h2>
-                <p>Design custom drum shells with adjustable segments, dimensions, lug placement, and more. Perfect for custom drum builders and manufacturers.</p>
-                <div class="model-meta">
-                    <span>⚙️ 9 parameters</span>
-                    <span>⚡ 15-30 sec</span>
-                </div>
-            </a>
-
-            <div class="model-card disabled">
-                <div class="coming-soon-banner">🚧 Coming Soon</div>
-                <div class="model-thumbnail">
-                    <img src="/images/miniDrumGallery/placeholder.jpg" alt="Mini Drum preview">
-                </div>
-                <h2>The Mini Drum</h2>
-                <p>A compact, pre-designed electronic drum pad. Ready-to-print STL file—no customization needed. Perfect for practice setups or portable kits.</p>
-                <div class="model-meta">
-                    <span>📁 Pre-generated</span>
-                    <span>⬇️ Instant download</span>
-                </div>
+        <div class="section-wrapper">
+            <div class="section-header">
+                <h2>⚙️ Generators</h2>
+                <p>Customize parameters and generate unique STL files</p>
             </div>
+            <div class="models-grid">
+                <a href="/drum.html" class="model-card">
+                    <div class="model-thumbnail">
+                        <img src="/images/descriptionGallery/printed-drum.jpg" alt="E-Drum preview">
+                    </div>
+                    <h2>E-Drum STL Generator</h2>
+                    <p>Design custom drum shells with adjustable segments, dimensions, lug placement, and more. Perfect for custom drum builders and manufacturers.</p>
+                    <div class="model-meta">
+                        <span>⚙️ 9 parameters</span>
+                        <span>⚡ 15-30 sec</span>
+                    </div>
+                </a>
+            </div>
+        </div>
 
-            <!-- Future models will go here -->
-            <!-- 
-            <a href="/model2.html" class="model-card">
-                <div class="model-icon">🔧</div>
-                <h2>Another Model</h2>
-                <p>Description...</p>
-            </a>
-            -->
+        <div class="section-wrapper">
+            <div class="section-header">
+                <h2>📁 Downloads</h2>
+                <p>Pre-made STL files ready for instant download</p>
+            </div>
+            <div class="models-grid" id="downloadsGrid">
+                <!-- Downloadable items loaded dynamically from items.json -->
+            </div>
         </div>
 
         <div class="footer">
@@ -65,6 +59,45 @@
         if (document.readyState === 'complete') {
             document.body.classList.add('loaded');
         }
+
+        // Load downloadable items from API
+        async function loadItems() {
+            try {
+                const response = await fetch('/api/items');
+                const data = await response.json();
+                const grid = document.getElementById('downloadsGrid');
+                
+                const cardsHtml = data.items.map(item => {
+                    const isDisabled = !item.enabled || item.comingSoon;
+                    const tag = isDisabled ? 'div' : 'a';
+                    const href = isDisabled ? '' : `href="/item.html?id=${item.slug}"`;
+                    const disabledClass = isDisabled ? ' disabled' : '';
+                    const banner = item.comingSoon ? '<div class="coming-soon-banner">🚧 Coming Soon</div>' : '';
+                    const imgSrc = item.images[0]?.src ? `/images/items/${item.slug}/${item.images[0].src}` : '/images/logo.png';
+                    
+                    return `
+                        <${tag} ${href} class="model-card${disabledClass}">
+                            ${banner}
+                            <div class="model-thumbnail">
+                                <img src="${imgSrc}" alt="${item.title} preview">
+                            </div>
+                            <h2>${item.title}</h2>
+                            <p>${item.description[0].substring(0, 150)}${item.description[0].length > 150 ? '...' : ''}</p>
+                            <div class="model-meta">
+                                <span>📁 Pre-generated</span>
+                                <span>⬇️ Instant download</span>
+                            </div>
+                        </${tag}>
+                    `;
+                }).join('');
+                
+                grid.innerHTML = cardsHtml;
+            } catch (error) {
+                console.error('Failed to load items:', error);
+            }
+        }
+        
+        loadItems();
     </script>
 </body>
 </html>

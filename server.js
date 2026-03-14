@@ -5,6 +5,8 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import axios from 'axios';
+import multer from 'multer';
+import basicAuth from 'express-basic-auth';
 import { config, validateConfig } from './src/config.js';
 import AutodeskAPIClient from './src/autodesk-api.js';
 import { buildPreviewSvg } from './src/svg-preview.js';
@@ -46,6 +48,28 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// Admin authentication - set ADMIN_USER and ADMIN_PASSWORD env vars
+const ADMIN_USER = process.env.ADMIN_USER || 'admin';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'changeme';
+
+if (ADMIN_PASSWORD === 'changeme') {
+  console.warn('⚠️  WARNING: Using default admin password. Set ADMIN_PASSWORD env var for production!');
+}
+
+// Protect admin routes with basic auth
+app.use('/admin.html', basicAuth({
+  users: { [ADMIN_USER]: ADMIN_PASSWORD },
+  challenge: true,
+  realm: 'Admin Area'
+}));
+
+app.use('/api/admin', basicAuth({
+  users: { [ADMIN_USER]: ADMIN_PASSWORD },
+  challenge: true,
+  realm: 'Admin Area'
+}));
+
 app.use(express.static('public'));
 
 // Reference to the drum file
@@ -475,6 +499,213 @@ app.get('/api/config', (req, res) => {
   } catch (error) {
     console.error('Error reading config:', error);
     res.status(500).json({ error: 'Failed to load configuration' });
+  }
+});
+
+/**
+ * GET /api/items/:slug - Get downloadable item by slug
+ */
+app.get('/api/items/:slug', (req, res) => {
+  try {
+    const itemsPath = path.join(__dirname, 'config', 'items.json');
+    const itemsData = JSON.parse(fs.readFileSync(itemsPath, 'utf-8'));
+    const item = itemsData.items.find(i => i.slug === req.params.slug);
+    
+    if (!item) {
+      return res.status(404).json({ error: 'Item not found' });
+    }
+    
+    res.json(item);
+  } catch (error) {
+    console.error('Error reading items:', error);
+    res.status(500).json({ error: 'Failed to load item' });
+  }
+});
+
+/**
+ * GET /api/items - Get all downloadable items
+ */
+app.get('/api/items', (req, res) => {
+  try {
+    const itemsPath = path.join(__dirname, 'config', 'items.json');
+    const itemsData = JSON.parse(fs.readFileSync(itemsPath, 'utf-8'));
+    res.json(itemsData);
+  } catch (error) {
+    console.error('Error reading items:', error);
+    res.status(500).json({ error: 'Failed to load items' });
+  }
+});
+
+/**
+ * ADMIN ENDPOINTS - Item management
+ */
+
+// Multer storage configuration for item images
+const itemImageStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const itemDir = path.join(__dirname, 'public', 'images', 'items', req.params.slug);
+    fs.mkdirSync(itemDir, { recursive: true });
+    cb(null, itemDir);
+  },
+  filename: (req, file, cb) => {
+    // Keep original filename but sanitize it
+    const sanitized = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+    cb(null, sanitized);
+  }
+});
+const itemImageUpload = multer({ storage: itemImageStorage });
+
+// Helper to read/write items.json
+const getItemsPath = () => path.join(__dirname, 'config', 'items.json');
+const readItems = () => JSON.parse(fs.readFileSync(getItemsPath(), 'utf-8'));
+const writeItems = (data) => fs.writeFileSync(getItemsPath(), JSON.stringify(data, null, 2));
+
+/**
+ * POST /api/admin/items - Create new item
+ */
+app.post('/api/admin/items', (req, res) => {
+  try {
+    const newItem = req.body;
+    
+    if (!newItem.slug) {
+      return res.status(400).json({ error: 'Slug is required' });
+    }
+    
+    const data = readItems();
+    
+    // Check if slug already exists
+    if (data.items.find(i => i.slug === newItem.slug)) {
+      return res.status(400).json({ error: 'An item with this slug already exists' });
+    }
+    
+    // Create image folder
+    const itemDir = path.join(__dirname, 'public', 'images', 'items', newItem.slug);
+    fs.mkdirSync(itemDir, { recursive: true });
+    
+    data.items.push(newItem);
+    writeItems(data);
+    
+    res.json({ success: true, item: newItem });
+  } catch (error) {
+    console.error('Error creating item:', error);
+    res.status(500).json({ error: 'Failed to create item' });
+  }
+});
+
+/**
+ * PUT /api/admin/items/:slug - Update existing item
+ */
+app.put('/api/admin/items/:slug', (req, res) => {
+  try {
+    const { slug } = req.params;
+    const updatedItem = req.body;
+    
+    const data = readItems();
+    const index = data.items.findIndex(i => i.slug === slug);
+    
+    if (index === -1) {
+      return res.status(404).json({ error: 'Item not found' });
+    }
+    
+    data.items[index] = updatedItem;
+    writeItems(data);
+    
+    res.json({ success: true, item: updatedItem });
+  } catch (error) {
+    console.error('Error updating item:', error);
+    res.status(500).json({ error: 'Failed to update item' });
+  }
+});
+
+/**
+ * DELETE /api/admin/items/:slug - Delete item
+ */
+app.delete('/api/admin/items/:slug', (req, res) => {
+  try {
+    const { slug } = req.params;
+    
+    const data = readItems();
+    const index = data.items.findIndex(i => i.slug === slug);
+    
+    if (index === -1) {
+      return res.status(404).json({ error: 'Item not found' });
+    }
+    
+    data.items.splice(index, 1);
+    writeItems(data);
+    
+    // Optionally delete the image folder
+    const itemDir = path.join(__dirname, 'public', 'images', 'items', slug);
+    if (fs.existsSync(itemDir)) {
+      fs.rmSync(itemDir, { recursive: true });
+    }
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting item:', error);
+    res.status(500).json({ error: 'Failed to delete item' });
+  }
+});
+
+/**
+ * POST /api/admin/items/:slug/images - Upload images for an item
+ */
+app.post('/api/admin/items/:slug/images', itemImageUpload.array('images', 10), (req, res) => {
+  try {
+    const uploadedFiles = req.files.map(f => f.filename);
+    res.json({ success: true, files: uploadedFiles });
+  } catch (error) {
+    console.error('Error uploading images:', error);
+    res.status(500).json({ error: 'Failed to upload images' });
+  }
+});
+
+/**
+ * DELETE /api/admin/items/:slug/images/:filename - Delete an image
+ */
+app.delete('/api/admin/items/:slug/images/:filename', (req, res) => {
+  try {
+    const { slug, filename } = req.params;
+    const imagePath = path.join(__dirname, 'public', 'images', 'items', slug, filename);
+    
+    if (fs.existsSync(imagePath)) {
+      fs.unlinkSync(imagePath);
+    }
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting image:', error);
+    res.status(500).json({ error: 'Failed to delete image' });
+  }
+});
+
+// Multer storage for download files (STL/ZIP)
+const downloadStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const downloadDir = path.join(__dirname, 'public', 'downloads');
+    fs.mkdirSync(downloadDir, { recursive: true });
+    cb(null, downloadDir);
+  },
+  filename: (req, file, cb) => {
+    // Keep original filename but sanitize it
+    const sanitized = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+    cb(null, sanitized);
+  }
+});
+const downloadUpload = multer({ storage: downloadStorage });
+
+/**
+ * POST /api/admin/downloads - Upload STL/ZIP file
+ */
+app.post('/api/admin/downloads', downloadUpload.single('file'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+    res.json({ success: true, filename: req.file.filename });
+  } catch (error) {
+    console.error('Error uploading download file:', error);
+    res.status(500).json({ error: 'Failed to upload file' });
   }
 });
 

@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item Manager - Admin</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.5;
+        }
+        .app { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        h1 { margin-bottom: 20px; color: #1a1a1a; }
+        
+        /* Layout */
+        .layout { display: grid; grid-template-columns: 300px 1fr; gap: 20px; }
+        @media (max-width: 800px) { .layout { grid-template-columns: 1fr; } }
+        
+        /* Sidebar */
+        .sidebar { background: #fff; border-radius: 8px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .sidebar h2 { font-size: 14px; color: #666; margin-bottom: 12px; text-transform: uppercase; }
+        .item-list { list-style: none; }
+        .item-list li {
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .item-list li:hover { background: #f0f0f0; }
+        .item-list li.active { background: #e3f2fd; color: #1976d2; }
+        .item-list li.disabled { opacity: 0.6; }
+        .item-list .badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #ff9800;
+            color: #fff;
+        }
+        .item-list .badge.enabled { background: #4caf50; }
+        
+        .btn-new {
+            width: 100%;
+            padding: 12px;
+            background: #1976d2;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+        .btn-new:hover { background: #1565c0; }
+        
+        /* Main panel */
+        .main-panel { background: #fff; border-radius: 8px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .main-panel h2 { margin-bottom: 20px; }
+        
+        /* Form */
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #1976d2;
+        }
+        .form-group textarea { min-height: 80px; resize: vertical; }
+        .form-group .hint { font-size: 12px; color: #666; margin-top: 4px; }
+        
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+        
+        /* Toggles */
+        .toggle-group { display: flex; gap: 24px; flex-wrap: wrap; }
+        .toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .toggle input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        /* Array fields */
+        .array-field { border: 1px solid #e0e0e0; border-radius: 6px; padding: 12px; }
+        .array-item {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: flex-start;
+        }
+        .array-item input, .array-item textarea { flex: 1; }
+        .array-item .btn-remove {
+            padding: 8px 12px;
+            background: #f44336;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-add {
+            padding: 8px 16px;
+            background: #e0e0e0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .btn-add:hover { background: #d0d0d0; }
+        
+        /* Key-value pairs */
+        .kv-item { display: grid; grid-template-columns: 120px 1fr auto; gap: 8px; margin-bottom: 8px; }
+        .kv-item input { padding: 8px; }
+        
+        /* Images */
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .image-item {
+            position: relative;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #f0f0f0;
+            aspect-ratio: 1;
+        }
+        .image-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .image-item .delete-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 24px;
+            height: 24px;
+            background: rgba(244, 67, 54, 0.9);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1;
+        }
+        .image-item .alt-input {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 4px;
+            background: rgba(0,0,0,0.7);
+        }
+        .image-item .alt-input input {
+            width: 100%;
+            padding: 4px;
+            font-size: 11px;
+            border: none;
+            border-radius: 3px;
+        }
+        
+        .upload-zone {
+            border: 2px dashed #ccc;
+            border-radius: 6px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: #1976d2;
+            background: #e3f2fd;
+        }
+        .upload-zone input { display: none; }
+        
+        /* Download file info */
+        .download-file-info {
+            margin-bottom: 12px;
+            padding: 12px;
+            background: #f5f5f5;
+            border-radius: 6px;
+        }
+        .download-file-info .current-file {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .download-file-info .no-file {
+            color: #999;
+            font-style: italic;
+        }
+        .btn-preview {
+            padding: 4px 12px;
+            background: #1976d2;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .btn-preview:hover { background: #1565c0; }
+        
+        /* File details */
+        .file-detail-item { display: grid; grid-template-columns: 60px 1fr auto; gap: 8px; margin-bottom: 8px; align-items: center; }
+        .file-detail-item input:first-child { text-align: center; }
+        
+        /* Parts */
+        .part-item { display: grid; grid-template-columns: 60px 1fr 2fr auto; gap: 8px; margin-bottom: 8px; }
+        .part-item input:first-child { text-align: center; }
+        
+        /* Actions */
+        .actions { display: flex; gap: 12px; margin-top: 24px; padding-top: 24px; border-top: 1px solid #e0e0e0; }
+        .btn-save {
+            padding: 12px 32px;
+            background: #4caf50;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .btn-save:hover { background: #43a047; }
+        .btn-delete {
+            padding: 12px 24px;
+            background: #f44336;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-delete:hover { background: #e53935; }
+        .btn-cancel {
+            padding: 12px 24px;
+            background: #e0e0e0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        .empty-state h3 { margin-bottom: 8px; }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            background: #333;
+            color: #fff;
+            border-radius: 6px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        .toast.show { opacity: 1; transform: translateY(0); }
+        .toast.success { background: #4caf50; }
+        .toast.error { background: #f44336; }
+        
+        /* Section headers in form */
+        .section-header {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 24px 0 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e0e0e0;
+            color: #333;
+        }
+        .section-header:first-of-type { margin-top: 0; }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <h1>📦 Item Manager</h1>
+        
+        <div class="layout">
+            <div class="sidebar">
+                <button class="btn-new" onclick="createNewItem()">+ New Item</button>
+                <h2>Items</h2>
+                <ul class="item-list" id="itemList">
+                    <!-- Items loaded dynamically -->
+                </ul>
+            </div>
+            
+            <div class="main-panel" id="mainPanel">
+                <div class="empty-state">
+                    <h3>No item selected</h3>
+                    <p>Select an item from the list or create a new one</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let items = [];
+        let currentItem = null;
+        let isNewItem = false;
+
+        // Load items on page load
+        document.addEventListener('DOMContentLoaded', loadItems);
+
+        async function loadItems() {
+            try {
+                const response = await fetch('/api/items');
+                const data = await response.json();
+                items = data.items || [];
+                renderItemList();
+            } catch (error) {
+                showToast('Failed to load items', 'error');
+            }
+        }
+
+        function renderItemList() {
+            const list = document.getElementById('itemList');
+            list.innerHTML = items.map(item => `
+                <li class="${item.slug === currentItem?.slug ? 'active' : ''} ${!item.enabled ? 'disabled' : ''}" 
+                    onclick="selectItem('${item.slug}')">
+                    <span>${item.title}</span>
+                    <span class="badge ${item.enabled && !item.comingSoon ? 'enabled' : ''}">
+                        ${item.comingSoon ? 'Soon' : (item.enabled ? 'Live' : 'Off')}
+                    </span>
+                </li>
+            `).join('');
+        }
+
+        function selectItem(slug) {
+            currentItem = items.find(i => i.slug === slug);
+            isNewItem = false;
+            renderItemList();
+            renderForm();
+        }
+
+        function createNewItem() {
+            isNewItem = true;
+            currentItem = {
+                slug: '',
+                title: '',
+                subtitle: '',
+                description: [''],
+                note: '',
+                images: [],
+                downloadUrl: '/downloads/',
+                downloadLabel: '',
+                downloadDescription: '',
+                fileDetails: [{ icon: '📁', text: '' }],
+                printSettings: [{ label: '', value: '' }],
+                parts: [{ icon: '', name: '', description: '' }],
+                enabled: false,
+                comingSoon: true
+            };
+            renderItemList();
+            renderForm();
+        }
+
+        function renderForm() {
+            const panel = document.getElementById('mainPanel');
+            const item = currentItem;
+            
+            panel.innerHTML = `
+                <h2>${isNewItem ? 'New Item' : 'Edit Item'}</h2>
+                
+                <div class="section-header">Basic Info</div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Slug (URL identifier)</label>
+                        <input type="text" id="slug" value="${item.slug}" ${!isNewItem ? 'readonly style="background:#f5f5f5"' : ''} 
+                               placeholder="mini-drum" oninput="updateSlug(this.value)">
+                        <div class="hint">Lowercase, hyphens only. Used in URLs and folder names.</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" id="title" value="${item.title}" placeholder="The Mini Drum">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Subtitle</label>
+                    <input type="text" id="subtitle" value="${item.subtitle || ''}" placeholder="Compact Practice Pad">
+                </div>
+                
+                <div class="form-group">
+                    <label>Description Paragraphs</label>
+                    <div class="array-field" id="descriptionField">
+                        ${item.description.map((d, i) => `
+                            <div class="array-item">
+                                <textarea oninput="updateDescription(${i}, this.value)">${d}</textarea>
+                                <button class="btn-remove" onclick="removeDescription(${i})">×</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button class="btn-add" onclick="addDescription()">+ Add Paragraph</button>
+                </div>
+                
+                <div class="form-group">
+                    <label>Note (optional)</label>
+                    <input type="text" id="note" value="${item.note || ''}" placeholder="This is a pre-generated file...">
+                </div>
+                
+                <div class="section-header">Feature Flags</div>
+                
+                <div class="form-group">
+                    <div class="toggle-group">
+                        <label class="toggle">
+                            <input type="checkbox" id="enabled" ${item.enabled ? 'checked' : ''}>
+                            <span>Enabled (visible & clickable)</span>
+                        </label>
+                        <label class="toggle">
+                            <input type="checkbox" id="comingSoon" ${item.comingSoon ? 'checked' : ''}>
+                            <span>Coming Soon banner</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="section-header">Images</div>
+                
+                <div class="form-group">
+                    <label>Gallery Images</label>
+                    <div class="images-grid" id="imagesGrid">
+                        ${item.images.map((img, i) => `
+                            <div class="image-item">
+                                <img src="/images/items/${item.slug}/${img.src}" onerror="this.src='/images/logo.png'">
+                                <button class="delete-btn" onclick="removeImage(${i})">×</button>
+                                <div class="alt-input">
+                                    <input type="text" value="${img.alt || ''}" placeholder="Alt text" 
+                                           oninput="updateImageAlt(${i}, this.value)">
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+                        <input type="file" id="fileInput" multiple accept="image/*" onchange="uploadImages(this.files)">
+                        <p>📷 Click or drag images here to upload</p>
+                    </div>
+                    <div class="hint">Images are saved to: /public/images/items/${item.slug || '{slug}'}/</div>
+                </div>
+                
+                <div class="section-header">Download</div>
+                
+                <div class="form-group">
+                    <label>Upload STL/ZIP File</label>
+                    <div class="download-file-info" id="downloadFileInfo">
+                        ${item.downloadUrl && item.downloadUrl !== '/downloads/' ? `
+                            <div class="current-file">
+                                <span>📦 Current file: <strong>${item.downloadUrl.split('/').pop()}</strong></span>
+                                <a href="${item.downloadUrl}" target="_blank" class="btn-preview">Preview</a>
+                            </div>
+                        ` : '<div class="no-file">No file uploaded yet</div>'}
+                    </div>
+                    <div class="upload-zone" id="stlUploadZone" onclick="document.getElementById('stlFileInput').click()">
+                        <input type="file" id="stlFileInput" accept=".stl,.zip,.rar,.7z" onchange="uploadStlFile(this.files[0])">
+                        <p>📦 Click or drag STL/ZIP file here to upload</p>
+                    </div>
+                    <div class="hint">Files are saved to: /public/downloads/</div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Download Label</label>
+                        <input type="text" id="downloadLabel" value="${item.downloadLabel || ''}" placeholder="Mini Drum STL Package">
+                    </div>
+                    <div class="form-group">
+                        <label>Download Filename (or enter manually)</label>
+                        <input type="text" id="downloadFilename" value="${item.downloadUrl?.split('/').pop() || ''}" 
+                               placeholder="MiniDrum.zip" oninput="updateDownloadUrl(this.value)">
+                        <div class="hint">Full URL: <code id="downloadUrlPreview">${item.downloadUrl || '/downloads/'}</code></div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Download Description</label>
+                    <input type="text" id="downloadDescription" value="${item.downloadDescription || ''}" 
+                           placeholder="Includes the drum shell and sensor platform...">
+                </div>
+                
+                <div class="form-group">
+                    <label>File Details</label>
+                    <div class="array-field" id="fileDetailsField">
+                        ${(item.fileDetails || []).map((fd, i) => `
+                            <div class="file-detail-item">
+                                <input type="text" value="${fd.icon}" placeholder="📁" oninput="updateFileDetail(${i}, 'icon', this.value)">
+                                <input type="text" value="${fd.text}" placeholder="2 STL files" oninput="updateFileDetail(${i}, 'text', this.value)">
+                                <button class="btn-remove" onclick="removeFileDetail(${i})">×</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button class="btn-add" onclick="addFileDetail()">+ Add Detail</button>
+                </div>
+                
+                <div class="section-header">Print Settings</div>
+                
+                <div class="form-group">
+                    <div class="array-field" id="printSettingsField">
+                        ${(item.printSettings || []).map((ps, i) => `
+                            <div class="kv-item">
+                                <input type="text" value="${ps.label}" placeholder="Label" oninput="updatePrintSetting(${i}, 'label', this.value)">
+                                <input type="text" value="${ps.value}" placeholder="Value" oninput="updatePrintSetting(${i}, 'value', this.value)">
+                                <button class="btn-remove" onclick="removePrintSetting(${i})">×</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button class="btn-add" onclick="addPrintSetting()">+ Add Setting</button>
+                </div>
+                
+                <div class="section-header">Parts List</div>
+                
+                <div class="form-group">
+                    <div class="array-field" id="partsField">
+                        ${(item.parts || []).map((p, i) => `
+                            <div class="part-item">
+                                <input type="text" value="${p.icon}" placeholder="🥁" oninput="updatePart(${i}, 'icon', this.value)">
+                                <input type="text" value="${p.name}" placeholder="Part name" oninput="updatePart(${i}, 'name', this.value)">
+                                <input type="text" value="${p.description}" placeholder="Description" oninput="updatePart(${i}, 'description', this.value)">
+                                <button class="btn-remove" onclick="removePart(${i})">×</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button class="btn-add" onclick="addPart()">+ Add Part</button>
+                </div>
+                
+                <div class="actions">
+                    <button class="btn-save" onclick="saveItem()">💾 Save Item</button>
+                    ${!isNewItem ? '<button class="btn-delete" onclick="deleteItem()">🗑️ Delete</button>' : ''}
+                    <button class="btn-cancel" onclick="cancelEdit()">Cancel</button>
+                </div>
+            `;
+            
+            // Setup drag and drop
+            const uploadZone = document.getElementById('uploadZone');
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('dragover');
+            });
+            uploadZone.addEventListener('dragleave', () => {
+                uploadZone.classList.remove('dragover');
+            });
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('dragover');
+                uploadImages(e.dataTransfer.files);
+            });
+            
+            // Setup drag and drop for STL upload
+            const stlUploadZone = document.getElementById('stlUploadZone');
+            stlUploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                stlUploadZone.classList.add('dragover');
+            });
+            stlUploadZone.addEventListener('dragleave', () => {
+                stlUploadZone.classList.remove('dragover');
+            });
+            stlUploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                stlUploadZone.classList.remove('dragover');
+                if (e.dataTransfer.files.length > 0) {
+                    uploadStlFile(e.dataTransfer.files[0]);
+                }
+            });
+        }
+
+        // Form field update functions
+        function updateSlug(value) {
+            currentItem.slug = value.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+            document.getElementById('slug').value = currentItem.slug;
+        }
+
+        function updateDescription(index, value) {
+            currentItem.description[index] = value;
+        }
+
+        function addDescription() {
+            currentItem.description.push('');
+            renderForm();
+        }
+
+        function removeDescription(index) {
+            currentItem.description.splice(index, 1);
+            if (currentItem.description.length === 0) currentItem.description.push('');
+            renderForm();
+        }
+
+        function updateImageAlt(index, value) {
+            currentItem.images[index].alt = value;
+        }
+
+        function removeImage(index) {
+            const img = currentItem.images[index];
+            if (confirm(`Delete image "${img.src}"?`)) {
+                // Delete from server
+                fetch(`/api/admin/items/${currentItem.slug}/images/${img.src}`, { method: 'DELETE' })
+                    .then(() => {
+                        currentItem.images.splice(index, 1);
+                        renderForm();
+                        showToast('Image deleted', 'success');
+                    })
+                    .catch(() => showToast('Failed to delete image', 'error'));
+            }
+        }
+
+        async function uploadImages(files) {
+            if (!currentItem.slug) {
+                showToast('Please set a slug first', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            for (const file of files) {
+                formData.append('images', file);
+            }
+
+            try {
+                const response = await fetch(`/api/admin/items/${currentItem.slug}/images`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) throw new Error('Upload failed');
+                
+                const result = await response.json();
+                // Add new images to current item
+                for (const filename of result.files) {
+                    currentItem.images.push({ src: filename, alt: '' });
+                }
+                renderForm();
+                showToast(`${result.files.length} image(s) uploaded`, 'success');
+            } catch (error) {
+                showToast('Failed to upload images', 'error');
+            }
+        }
+
+        function updateDownloadUrl(filename) {
+            currentItem.downloadUrl = '/downloads/' + filename;
+            document.getElementById('downloadUrlPreview').textContent = currentItem.downloadUrl;
+        }
+
+        async function uploadStlFile(file) {
+            if (!file) return;
+            
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/api/admin/downloads', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) throw new Error('Upload failed');
+                
+                const result = await response.json();
+                // Update download URL with uploaded filename
+                currentItem.downloadUrl = '/downloads/' + result.filename;
+                document.getElementById('downloadFilename').value = result.filename;
+                document.getElementById('downloadUrlPreview').textContent = currentItem.downloadUrl;
+                renderForm();
+                showToast(`File "${result.filename}" uploaded`, 'success');
+            } catch (error) {
+                showToast('Failed to upload file', 'error');
+            }
+        }
+
+        function updateFileDetail(index, key, value) {
+            currentItem.fileDetails[index][key] = value;
+        }
+
+        function addFileDetail() {
+            currentItem.fileDetails.push({ icon: '', text: '' });
+            renderForm();
+        }
+
+        function removeFileDetail(index) {
+            currentItem.fileDetails.splice(index, 1);
+            renderForm();
+        }
+
+        function updatePrintSetting(index, key, value) {
+            currentItem.printSettings[index][key] = value;
+        }
+
+        function addPrintSetting() {
+            currentItem.printSettings.push({ label: '', value: '' });
+            renderForm();
+        }
+
+        function removePrintSetting(index) {
+            currentItem.printSettings.splice(index, 1);
+            renderForm();
+        }
+
+        function updatePart(index, key, value) {
+            currentItem.parts[index][key] = value;
+        }
+
+        function addPart() {
+            currentItem.parts.push({ icon: '', name: '', description: '' });
+            renderForm();
+        }
+
+        function removePart(index) {
+            currentItem.parts.splice(index, 1);
+            renderForm();
+        }
+
+        // Save, delete, cancel
+        async function saveItem() {
+            // Gather form data
+            currentItem.title = document.getElementById('title').value;
+            currentItem.subtitle = document.getElementById('subtitle').value;
+            currentItem.note = document.getElementById('note').value;
+            currentItem.enabled = document.getElementById('enabled').checked;
+            currentItem.comingSoon = document.getElementById('comingSoon').checked;
+            currentItem.downloadLabel = document.getElementById('downloadLabel').value;
+            currentItem.downloadDescription = document.getElementById('downloadDescription').value;
+
+            // Validate
+            if (!currentItem.slug) {
+                showToast('Slug is required', 'error');
+                return;
+            }
+            if (!currentItem.title) {
+                showToast('Title is required', 'error');
+                return;
+            }
+
+            // Filter out empty entries
+            currentItem.description = currentItem.description.filter(d => d.trim());
+            if (currentItem.description.length === 0) currentItem.description = [''];
+            currentItem.fileDetails = currentItem.fileDetails.filter(fd => fd.text.trim());
+            currentItem.printSettings = currentItem.printSettings.filter(ps => ps.label.trim() || ps.value.trim());
+            currentItem.parts = currentItem.parts.filter(p => p.name.trim());
+
+            try {
+                const method = isNewItem ? 'POST' : 'PUT';
+                const url = isNewItem ? '/api/admin/items' : `/api/admin/items/${currentItem.slug}`;
+                
+                const response = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(currentItem)
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.error || 'Save failed');
+                }
+
+                showToast('Item saved successfully', 'success');
+                isNewItem = false;
+                await loadItems();
+                selectItem(currentItem.slug);
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        async function deleteItem() {
+            if (!confirm(`Delete "${currentItem.title}"? This cannot be undone.`)) return;
+
+            try {
+                const response = await fetch(`/api/admin/items/${currentItem.slug}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) throw new Error('Delete failed');
+
+                showToast('Item deleted', 'success');
+                currentItem = null;
+                await loadItems();
+                document.getElementById('mainPanel').innerHTML = `
+                    <div class="empty-state">
+                        <h3>No item selected</h3>
+                        <p>Select an item from the list or create a new one</p>
+                    </div>
+                `;
+            } catch (error) {
+                showToast('Failed to delete item', 'error');
+            }
+        }
+
+        function cancelEdit() {
+            if (isNewItem) {
+                currentItem = null;
+                document.getElementById('mainPanel').innerHTML = `
+                    <div class="empty-state">
+                        <h3>No item selected</h3>
+                        <p>Select an item from the list or create a new one</p>
+                    </div>
+                `;
+            } else {
+                // Reload original
+                selectItem(currentItem.slug);
+            }
+            renderItemList();
+        }
+
+        function showToast(message, type = '') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast show ' + type;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+    </script>
+</body>
+</html>
