@@ -10,9 +10,14 @@
       "note": "",
       "images": [
         {
-          "src": "Screenshot_2026-03-13_at_4.51.22___PM.png",
+          "src": "Screenshot_2026-03-13_at_4.51.22___PM.jpg",
+          "alt": "FusionView"
+        },
+        {
+          "src": "Screenshot 2026-03-18 at 9.22.43 AM.jpg",
           "alt": "FusionView"
         }
+
       ],
       "downloadUrl": "/downloads/GenericQuestionMarkCupHolder.stl",
       "downloadLabel": "cup-holder",
@@ -120,8 +125,8 @@
           "description": "For bonding components if needed"
         }
       ],
-      "enabled": false,
-      "comingSoon": true
+      "enabled": true,
+      "comingSoon": false
     }
   ]
 }

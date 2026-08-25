@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="/images/logo.png">
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/breaker-labels.css">
+  <title>Extrudo - Breaker Label Sheet Tool</title>
+</head>
+<body>
+  <div class="container breaker-tool-page">
+    <div class="header">
+      <a href="/" aria-label="Go to home page">
+        <img class="header-logo" src="/images/logo.png" alt="Extrudo logo">
+      </a>
+    </div>
+
+    <div class="section-wrapper">
+      <div class="section-header">
+        <h2>⚡ Breaker Label Tool</h2>
+        <p>Generate a printable replacement label sheet for your panel</p>
+      </div>
+
+      <div class="tool-grid">
+        <section class="panel card">
+          <h3>1 Setup</h3>
+          <div class="form-row">
+            <label for="totalSlots">Total breaker slots (includes blanks)</label>
+            <input id="totalSlots" type="number" min="2" step="2" value="20" />
+          </div>
+          <div class="form-actions">
+            <button id="generateRowsBtn" class="primary">Generate Rows</button>
+          </div>
+
+          <div class="divider"></div>
+
+          <h3>2 CSV Import</h3>
+          <p class="hint">CSV columns expected: Breaker # (Left Side), Area (Left Side), Description (Left Side), Area (Right Side), Description (Right Side), Breaker # (Right Side)</p>
+          <div class="form-row">
+            <label for="csvFile">Import CSV</label>
+            <input id="csvFile" type="file" accept=".csv,text/csv" />
+          </div>
+        </section>
+
+        <section class="panel card">
+          <h3>3 Print Options</h3>
+          <div class="form-row inline-radio">
+            <label><input type="radio" name="printMode" value="sheet" checked> Full label sheet</label>
+            <label><input type="radio" name="printMode" value="individual"> Individual labels</label>
+          </div>
+
+          <div id="sheetSizeControls">
+            <div class="form-row two-col">
+              <div>
+                <label for="sheetWidth">Sheet width (in)</label>
+                <input id="sheetWidth" type="number" min="1" step="0.1" value="8.5" />
+              </div>
+              <div>
+                <label for="sheetHeight">Sheet height (in)</label>
+                <input id="sheetHeight" type="number" min="1" step="0.1" value="11" />
+              </div>
+            </div>
+          </div>
+
+          <div id="labelSizeControls" class="hidden">
+            <div class="form-row two-col">
+              <div>
+                <label for="labelWidth">Label width (in)</label>
+                <input id="labelWidth" type="number" min="0.2" step="0.1" value="2" />
+              </div>
+              <div>
+                <label for="labelHeight">Label height (in)</label>
+                <input id="labelHeight" type="number" min="0.2" step="0.1" value="0.6" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button id="printBtn" class="primary">Print</button>
+          </div>
+        </section>
+      </div>
+
+      <section class="card colors-card">
+        <h3>Area Color Mapping</h3>
+        <p class="hint">Unique areas auto-get a color. You can override any color below.</p>
+        <div id="areaColorLegend" class="color-legend empty-state">No areas yet. Fill the table or import CSV.</div>
+      </section>
+
+      <section class="card">
+        <div class="table-head">
+          <h3>Breaker Rows</h3>
+          <p class="hint">Rows are generated from total slots. Leave blanks where needed for future breakers.</p>
+        </div>
+        <div class="table-wrap">
+          <table id="breakerTable">
+            <thead>
+              <tr>
+                <th>Breaker # (Left)</th>
+                <th>Area (Left)</th>
+                <th>Description (Left)</th>
+                <th>Area (Right)</th>
+                <th>Description (Right)</th>
+                <th>Breaker # (Right)</th>
+              </tr>
+            </thead>
+            <tbody id="breakerTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="footer-links">
+          <a href="/">Home</a>
+          <a href="/about.html">About</a>
+          <a href="/contact.html">Contact</a>
+        </div>
+        <div class="footer-brand">
+          <img src="/images/logo.png" alt="">
+          <span>Extrudo &copy; 2026</span>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="/js/breaker-labels.js"></script>
+  <script>
+    // Fade in page smoothly after layout is stable (same behavior as homepage)
+    function showPage() {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          document.body.classList.add('loaded');
+        });
+      });
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', showPage);
+    } else {
+      showPage();
+    }
+  </script>
+</body>
+</html>

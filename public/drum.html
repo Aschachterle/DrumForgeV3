@@ -14,29 +14,31 @@
             <a href="/" class="back-link">
                 ← Back to Models
             </a>
-            <img class="header-logo" src="/images/logo.png" alt="Extrudo logo">
+            <a href="/" aria-label="Go to home page">
+                <img class="header-logo" src="/images/logo.png" alt="Extrudo logo">
+            </a>
         </div>
 
-        <div class="layout">
-            <div class="panel">
+        <div class="layout-2col">
+            <!-- Left Column: Description & Info -->
+            <div class="panel panel-info">
                 <div class="hero-carousel" id="heroCarousel">
+                    <div class="carousel-loader" id="carouselLoader">
+                        <div class="carousel-spinner"></div>
+                    </div>
                     <div class="carousel-track" id="carouselTrack">
-                        <img src="/images/descriptionGallery/printed-drum.jpg" alt="3D printed drum shell">
-                        <img src="/images/descriptionGallery/IMG_0661.jpeg" alt="3D printed drum shell">
-                        <img src="/images/descriptionGallery/fusion-preview.png" alt="Fusion 360 model preview">
-                        <img src="/images/descriptionGallery/IMG_0659.jpg" alt="Drum build example">
-                        <img src="/images/descriptionGallery/IMG_0660.jpg" alt="Drum build example">
+                        <img src="/images/descriptionGallery/printed-drum.jpg" alt="3D printed drum shell" loading="eager" fetchpriority="high">
+                        <img src="/images/descriptionGallery/IMG_0661.jpeg" alt="3D printed drum shell" loading="eager">
+                        <img src="/images/descriptionGallery/fusion-preview.png" alt="Fusion 360 model preview" loading="eager">
+                        <img src="/images/descriptionGallery/IMG_0659.jpg" alt="Drum build example" loading="eager">
+                        <img src="/images/descriptionGallery/IMG_0660.jpg" alt="Drum build example" loading="eager">
                     </div>
                     <button class="carousel-btn carousel-prev" id="carouselPrev">‹</button>
                     <button class="carousel-btn carousel-next" id="carouselNext">›</button>
                     <div class="carousel-dots" id="carouselDots"></div>
                 </div>
                 <div class="panel-header">E-Drum STL Generator</div>
-                <div class="description-collapsible">
-                    <button class="description-toggle" id="descriptionToggle">
-                        <span>About this tool</span>
-                        <span class="toggle-icon">▼</span>
-                    </button>
+                <div class="description-expandable" id="descriptionExpandable">
                     <div class="description-content" id="descriptionContent">
                         <p>Welcome to the Extrudo Electronic Drum STL generator. I created this tool after realizing the retail cost of an electronic drum far exceeds the sum of its parts. Building your own is a great alternative that saves money and lets you craft a drum with a highly realistic size and appearance, completely bypassing the undersized pads major manufacturers usually offer.</p>
                         
@@ -47,8 +49,15 @@
                         <p class="description-note">Once you're happy with your settings, generate the final STL file for 3D printing. Note: I'm currently using a developer license, so the tool may temporarily pause if API usage limits are reached.</p>
                     </div>
                 </div>
+                <button class="description-toggle" id="descriptionToggle">
+                    <span class="toggle-text">See more</span>
+                    <span class="toggle-icon">▼</span>
+                </button>
                 <a href="#partsList" class="parts-link">View required parts & materials ↓</a>
+            </div>
 
+            <!-- Right Column: Parameters & Actions -->
+            <div class="panel panel-controls">
                 <!-- Parameters Section -->
                 <div class="section">
                     <div class="section-title">
@@ -92,17 +101,33 @@
                         </button>
                     </div>
                 </div>
-
             </div>
+        </div>
 
-            <div class="panel">
-                <div class="panel-header">Preview</div>
-                <div class="preview-frame" id="previewFrame">
-                    <div class="preview-empty" id="previewEmpty">Loading preview...</div>
-                    <img id="previewImage" alt="Modified drum preview">
+        <!-- Live Preview Section -->
+        <div class="preview-section">
+            <div class="panel-header">Live Preview</div>
+            <div class="preview-row">
+                <div class="preview-item">
+                    <div class="preview-frame" id="previewFrameTop">
+                        <div class="preview-empty">Loading...</div>
+                        <img id="previewImageTop" alt="Top view">
+                    </div>
+                    <div class="preview-label">Top View</div>
                 </div>
-                <div class="preview-actions">
-                    <span>Preview updates as you adjust parameters.</span>
+                <div class="preview-item">
+                    <div class="preview-frame" id="previewFrameSide">
+                        <div class="preview-empty">Loading...</div>
+                        <img id="previewImageSide" alt="Side view">
+                    </div>
+                    <div class="preview-label">Side View</div>
+                </div>
+                <div class="preview-item">
+                    <div class="preview-frame" id="previewFramePlatform">
+                        <div class="preview-empty">Loading...</div>
+                        <img id="previewImagePlatform" alt="Sensor platform">
+                    </div>
+                    <div class="preview-label">Sensor Platform</div>
                 </div>
             </div>
         </div>
@@ -187,6 +212,15 @@
             </div>
         </div>
 
+        <!-- SVG Preview Modal -->
+        <div id="svgPreviewModal" class="svg-preview-modal">
+            <span class="svg-preview-close">&times;</span>
+            <div class="svg-preview-content">
+                <img id="svgPreviewImage" alt="Enlarged preview">
+                <div class="svg-preview-caption" id="svgPreviewCaption"></div>
+            </div>
+        </div>
+
         <!-- Image Lightbox Modal -->
         <div id="lightboxModal" class="lightbox-modal">
             <span class="lightbox-close">&times;</span>
@@ -229,14 +263,11 @@
                     </div>
                     
                     
-                    <div class="print-step">
+                    <div class="print-step" id="printSettingsStep" style="display: none;">
                         <div class="print-step-number">4</div>
                         <div class="print-step-content">
                             <h3>Recommended Settings</h3>
-                            <p><strong>Layer height:</strong> 0.2mm<br>
-                            <strong>Shell infill:</strong> 100% or fill with walls for the fastest print<br>
-                            <strong>Platform infill:</strong> 15-20%<br>
-                            <strong>Material:</strong> PLA or PETG</p>
+                            <p id="printSettingsContent"></p>
                         </div>
                     </div>
                 </div>
@@ -323,6 +354,20 @@
                 </div>
             </div>
         </div>
+
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="/about.html">About</a>
+                    <a href="/contact.html">Contact</a>
+                    <a href="https://buymeacoffee.com/extrudo" target="_blank" rel="noopener">Donate</a>
+                </div>
+                <div class="footer-brand">
+                    <img src="/images/logo.png" alt="">
+                    <span>Extrudo &copy; 2026</span>
+                </div>
+            </div>
+        </footer>
     </div>
 
     <script>
@@ -344,10 +389,49 @@
         // Description Toggle
         function initDescriptionToggle() {
             const toggle = document.getElementById('descriptionToggle');
-            const container = toggle.closest('.description-collapsible');
+            const container = document.getElementById('descriptionExpandable');
+            const content = document.getElementById('descriptionContent');
+            const toggleText = toggle.querySelector('.toggle-text');
+            const toggleIcon = toggle.querySelector('.toggle-icon');
+            const leftPanel = container.closest('.panel-info');
+            const rightPanel = document.querySelector('.panel-controls');
+            
+            // Calculate dynamic line clamp based on available space
+            function updateLineClamp() {
+                if (!rightPanel || !leftPanel) return;
+                
+                // Set left panel max-height to match right panel
+                const rightHeight = rightPanel.offsetHeight;
+                leftPanel.style.setProperty('--panel-max-height', rightHeight + 'px');
+                
+                // Calculate available height for description
+                const carousel = leftPanel.querySelector('.hero-carousel');
+                const header = leftPanel.querySelector('.panel-header');
+                const partsLink = leftPanel.querySelector('.parts-link');
+                const toggleBtn = toggle;
+                
+                const otherHeight = 
+                    (carousel ? carousel.offsetHeight : 0) + 
+                    (header ? header.offsetHeight : 0) + 
+                    (partsLink ? partsLink.offsetHeight : 0) +
+                    (toggleBtn ? toggleBtn.offsetHeight : 0) +
+                    80; // padding/margins
+                
+                const availableHeight = rightHeight - otherHeight;
+                const lineHeight = parseFloat(getComputedStyle(content).lineHeight) || 22;
+                const lines = Math.max(2, Math.floor(availableHeight / lineHeight));
+                
+                content.style.setProperty('--line-clamp', lines);
+            }
+            
+            updateLineClamp();
+            window.addEventListener('resize', updateLineClamp);
             
             toggle.addEventListener('click', () => {
-                container.classList.toggle('collapsed');
+                const isExpanded = container.classList.toggle('expanded');
+                leftPanel.classList.toggle('expanded', isExpanded);
+                toggleText.textContent = isExpanded ? 'See less' : 'See more';
+                toggleIcon.style.transform = isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
             });
         }
 
@@ -358,9 +442,18 @@
             const prevBtn = document.getElementById('carouselPrev');
             const nextBtn = document.getElementById('carouselNext');
             const dotsContainer = document.getElementById('carouselDots');
+            const loader = document.getElementById('carouselLoader');
             
             let currentIndex = 0;
             const totalSlides = images.length;
+            
+            // Preload all carousel images
+            images.forEach(img => {
+                if (!img.complete) {
+                    const preload = new Image();
+                    preload.src = img.src;
+                }
+            });
             
             // Create dots
             images.forEach((_, i) => {
@@ -372,24 +465,46 @@
             
             const dots = dotsContainer.querySelectorAll('.carousel-dot');
             
+            function showLoader() {
+                loader.classList.add('visible');
+            }
+            
+            function hideLoader() {
+                loader.classList.remove('visible');
+            }
+            
             function updateCarousel() {
                 track.style.transform = `translateX(-${currentIndex * 100}%)`;
                 dots.forEach((dot, i) => {
                     dot.classList.toggle('active', i === currentIndex);
                 });
+                
+                // Show loader and check if image is loaded
+                const targetImg = images[currentIndex];
+                if (targetImg.complete && targetImg.naturalHeight !== 0) {
+                    hideLoader();
+                } else {
+                    showLoader();
+                    targetImg.onload = hideLoader;
+                    targetImg.onerror = hideLoader;
+                }
             }
             
             function goToSlide(index) {
+                if (index === currentIndex) return;
+                showLoader();
                 currentIndex = index;
                 updateCarousel();
             }
             
             function nextSlide() {
+                showLoader();
                 currentIndex = (currentIndex + 1) % totalSlides;
                 updateCarousel();
             }
             
             function prevSlide() {
+                showLoader();
                 currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
                 updateCarousel();
             }
@@ -426,14 +541,34 @@
                 const response = await fetch('/api/config');
                 config = await response.json();
                 renderParameters();
+                renderPrintSettings();
             } catch (error) {
                 console.error('Error loading config:', error);
                 showStatus('Error loading configuration', 'error');
             }
         }
 
+        function renderPrintSettings() {
+            const printSettingsStep = document.getElementById('printSettingsStep');
+            const printSettingsContent = document.getElementById('printSettingsContent');
+            
+            if (!config || !config.printSettings || config.printSettings.length === 0) {
+                printSettingsStep.style.display = 'none';
+                return;
+            }
+            
+            // Build the settings HTML
+            const settingsHtml = config.printSettings
+                .map(setting => `<strong>${setting.label}:</strong> ${setting.value}`)
+                .join('<br>');
+            
+            printSettingsContent.innerHTML = settingsHtml;
+            printSettingsStep.style.display = '';
+        }
+
         function getParameters() {
             const parameters = {};
+            if (!config || !config.parameters) return parameters;
             for (const [key, param] of Object.entries(config.parameters)) {
                 const input = document.getElementById(key);
                 if (input) {
@@ -480,11 +615,9 @@
             return num || defaultVal;
         }
 
-        // Build SVG preview with Top, Side, and Piezo Sensor Platform views
-        function buildPreviewSvg(parameters) {
+        // Parse common dimensions for all views
+        function parseCommonDimensions(parameters) {
             const p = parameters || {};
-
-            // Parse dimensions
             const diam = parseDimension(p.ShellDiam, 12);
             const height = parseDimension(p.ShellHeight, 6);
             const thick = parseDimension(p.ShellThick, 0.25);
@@ -497,8 +630,7 @@
             const outputHoleDiam = parseDimension(p.OutputHoleDiam, 0.375);
             const outputHoleEnabled = outputHoleDiam > 0.01;
 
-            // Scale: 8px per inch
-            const scale = 8;
+            const scale = 12; // Larger scale for individual views
             const maxDim = 20;
             const clampedDiam = Math.min(diam, maxDim);
             const clampedHeight = Math.min(height, maxDim);
@@ -508,25 +640,185 @@
             const sideHeight = clampedHeight * scale;
             const thickPx = thick * scale;
             const lugR = (lugDiam * scale) / 2;
-
-            // Layout
-            const padding = 50;
-            const leftMargin = 55;
-            const topCx = leftMargin + topRadius;
-            const topCy = padding + topRadius;
-            const sideX = leftMargin;
-            const sideY = padding + topRadius * 2 + 75;
-            const platformCx = topCx;
-            const platformCy = sideY + sideHeight + 100 + topRadius;
-
-            const svgWidth = topCx + topRadius + 60;
-            const svgHeight = platformCy + topRadius + 50;
-
-            // Exaggerate shell thickness for better lap joint visibility (1.5x actual)
             const visualThickPx = Math.min(thickPx * 1.5, topRadius / 3);
             const innerRadius = topRadius - visualThickPx;
 
-            // Platform calculations
+            return {
+                diam, height, thick, thickMm, segments, lugTop, lugSpace,
+                lapPct, lugDiam, outputHoleDiam, outputHoleEnabled, scale,
+                topRadius, sideWidth, sideHeight, thickPx, lugR,
+                visualThickPx, innerRadius
+            };
+        }
+
+        // Build TOP VIEW SVG
+        function buildTopViewSvg(parameters) {
+            const d = parseCommonDimensions(parameters);
+            const { diam, thickMm, segments, lapPct, topRadius, innerRadius, visualThickPx } = d;
+
+            const padding = 40;
+            const cx = padding + topRadius;
+            const cy = padding + topRadius;
+            const svgWidth = topRadius * 2 + padding * 2;
+            const svgHeight = topRadius * 2 + padding * 2 + 35;
+
+            const segAngle = 360 / segments;
+            const midRadius = topRadius - visualThickPx / 2;
+            const lapAngleDeg = segAngle * (lapPct / 100);
+
+            const segmentColors = [
+                '#FFB3BA', '#BAFFC9', '#BAE1FF', '#FFFFBA', '#FFDFbA', '#E0BBE4',
+                '#B5EAD7', '#FFDAC1', '#C7CEEA', '#F0E68C', '#DDA0DD', '#98D8C8'
+            ];
+
+            let topPieSlices = '';
+            let topCutLines = '';
+
+            for (let i = 0; i < segments; i++) {
+                const startAngle = i * segAngle;
+                const endAngle = (i + 1) * segAngle;
+                const lapBoundaryAngle = endAngle - lapAngleDeg;
+                
+                const startRad = (startAngle * Math.PI) / 180;
+                const lapBoundaryRad = (lapBoundaryAngle * Math.PI) / 180;
+                const endRad = (endAngle * Math.PI) / 180;
+
+                const segColor = segmentColors[i % segmentColors.length];
+                const nextColor = segmentColors[((i + 1) % segments) % segmentColors.length];
+                
+                const mainLargeArc = (lapBoundaryAngle - startAngle) > 180 ? 1 : 0;
+                const outerStartX = cx + topRadius * Math.cos(startRad);
+                const outerStartY = cy + topRadius * Math.sin(startRad);
+                const outerLapX = cx + topRadius * Math.cos(lapBoundaryRad);
+                const outerLapY = cy + topRadius * Math.sin(lapBoundaryRad);
+                const innerStartX = cx + innerRadius * Math.cos(startRad);
+                const innerStartY = cy + innerRadius * Math.sin(startRad);
+                const innerLapX = cx + innerRadius * Math.cos(lapBoundaryRad);
+                const innerLapY = cy + innerRadius * Math.sin(lapBoundaryRad);
+                
+                topPieSlices += `<path d="M${outerStartX},${outerStartY} A${topRadius},${topRadius} 0 ${mainLargeArc},1 ${outerLapX},${outerLapY} L${innerLapX},${innerLapY} A${innerRadius},${innerRadius} 0 ${mainLargeArc},0 ${innerStartX},${innerStartY} Z" fill="${segColor}" stroke="none"/>`;
+                
+                const lapLargeArc = lapAngleDeg > 180 ? 1 : 0;
+                const midLapX = cx + midRadius * Math.cos(lapBoundaryRad);
+                const midLapY = cy + midRadius * Math.sin(lapBoundaryRad);
+                const outerEndX = cx + topRadius * Math.cos(endRad);
+                const outerEndY = cy + topRadius * Math.sin(endRad);
+                const midEndX = cx + midRadius * Math.cos(endRad);
+                const midEndY = cy + midRadius * Math.sin(endRad);
+                const innerEndX = cx + innerRadius * Math.cos(endRad);
+                const innerEndY = cy + innerRadius * Math.sin(endRad);
+                
+                topPieSlices += `<path d="M${midLapX},${midLapY} A${midRadius},${midRadius} 0 ${lapLargeArc},1 ${midEndX},${midEndY} L${innerEndX},${innerEndY} A${innerRadius},${innerRadius} 0 ${lapLargeArc},0 ${innerLapX},${innerLapY} Z" fill="${nextColor}" stroke="none"/>`;
+                topPieSlices += `<path d="M${outerLapX},${outerLapY} A${topRadius},${topRadius} 0 ${lapLargeArc},1 ${outerEndX},${outerEndY} L${midEndX},${midEndY} A${midRadius},${midRadius} 0 ${lapLargeArc},0 ${midLapX},${midLapY} Z" fill="${segColor}" stroke="none"/>`;
+            }
+
+            for (let i = 0; i < segments; i++) {
+                const angle = i * segAngle;
+                const angleRad = (angle * Math.PI) / 180;
+                const outerX = cx + topRadius * Math.cos(angleRad);
+                const outerY = cy + topRadius * Math.sin(angleRad);
+                const midX = cx + midRadius * Math.cos(angleRad);
+                const midY = cy + midRadius * Math.sin(angleRad);
+
+                const lapEndAngle = angle - lapAngleDeg;
+                const lapEndRad = (lapEndAngle * Math.PI) / 180;
+                const lapEndMidX = cx + midRadius * Math.cos(lapEndRad);
+                const lapEndMidY = cy + midRadius * Math.sin(lapEndRad);
+                const lapEndInnerX = cx + innerRadius * Math.cos(lapEndRad);
+                const lapEndInnerY = cy + innerRadius * Math.sin(lapEndRad);
+                
+                topCutLines += `<line x1="${outerX}" y1="${outerY}" x2="${midX}" y2="${midY}" stroke="#3889fb" stroke-width=".5"/>`;
+                topCutLines += `<path d="M${midX},${midY} A${midRadius},${midRadius} 0 0,0 ${lapEndMidX},${lapEndMidY}" fill="none" stroke="#3889fb" stroke-width=".5"/>`;
+                topCutLines += `<line x1="${lapEndMidX}" y1="${lapEndMidY}" x2="${lapEndInnerX}" y2="${lapEndInnerY}" stroke="#3889fb" stroke-width=".5"/>`;
+            }
+
+            return `<svg xmlns="http://www.w3.org/2000/svg" width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}">
+  <rect width="100%" height="100%" fill="#fff"/>
+  ${topPieSlices}
+  <circle cx="${cx}" cy="${cy}" r="${topRadius}" fill="none" stroke="#000" stroke-width="1.5"/>
+  <circle cx="${cx}" cy="${cy}" r="${innerRadius}" fill="none" stroke="#000" stroke-width="1.5"/>
+  ${topCutLines}
+  <text x="${cx}" y="${cy - 12}" font-family="Arial, sans-serif" font-size="10" text-anchor="middle">${segments} Pieces</text>
+  <text x="${cx}" y="${cy}" font-family="Arial, sans-serif" font-size="10" text-anchor="middle">${lapPct}% Overlap</text>
+  <text x="${cx}" y="${cy + 12}" font-family="Arial, sans-serif" font-size="10" text-anchor="middle">${thickMm}mm Shell</text>
+  <line x1="${cx - topRadius}" y1="${cy + topRadius + 12}" x2="${cx + topRadius}" y2="${cy + topRadius + 12}" stroke="#3889fb" stroke-width="1" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <text x="${cx}" y="${cy + topRadius + 26}" font-family="Arial, sans-serif" font-size="12" text-anchor="middle">D${diam}"</text>
+  <defs>
+    <marker id="arrow" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto-start-reverse">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#3889fb"/>
+    </marker>
+  </defs>
+</svg>`;
+        }
+
+        // Build SIDE VIEW SVG
+        function buildSideViewSvg(parameters) {
+            const d = parseCommonDimensions(parameters);
+            const { height, thickMm, lugTop, lugSpace, lugDiam, sideWidth, sideHeight, visualThickPx, lugR, scale } = d;
+
+            const paddingLeft = 60;  // Extra space for left labels
+            const paddingRight = 50; // Extra space for right labels
+            const paddingTop = 30;
+            const paddingBottom = 35;
+            const sideX = paddingLeft;
+            const sideY = paddingTop;
+            const svgWidth = sideWidth + paddingLeft + paddingRight;
+            const svgHeight = sideHeight + paddingTop + paddingBottom;
+
+            const minLugSpacingPx = lugR * 2;
+            const lugTopPx = Math.min(lugTop * scale, sideHeight - minLugSpacingPx - lugR);
+            const rawLugBottomPx = lugTopPx + lugSpace * scale;
+            const lugBottomPx = Math.max(rawLugBottomPx, lugTopPx + minLugSpacingPx);
+
+            return `<svg xmlns="http://www.w3.org/2000/svg" width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}">
+  <rect width="100%" height="100%" fill="#fff"/>
+  <line x1="${sideX}" y1="${sideY}" x2="${sideX + sideWidth}" y2="${sideY}" stroke="#000" stroke-width="1.5"/>
+  <line x1="${sideX}" y1="${sideY + sideHeight}" x2="${sideX + sideWidth}" y2="${sideY + sideHeight}" stroke="#000" stroke-width="1.5"/>
+  <line x1="${sideX}" y1="${sideY}" x2="${sideX}" y2="${sideY + sideHeight}" stroke="#3889fb" stroke-width="1.5"/>
+  <line x1="${sideX + visualThickPx}" y1="${sideY}" x2="${sideX + visualThickPx}" y2="${sideY + sideHeight}" stroke="#3889fb" stroke-width="1.5"/>
+  <line x1="${sideX + sideWidth}" y1="${sideY}" x2="${sideX + sideWidth}" y2="${sideY + sideHeight}" stroke="#000" stroke-width="1.5"/>
+  <line x1="${sideX + sideWidth - visualThickPx}" y1="${sideY}" x2="${sideX + sideWidth - visualThickPx}" y2="${sideY + sideHeight}" stroke="#000" stroke-width="1.5"/>
+  <line x1="${sideX}" y1="${sideY + sideHeight + 8}" x2="${sideX + visualThickPx}" y2="${sideY + sideHeight + 8}" stroke="#3889fb" stroke-width="1"/>
+  <line x1="${sideX}" y1="${sideY + sideHeight + 4}" x2="${sideX}" y2="${sideY + sideHeight + 12}" stroke="#3889fb" stroke-width="1"/>
+  <line x1="${sideX + visualThickPx}" y1="${sideY + sideHeight + 4}" x2="${sideX + visualThickPx}" y2="${sideY + sideHeight + 12}" stroke="#3889fb" stroke-width="1"/>
+  <text x="${(sideX + sideX + visualThickPx) / 2}" y="${sideY + sideHeight + 22}" font-family="Arial, sans-serif" font-size="10" text-anchor="middle">${thickMm}mm</text>
+  <circle cx="${sideX + 20}" cy="${sideY + lugTopPx}" r="${lugR}" fill="none" stroke="#000" stroke-width="1.5"/>
+  <circle cx="${sideX + 20}" cy="${sideY + lugBottomPx}" r="${lugR}" fill="none" stroke="#000" stroke-width="1.5"/>
+  <circle cx="${sideX + sideWidth - 20}" cy="${sideY + lugTopPx}" r="${lugR}" fill="none" stroke="#000" stroke-width="1.5"/>
+  <circle cx="${sideX + sideWidth - 20}" cy="${sideY + lugBottomPx}" r="${lugR}" fill="none" stroke="#000" stroke-width="1.5"/>
+  <line x1="${sideX + sideWidth - 20 - lugR}" y1="${sideY + lugBottomPx}" x2="${sideX + sideWidth - 20 + lugR}" y2="${sideY + lugBottomPx}" stroke="#3889fb" stroke-width="1" marker-start="url(#smallArrow)" marker-end="url(#smallArrow)"/>
+  <text x="${sideX + sideWidth - 20}" y="${sideY + lugBottomPx + lugR + 8}" font-family="Arial, sans-serif" font-size="8" text-anchor="middle">D${lugDiam}"</text>
+  <line x1="${sideX + sideWidth + 12}" y1="${sideY}" x2="${sideX + sideWidth + 12}" y2="${sideY + sideHeight}" stroke="#3889fb" stroke-width="1" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <text x="${sideX + sideWidth + 18}" y="${sideY + sideHeight / 2}" font-family="Arial, sans-serif" font-size="12" dominant-baseline="middle">${height}"</text>
+  <line x1="${sideX - 16}" y1="${sideY}" x2="${sideX - 16}" y2="${sideY + lugTopPx}" stroke="#3889fb" stroke-width="1"/>
+  <line x1="${sideX - 20}" y1="${sideY}" x2="${sideX - 12}" y2="${sideY}" stroke="#3889fb" stroke-width="1"/>
+  <line x1="${sideX - 22}" y1="${sideY + lugTopPx}" x2="${sideX - 10}" y2="${sideY + lugTopPx}" stroke="#3889fb" stroke-width="1"/>
+  <text x="${sideX - 26}" y="${sideY + lugTopPx / 2}" font-family="Arial, sans-serif" font-size="10" text-anchor="end" dominant-baseline="middle">${lugTop}"</text>
+  <line x1="${sideX - 16}" y1="${sideY + lugTopPx}" x2="${sideX - 16}" y2="${sideY + lugBottomPx}" stroke="#3889fb" stroke-width="1"/>
+  <line x1="${sideX - 20}" y1="${sideY + lugBottomPx}" x2="${sideX - 12}" y2="${sideY + lugBottomPx}" stroke="#3889fb" stroke-width="1"/>
+  <text x="${sideX - 26}" y="${sideY + (lugTopPx + lugBottomPx) / 2}" font-family="Arial, sans-serif" font-size="10" text-anchor="end" dominant-baseline="middle">${lugSpace}"</text>
+  <defs>
+    <marker id="arrow" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto-start-reverse">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#3889fb"/>
+    </marker>
+    <marker id="smallArrow" markerWidth="4" markerHeight="4" refX="2" refY="2" orient="auto-start-reverse">
+      <path d="M0,0 L4,2 L0,4 Z" fill="#3889fb"/>
+    </marker>
+  </defs>
+</svg>`;
+        }
+
+        // Build SENSOR PLATFORM SVG
+        function buildPlatformViewSvg(parameters) {
+            const d = parseCommonDimensions(parameters);
+            const { diam, outputHoleDiam, outputHoleEnabled, scale, topRadius, innerRadius } = d;
+
+            const padding = 40;
+            const cx = padding + topRadius;
+            const cy = padding + topRadius;
+            const svgWidth = topRadius * 2 + padding * 2;
+            const svgHeight = topRadius * 2 + padding * 2 + 30;
+
             const centerCircleMm = 37;
             const centerCircleInches = centerCircleMm / 25.4;
             const centerCircleRadiusPx = (centerCircleInches / 2) * scale;
@@ -545,201 +837,82 @@
             const innerEndRad = (innerEndAngle * Math.PI) / 180;
 
             const platformOuterRadius = innerRadius;
-            const pOuterStartX = platformCx + platformOuterRadius * Math.cos(outerStartRad);
-            const pOuterStartY = platformCy + platformOuterRadius * Math.sin(outerStartRad);
-            const pOuterEndX = platformCx + platformOuterRadius * Math.cos(outerEndRad);
-            const pOuterEndY = platformCy + platformOuterRadius * Math.sin(outerEndRad);
-            const pInnerStartX = platformCx + centerCircleRadiusPx * Math.cos(innerStartRad);
-            const pInnerStartY = platformCy + centerCircleRadiusPx * Math.sin(innerStartRad);
-            const pInnerEndX = platformCx + centerCircleRadiusPx * Math.cos(innerEndRad);
-            const pInnerEndY = platformCy + centerCircleRadiusPx * Math.sin(innerEndRad);
+            const pOuterStartX = cx + platformOuterRadius * Math.cos(outerStartRad);
+            const pOuterStartY = cy + platformOuterRadius * Math.sin(outerStartRad);
+            const pOuterEndX = cx + platformOuterRadius * Math.cos(outerEndRad);
+            const pOuterEndY = cy + platformOuterRadius * Math.sin(outerEndRad);
+            const pInnerStartX = cx + centerCircleRadiusPx * Math.cos(innerStartRad);
+            const pInnerStartY = cy + centerCircleRadiusPx * Math.sin(innerStartRad);
+            const pInnerEndX = cx + centerCircleRadiusPx * Math.cos(innerEndRad);
+            const pInnerEndY = cy + centerCircleRadiusPx * Math.sin(innerEndRad);
 
             const platformPath = `M${pOuterStartX},${pOuterStartY} A${platformOuterRadius},${platformOuterRadius} 0 0,1 ${pOuterEndX},${pOuterEndY} L${pInnerEndX},${pInnerEndY} A${centerCircleRadiusPx},${centerCircleRadiusPx} 0 0,0 ${pInnerStartX},${pInnerStartY} Z`;
 
-            // Top view: pie slices and cut lines
-            let topPieSlices = '';
-            let topCutLines = '';
-            const segAngle = 360 / segments;
-            const midRadius = topRadius - visualThickPx / 2;
-            const lapAngleDeg = segAngle * (lapPct / 100);
-
-            // Distinct colors for each segment
-            const segmentColors = [
-                '#FFB3BA', // light pink
-                '#BAFFC9', // light green
-                '#BAE1FF', // light blue
-                '#FFFFBA', // light yellow
-                '#FFDFbA', // light peach
-                '#E0BBE4', // light lavender
-                '#B5EAD7', // light mint
-                '#FFDAC1', // light coral
-                '#C7CEEA', // light periwinkle
-                '#F0E68C', // khaki
-                '#DDA0DD', // plum
-                '#98D8C8'  // seafoam
-            ];
-
-            for (let i = 0; i < segments; i++) {
-                const startAngle = i * segAngle;
-                const endAngle = (i + 1) * segAngle;
-                const lapBoundaryAngle = endAngle - lapAngleDeg;
-                
-                const startRad = (startAngle * Math.PI) / 180;
-                const lapBoundaryRad = (lapBoundaryAngle * Math.PI) / 180;
-                const endRad = (endAngle * Math.PI) / 180;
-
-                const segColor = segmentColors[i % segmentColors.length];
-                const nextColor = segmentColors[((i + 1) % segments) % segmentColors.length];
-                
-                // Main body: from startAngle to lap boundary (full thickness)
-                const mainLargeArc = (lapBoundaryAngle - startAngle) > 180 ? 1 : 0;
-                const outerStartX = topCx + topRadius * Math.cos(startRad);
-                const outerStartY = topCy + topRadius * Math.sin(startRad);
-                const outerLapX = topCx + topRadius * Math.cos(lapBoundaryRad);
-                const outerLapY = topCy + topRadius * Math.sin(lapBoundaryRad);
-                const innerStartX = topCx + innerRadius * Math.cos(startRad);
-                const innerStartY = topCy + innerRadius * Math.sin(startRad);
-                const innerLapX = topCx + innerRadius * Math.cos(lapBoundaryRad);
-                const innerLapY = topCy + innerRadius * Math.sin(lapBoundaryRad);
-                
-                topPieSlices += `<path d="M${outerStartX},${outerStartY} A${topRadius},${topRadius} 0 ${mainLargeArc},1 ${outerLapX},${outerLapY} L${innerLapX},${innerLapY} A${innerRadius},${innerRadius} 0 ${mainLargeArc},0 ${innerStartX},${innerStartY} Z" fill="${segColor}" stroke="none"/>`;
-                
-                // Lap overlap region: from lap boundary to end
-                const lapLargeArc = lapAngleDeg > 180 ? 1 : 0;
-                const midLapX = topCx + midRadius * Math.cos(lapBoundaryRad);
-                const midLapY = topCy + midRadius * Math.sin(lapBoundaryRad);
-                const outerEndX = topCx + topRadius * Math.cos(endRad);
-                const outerEndY = topCy + topRadius * Math.sin(endRad);
-                const midEndX = topCx + midRadius * Math.cos(endRad);
-                const midEndY = topCy + midRadius * Math.sin(endRad);
-                const innerEndX = topCx + innerRadius * Math.cos(endRad);
-                const innerEndY = topCy + innerRadius * Math.sin(endRad);
-                
-                // Inner half of lap (next segment - underneath)
-                topPieSlices += `<path d="M${midLapX},${midLapY} A${midRadius},${midRadius} 0 ${lapLargeArc},1 ${midEndX},${midEndY} L${innerEndX},${innerEndY} A${innerRadius},${innerRadius} 0 ${lapLargeArc},0 ${innerLapX},${innerLapY} Z" fill="${nextColor}" stroke="none"/>`;
-                
-                // Outer half of lap (current segment's color - on top)
-                topPieSlices += `<path d="M${outerLapX},${outerLapY} A${topRadius},${topRadius} 0 ${lapLargeArc},1 ${outerEndX},${outerEndY} L${midEndX},${midEndY} A${midRadius},${midRadius} 0 ${lapLargeArc},0 ${midLapX},${midLapY} Z" fill="${segColor}" stroke="none"/>`;
-            }
-
-            for (let i = 0; i < segments; i++) {
-                const angle = i * segAngle;
-                const angleRad = (angle * Math.PI) / 180;
-                const outerX = topCx + topRadius * Math.cos(angleRad);
-                const outerY = topCy + topRadius * Math.sin(angleRad);
-                const innerX = topCx + innerRadius * Math.cos(angleRad);
-                const innerY = topCy + innerRadius * Math.sin(angleRad);
-                const midX = topCx + midRadius * Math.cos(angleRad);
-                const midY = topCy + midRadius * Math.sin(angleRad);
-
-
-
-                // Lap joint step visualization - showing where shell becomes half thickness
-                const lapEndAngle = angle - lapAngleDeg;
-                const lapEndRad = (lapEndAngle * Math.PI) / 180;
-                
-                const lapEndMidX = topCx + midRadius * Math.cos(lapEndRad);
-                const lapEndMidY = topCy + midRadius * Math.sin(lapEndRad);
-                const lapEndInnerX = topCx + innerRadius * Math.cos(lapEndRad);
-                const lapEndInnerY = topCy + innerRadius * Math.sin(lapEndRad);
-                
-                // Half-thickness cut line (from outer to mid at the boundary)
-                topCutLines += `<line x1="${outerX}" y1="${outerY}" x2="${midX}" y2="${midY}" stroke="#3889fb" stroke-width=".5"/>`;
-                // Arc at midRadius showing the step edge
-                topCutLines += `<path d="M${midX},${midY} A${midRadius},${midRadius} 0 0,0 ${lapEndMidX},${lapEndMidY}" fill="none" stroke="#3889fb" stroke-width=".5"/>`;
-                // Radial line at lap end (from mid to inner)
-                topCutLines += `<line x1="${lapEndMidX}" y1="${lapEndMidY}" x2="${lapEndInnerX}" y2="${lapEndInnerY}" stroke="#3889fb" stroke-width=".5"/>`;
-            }
-
-            // Lug positions - ensure minimum spacing of lug hole diameter
-            const minLugSpacingPx = lugR * 2; // Minimum visual spacing = lug diameter
-            const lugTopPx = Math.min(lugTop * scale, sideHeight - minLugSpacingPx - lugR);
-            const rawLugBottomPx = lugTopPx + lugSpace * scale;
-            const lugBottomPx = Math.max(rawLugBottomPx, lugTopPx + minLugSpacingPx);
-
-            return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}">
+            return `<svg xmlns="http://www.w3.org/2000/svg" width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}">
   <rect width="100%" height="100%" fill="#fff"/>
-  
-  <!-- TOP VIEW -->
-  <text x="${topCx}" y="30" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">TOP VIEW</text>
-  ${topPieSlices}
-  <circle cx="${topCx}" cy="${topCy}" r="${topRadius}" fill="none" stroke="#000" stroke-width="1"/>
-  <circle cx="${topCx}" cy="${topCy}" r="${innerRadius}" fill="none" stroke="#000" stroke-width="1"/>
-  ${topCutLines}
-  <text x="${topCx}" y="${topCy - 8}" font-family="Arial, sans-serif" font-size="7" text-anchor="middle">${segments} Pieces</text>
-  <text x="${topCx}" y="${topCy}" font-family="Arial, sans-serif" font-size="7" text-anchor="middle">${lapPct}% Overlap</text>
-  <text x="${topCx}" y="${topCy + 8}" font-family="Arial, sans-serif" font-size="7" text-anchor="middle">${thickMm}mm Shell</text>
-  <line x1="${topCx - topRadius}" y1="${topCy + topRadius + 15}" x2="${topCx + topRadius}" y2="${topCy + topRadius + 15}" stroke="#3889fb" stroke-width=".5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
-  <text x="${topCx}" y="${topCy + topRadius + 28}" font-family="Arial, sans-serif" font-size="10" text-anchor="middle">⌀${diam}"</text>
-  
-  <line x1="20" y1="${sideY - 40}" x2="${svgWidth - 20}" y2="${sideY - 40}" stroke="#e2e2e2" stroke-width="1"/>
-  
-  <!-- SIDE VIEW -->
-  <text x="${sideX + sideWidth / 2}" y="${sideY - 18}" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">SIDE VIEW</text>
-  <line x1="${sideX}" y1="${sideY}" x2="${sideX + sideWidth}" y2="${sideY}" stroke="#000" stroke-width="1"/>
-  <line x1="${sideX}" y1="${sideY + sideHeight}" x2="${sideX + sideWidth}" y2="${sideY + sideHeight}" stroke="#000" stroke-width="1"/>
-  <line x1="${sideX}" y1="${sideY}" x2="${sideX}" y2="${sideY + sideHeight}" stroke="#3889fb" stroke-width="1"/>
-  <line x1="${sideX + visualThickPx}" y1="${sideY}" x2="${sideX + visualThickPx}" y2="${sideY + sideHeight}" stroke="#3889fb" stroke-width="1"/>
-  <line x1="${sideX + sideWidth}" y1="${sideY}" x2="${sideX + sideWidth}" y2="${sideY + sideHeight}" stroke="#000" stroke-width="1"/>
-  <line x1="${sideX + sideWidth - visualThickPx}" y1="${sideY}" x2="${sideX + sideWidth - visualThickPx}" y2="${sideY + sideHeight}" stroke="#000" stroke-width="1"/>
-  <line x1="${sideX}" y1="${sideY + sideHeight + 8}" x2="${sideX + visualThickPx}" y2="${sideY + sideHeight + 8}" stroke="#3889fb" stroke-width=".5"/>
-  <line x1="${sideX}" y1="${sideY + sideHeight + 5}" x2="${sideX}" y2="${sideY + sideHeight + 11}" stroke="#3889fb" stroke-width=".5"/>
-  <line x1="${sideX + visualThickPx}" y1="${sideY + sideHeight + 5}" x2="${sideX + visualThickPx}" y2="${sideY + sideHeight + 11}" stroke="#3889fb" stroke-width=".5"/>
-  <text x="${(sideX + sideX + visualThickPx) / 2}" y="${sideY + sideHeight + 18}" font-family="Arial, sans-serif" font-size="7" text-anchor="middle">${thickMm}mm Shell Thickness</text>
-  <circle cx="${sideX + 15}" cy="${sideY + lugTopPx}" r="${lugR}" fill="none" stroke="#000" stroke-width="1"/>
-  <circle cx="${sideX + 15}" cy="${sideY + lugBottomPx}" r="${lugR}" fill="none" stroke="#000" stroke-width="1"/>
-  <circle cx="${sideX + sideWidth - 15}" cy="${sideY + lugTopPx}" r="${lugR}" fill="none" stroke="#000" stroke-width="1"/>
-  <circle cx="${sideX + sideWidth - 15}" cy="${sideY + lugBottomPx}" r="${lugR}" fill="none" stroke="#000" stroke-width="1"/>
-  <line x1="${sideX + sideWidth - 15 - lugR}" y1="${sideY + lugBottomPx}" x2="${sideX + sideWidth - 15 + lugR}" y2="${sideY + lugBottomPx}" stroke="#3889fb" stroke-width="1" marker-start="url(#smallArrow)" marker-end="url(#smallArrow)"/>
-  <text x="${sideX + sideWidth - 15}" y="${sideY + lugBottomPx + lugR + 5}" font-family="Arial, sans-serif" font-size="4" text-anchor="middle">⌀${lugDiam}"</text>
-  <line x1="${sideX + sideWidth + 12}" y1="${sideY}" x2="${sideX + sideWidth + 12}" y2="${sideY + sideHeight}" stroke="#3889fb" stroke-width=".5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
-  <text x="${sideX + sideWidth + 16}" y="${sideY + sideHeight / 2}" font-family="Arial, sans-serif" font-size="9" dominant-baseline="middle">${height}"</text>
-  <line x1="${sideX - 18}" y1="${sideY}" x2="${sideX - 18}" y2="${sideY + lugTopPx}" stroke="#3889fb" stroke-width=".5"/>
-  <line x1="${sideX - 22}" y1="${sideY}" x2="${sideX - 14}" y2="${sideY}" stroke="#3889fb" stroke-width=".5"/>
-  <line x1="${sideX - 25}" y1="${sideY + lugTopPx}" x2="${sideX - 11}" y2="${sideY + lugTopPx}" stroke="#3889fb" stroke-width=".5"/>
-  <text x="${sideX - 28}" y="${sideY + lugTopPx / 2}" font-family="Arial, sans-serif" font-size="8" text-anchor="end" dominant-baseline="middle">${lugTop}"</text>
-  <line x1="${sideX - 18}" y1="${sideY + lugTopPx}" x2="${sideX - 18}" y2="${sideY + lugBottomPx}" stroke="#3889fb" stroke-width=".5"/>
-  <line x1="${sideX - 22}" y1="${sideY + lugBottomPx}" x2="${sideX - 14}" y2="${sideY + lugBottomPx}" stroke="#3889fb" stroke-width=".5"/>
-  <text x="${sideX - 28}" y="${sideY + (lugTopPx + lugBottomPx) / 2}" font-family="Arial, sans-serif" font-size="8" text-anchor="end" dominant-baseline="middle">${lugSpace}"</text>
-  
-  <line x1="20" y1="${platformCy - topRadius - 40}" x2="${svgWidth - 20}" y2="${platformCy - topRadius - 40}" stroke="#e2e2e2" stroke-width="1"/>
-  
-  <!-- PIEZO SENSOR PLATFORM -->
-  <text x="${platformCx}" y="${platformCy - topRadius - 18}" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">PIEZO SENSOR PLATFORM</text>
-  <circle cx="${platformCx}" cy="${platformCy}" r="${platformOuterRadius}" fill="none" stroke="#ccc" stroke-width="1" stroke-dasharray="4,4"/>
-  <circle cx="${platformCx}" cy="${platformCy}" r="${centerCircleRadiusPx}" fill="#f5f5f5" stroke="#000" stroke-width="1"/>
-  <path d="${platformPath}" fill="#e8f4ff" stroke="#000" stroke-width="1"/>
-  ${outputHoleEnabled ? `<circle cx="${platformCx}" cy="${platformCy - (centerCircleRadiusPx + platformOuterRadius) / 2}" r="${(outputHoleDiam * scale) / 2}" fill="#fff" stroke="#000" stroke-width="1"/>` : ''}
-  <text x="${platformCx}" y="${platformCy + centerCircleRadiusPx + 12}" font-family="Arial, sans-serif" font-size="8" text-anchor="middle">${centerCircleMm}mm</text>
-  
-  <defs>
-    <marker id="arrow" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto-start-reverse">
-      <path d="M0,0 L6,3 L0,6 Z" fill="#3889fb"/>
-    </marker>
-    <marker id="smallArrow" markerWidth="4" markerHeight="4" refX="2" refY="2" orient="auto-start-reverse">
-      <path d="M0,0 L4,2 L0,4 Z" fill="#3889fb"/>
-    </marker>
-  </defs>
+  <circle cx="${cx}" cy="${cy}" r="${platformOuterRadius}" fill="none" stroke="#ccc" stroke-width="1.5" stroke-dasharray="4,4"/>
+  <circle cx="${cx}" cy="${cy}" r="${centerCircleRadiusPx}" fill="#f5f5f5" stroke="#000" stroke-width="1.5"/>
+  <path d="${platformPath}" fill="#e8f4ff" stroke="#000" stroke-width="1.5"/>
+  ${outputHoleEnabled ? `<circle cx="${cx}" cy="${cy - (centerCircleRadiusPx + platformOuterRadius) / 2}" r="${(outputHoleDiam * scale) / 2}" fill="#fff" stroke="#000" stroke-width="1.5"/>` : ''}
+  <text x="${cx}" y="${cy + centerCircleRadiusPx + 16}" font-family="Arial, sans-serif" font-size="11" text-anchor="middle">${centerCircleMm}mm piezo</text>
 </svg>`;
         }
 
         function updateLivePreview() {
-            const previewFrame = document.getElementById('previewFrame');
-            const previewImage = document.getElementById('previewImage');
-            const previewEmpty = document.getElementById('previewEmpty');
-
+            console.log('updateLivePreview called');
             try {
-                const parameters = getParameters();
-                const svgText = buildPreviewSvg(parameters);
-                previewImage.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgText);
-                previewFrame.classList.add('has-image');
-                previewEmpty.style.display = 'none';
+                // Get parameters with fallback to defaults
+                let parameters = {};
+                if (config && config.parameters && Object.keys(config.parameters).length > 0) {
+                    parameters = getParameters();
+                }
+                console.log('Parameters:', parameters);
+                
+                // Update Top View
+                const topSvg = buildTopViewSvg(parameters);
+                console.log('Top SVG generated, length:', topSvg.length);
+                const topImg = document.getElementById('previewImageTop');
+                const topFrame = document.getElementById('previewFrameTop');
+                if (topImg && topFrame) {
+                    topImg.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(topSvg);
+                    topFrame.classList.add('has-image');
+                    const topEmpty = topFrame.querySelector('.preview-empty');
+                    if (topEmpty) topEmpty.style.display = 'none';
+                } else {
+                    console.error('Top view elements not found');
+                }
+                
+                // Update Side View
+                const sideSvg = buildSideViewSvg(parameters);
+                console.log('Side SVG generated, length:', sideSvg.length);
+                const sideImg = document.getElementById('previewImageSide');
+                const sideFrame = document.getElementById('previewFrameSide');
+                if (sideImg && sideFrame) {
+                    sideImg.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(sideSvg);
+                    sideFrame.classList.add('has-image');
+                    const sideEmpty = sideFrame.querySelector('.preview-empty');
+                    if (sideEmpty) sideEmpty.style.display = 'none';
+                } else {
+                    console.error('Side view elements not found');
+                }
+                
+                // Update Platform View
+                const platformSvg = buildPlatformViewSvg(parameters);
+                console.log('Platform SVG generated, length:', platformSvg.length);
+                const platformImg = document.getElementById('previewImagePlatform');
+                const platformFrame = document.getElementById('previewFramePlatform');
+                if (platformImg && platformFrame) {
+                    platformImg.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(platformSvg);
+                    platformFrame.classList.add('has-image');
+                    const platformEmpty = platformFrame.querySelector('.preview-empty');
+                    if (platformEmpty) platformEmpty.style.display = 'none';
+                } else {
+                    console.error('Platform view elements not found');
+                }
+                
+                console.log('Preview update complete');
             } catch (error) {
                 console.error('Error generating preview:', error);
-                previewEmpty.textContent = 'Preview unavailable.';
-                previewEmpty.style.display = 'block';
-                previewFrame.classList.remove('has-image');
             }
         }
 
@@ -1145,24 +1318,55 @@
             const submitBtn = document.getElementById('submitBtn');
             const resetBtn = document.getElementById('resetBtn');
             const downloadBtn = document.getElementById('downloadBtn');
-            const previewImage = document.getElementById('previewImage');
-            const previewFrame = document.getElementById('previewFrame');
-            const previewEmpty = document.getElementById('previewEmpty');
-
-            previewImage.addEventListener('load', () => {
-                previewFrame.classList.add('has-image');
-                previewEmpty.style.display = 'none';
-            });
-
-            previewImage.addEventListener('error', () => {
-                previewFrame.classList.remove('has-image');
-                previewEmpty.style.display = 'block';
-            });
 
             // Submit handling
             submitBtn.addEventListener('click', handleSubmit);
             resetBtn.addEventListener('click', handleReset);
             downloadBtn.addEventListener('click', handleDownload);
+
+            // SVG Preview Modal
+            initSvgPreviewModal();
+        }
+
+        function initSvgPreviewModal() {
+            const modal = document.getElementById('svgPreviewModal');
+            const modalImg = document.getElementById('svgPreviewImage');
+            const modalCaption = document.getElementById('svgPreviewCaption');
+            const closeBtn = modal.querySelector('.svg-preview-close');
+
+            const previewFrames = [
+                { frame: document.getElementById('previewFrameTop'), label: 'Top View' },
+                { frame: document.getElementById('previewFrameSide'), label: 'Side View' },
+                { frame: document.getElementById('previewFramePlatform'), label: 'Sensor Platform' }
+            ];
+
+            previewFrames.forEach(({ frame, label }) => {
+                frame.style.cursor = 'pointer';
+                frame.addEventListener('click', () => {
+                    const img = frame.querySelector('img');
+                    if (img && img.src) {
+                        modalImg.src = img.src;
+                        modalCaption.textContent = label;
+                        modal.classList.add('active');
+                    }
+                });
+            });
+
+            closeBtn.addEventListener('click', () => {
+                modal.classList.remove('active');
+            });
+
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && modal.classList.contains('active')) {
+                    modal.classList.remove('active');
+                }
+            });
         }
 
         async function handleSubmit() {
@@ -1407,13 +1611,18 @@
             }, 500); // Check every 500ms
         }
 
-        // Fade in page once loaded to avoid layout shift flash
-        window.addEventListener('load', () => {
-            document.body.classList.add('loaded');
-        });
-        // Fallback in case load event already fired
-        if (document.readyState === 'complete') {
-            document.body.classList.add('loaded');
+        // Fade in page smoothly after layout is stable
+        function showPage() {
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    document.body.classList.add('loaded');
+                });
+            });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', showPage);
+        } else {
+            showPage();
         }
 
         // Lightbox functionality for gallery images

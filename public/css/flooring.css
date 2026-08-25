@@ -1,0 +1,529 @@
+.flooring-page {
+    padding-top: 14px;
+    padding-bottom: 24px;
+}
+
+.flooring-page .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.flooring-page .brand-lockup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.flooring-page .brand-lockup .header-logo {
+    width: min(280px, 72vw);
+    height: auto;
+    margin: 0;
+}
+
+.flooring-page .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+}
+
+.flooring-page .tool-hero {
+    display: grid;
+    grid-template-columns: 1.3fr 0.7fr;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.flooring-page .tool-hero .panel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.flooring-page .tool-hero h1 {
+    font-size: clamp(24px, 3vw, 36px);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    color: #0a0a0a;
+}
+
+.flooring-page .tool-hero p {
+    color: #5d5d5d;
+    line-height: 1.5;
+    max-width: 70ch;
+    margin: 0;
+}
+
+.flooring-page .hero-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.flooring-page .stat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #f3f3f3;
+    border: 1px solid #e2e2e2;
+    color: #2a2a2a;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.flooring-page .workflow-grid {
+    display: grid;
+    grid-template-columns: minmax(320px, 430px) minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+}
+
+.flooring-page .header_wizard {
+    grid-column: 1 / -1;
+    width: 100%;
+    background: #ffffff;
+    padding: 12px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    border: 1px solid #e2e2e2;
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+}
+
+.flooring-page .step_indicator {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0a0a0a;
+}
+
+.flooring-page .toolbar {
+    width: 100%;
+    grid-column: 1;
+    display: grid;
+    gap: 10px;
+    position: sticky;
+    top: 12px;
+    max-height: calc(100vh - 26px);
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.flooring-page .step_instructions {
+    background: #f3f3f3;
+    border: 1px solid #e2e2e2;
+    border-left: 4px solid #0a0a0a;
+    color: #2a2a2a;
+    padding: 10px 12px;
+    border-radius: 12px;
+    line-height: 1.4;
+    grid-column: 1 / -1;
+}
+
+.flooring-page .step_help_card {
+    grid-column: 1 / -1;
+    background: #fff;
+    border: 1px solid #e2e2e2;
+    border-radius: 12px;
+    padding: 10px 12px;
+    color: #333;
+    line-height: 1.45;
+    font-size: 13px;
+}
+
+.flooring-page .step_help_card ul {
+    margin: 6px 0 0 16px;
+    padding: 0;
+}
+
+.flooring-page .step_lock_notice {
+    grid-column: 1 / -1;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    color: #334155;
+    padding: 8px 10px;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.flooring-page .wizard_panel.locked {
+    opacity: 0.58;
+}
+
+.flooring-page .wizard_panel {
+    display: none;
+    width: 100%;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.flooring-page .wizard_panel.active {
+    display: grid;
+}
+
+.flooring-page .tool_group {
+    background: #ffffff;
+    padding: 12px;
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e2e2e2;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.flooring-page .tool_group strong {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #666;
+}
+
+.flooring-page .btn_row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
+.flooring-page button,
+.flooring-page .upload_label {
+    padding: 8px 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid #e2e2e2;
+    background: #ffffff;
+    color: #0a0a0a;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+}
+
+.flooring-page button svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+}
+
+.flooring-page button:hover,
+.flooring-page .upload_label:hover {
+    background: #f3f3f3;
+    border-color: #0a0a0a;
+}
+
+.flooring-page button.active {
+    background: #f3f3f3;
+    border-color: #0a0a0a;
+}
+
+.flooring-page .primary_btn {
+    background: #0a0a0a;
+    color: #ffffff;
+    border-color: #0a0a0a;
+}
+
+.flooring-page .primary_btn:hover {
+    background: #222222;
+    color: #ffffff;
+}
+
+.flooring-page button.completed {
+    background: #0a0a0a;
+    color: #ffffff;
+    border-color: #0a0a0a;
+}
+
+.flooring-page .axis_btn {
+    color: #111;
+}
+
+.flooring-page .axis_btn_x {
+    border-color: #93c5fd;
+    background: #eff6ff;
+}
+
+.flooring-page .axis_btn_y {
+    border-color: #fdba74;
+    background: #fff7ed;
+}
+
+.flooring-page .axis_btn_x.active {
+    border-color: #1d4ed8;
+    background: #dbeafe;
+}
+
+.flooring-page .axis_btn_y.active {
+    border-color: #ea580c;
+    background: #ffedd5;
+}
+
+.flooring-page .axis_btn.completed {
+    border-color: #15803d;
+    background: #dcfce7;
+    color: #14532d;
+}
+
+.flooring-page .slider_wrapper {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 13px;
+    background: #f3f3f3;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid #e2e2e2;
+}
+
+.flooring-page .plank_size_row {
+    align-items: center;
+    justify-content: flex-start;
+    column-gap: 20px;
+}
+
+.flooring-page .plank_size_row .size_pair {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.flooring-page .design_tools_group .tool_hint {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #666;
+    margin-top: -2px;
+}
+
+.flooring-page .design_tools_group .design_tools_parent {
+    display: grid;
+    gap: 10px;
+    background: #f7f7f7;
+    border: 1px solid #e2e2e2;
+    border-radius: 10px;
+    padding: 12px;
+}
+
+.flooring-page .design_tools_group .tool_section_heading {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #5e5e5e;
+    margin-top: 2px;
+}
+
+.flooring-page .ocr_status {
+    font-size: 12px;
+    line-height: 1.45;
+    color: #4c4c4c;
+    background: #fafafa;
+    border: 1px solid #e2e2e2;
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-top: 2px;
+}
+
+.flooring-page .ocr_candidates {
+    display: grid;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.flooring-page .ocr_candidates_empty {
+    font-size: 12px;
+    line-height: 1.45;
+    color: #777;
+    background: #fafafa;
+    border: 1px dashed #d7d7d7;
+    border-radius: 8px;
+    padding: 8px 10px;
+}
+
+.flooring-page .ocr_candidate_item {
+    display: grid;
+    gap: 4px;
+    padding: 8px 10px;
+    border: 1px solid #e2e2e2;
+    background: #fff;
+    border-radius: 10px;
+}
+
+.flooring-page .ocr_candidate_text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #111;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.flooring-page .ocr_candidate_meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 11px;
+    color: #666;
+}
+
+.flooring-page .ocr_candidate_source {
+    padding-left: 8px;
+    border-left: 1px solid #e2e2e2;
+    color: #4a4a4a;
+}
+
+.flooring-page select,
+.flooring-page input[type="number"],
+.flooring-page input[type="file"] {
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.flooring-page select,
+.flooring-page input[type="number"] {
+    padding: 8px 10px;
+    border: 1px solid #d9d9d9;
+    border-radius: 8px;
+    background: #ffffff;
+    font-size: 14px;
+}
+
+.flooring-page input[type="range"] {
+    cursor: pointer;
+    accent-color: #0a0a0a;
+}
+
+.flooring-page #image_uploader {
+    display: none;
+}
+
+.flooring-page .workspace {
+    grid-column: 2;
+    position: relative;
+    margin: 0;
+    width: 100%;
+    background: #ffffff;
+    overflow: hidden;
+    user-select: none;
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e2e2e2;
+    min-height: 620px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.flooring-page #bg_canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.flooring-page #main_canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    cursor: default;
+}
+
+.flooring-page .empty_state {
+    padding: 42px 18px;
+    text-align: center;
+    color: #6b6b6b;
+    font-size: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.flooring-page .empty-state-panel {
+    max-width: 720px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.flooring-page #brush_cursor {
+    display: none;
+    position: fixed;
+    pointer-events: none;
+    border: 1.5px solid #0a0a0a;
+    box-shadow: 0 0 0 1.5px #ffffff;
+    z-index: 9999;
+}
+
+.flooring-page .selected-area-card {
+    min-width: 220px;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.flooring-page #area_display {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0a0a0a;
+    margin-top: 8px;
+}
+
+.flooring-page .selected-area-card .primary_btn {
+    width: 100%;
+    justify-content: center;
+    margin-top: 6px;
+}
+
+@media (max-width: 960px) {
+    .flooring-page .workflow-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .flooring-page .toolbar {
+        grid-column: 1;
+        position: static;
+        max-height: none;
+        overflow: visible;
+        padding-right: 0;
+    }
+
+    .flooring-page .workspace {
+        grid-column: 1;
+        min-height: 420px;
+    }
+
+    .flooring-page .tool-hero {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 780px) {
+    .flooring-page .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .flooring-page .header_wizard {
+        padding: 16px;
+    }
+
+    .flooring-page .workspace {
+        min-height: 360px;
+    }
+
+    .flooring-page .slider_wrapper {
+        align-items: flex-start;
+    }
+}

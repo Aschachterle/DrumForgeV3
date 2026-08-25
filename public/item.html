@@ -14,7 +14,9 @@
             <a href="/" class="back-link">
                 ← Back to Models
             </a>
-            <img class="header-logo" src="/images/logo.png" alt="Extrudo logo">
+            <a href="/" aria-label="Go to home page">
+                <img class="header-logo" src="/images/logo.png" alt="Extrudo logo">
+            </a>
         </div>
 
         <div class="layout single-column">
@@ -60,7 +62,7 @@
                 </div>
 
                 <!-- Print Settings Section -->
-                <div class="section">
+                <div class="section" id="printSettingsSection">
                     <div class="section-title">
                         <div class="section-icon">2</div>
                         Recommended Print Settings
@@ -91,6 +93,20 @@
             <button class="lightbox-nav lightbox-next" id="lightboxNext">›</button>
             <div class="lightbox-caption" id="lightboxCaption"></div>
         </div>
+
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="/about.html">About</a>
+                    <a href="/contact.html">Contact</a>
+                    <a href="https://buymeacoffee.com/extrudo" target="_blank" rel="noopener">Donate</a>
+                </div>
+                <div class="footer-brand">
+                    <img src="/images/logo.png" alt="">
+                    <span>Extrudo &copy; 2026</span>
+                </div>
+            </div>
+        </footer>
     </div>
 
     <script>
@@ -158,13 +174,20 @@
             ).join('');
 
             // Render print settings
+            const printSettingsSection = document.getElementById('printSettingsSection');
             const printSettings = document.getElementById('printSettings');
-            printSettings.innerHTML = itemData.printSettings.map(s => `
-                <div class="print-setting">
-                    <strong>${s.label}</strong>
-                    <span>${s.value}</span>
-                </div>
-            `).join('');
+            
+            if (!itemData.printSettings || itemData.printSettings.length === 0) {
+                printSettingsSection.style.display = 'none';
+            } else {
+                printSettingsSection.style.display = '';
+                printSettings.innerHTML = itemData.printSettings.map(s => `
+                    <div class="print-setting">
+                        <strong>${s.label}</strong>
+                        <span>${s.value}</span>
+                    </div>
+                `).join('');
+            }
 
             // Render parts list
             const partsGrid = document.getElementById('partsGrid');
@@ -359,12 +382,18 @@
             }
         }
 
-        // Fade in page
-        window.addEventListener('load', () => {
-            document.body.classList.add('loaded');
-        });
-        if (document.readyState === 'complete') {
-            document.body.classList.add('loaded');
+        // Fade in page smoothly after layout is stable
+        function showPage() {
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    document.body.classList.add('loaded');
+                });
+            });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', showPage);
+        } else {
+            showPage();
         }
     </script>
 </body>

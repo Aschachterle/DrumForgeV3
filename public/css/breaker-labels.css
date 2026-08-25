@@ -1,0 +1,332 @@
+.breaker-tool-page {
+  max-width: 1280px;
+  padding: 28px 18px 44px;
+}
+
+/* Page header: match site-wide header styling (clean, aligned) */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+  min-height: 44px;
+}
+
+/* Ensure header logo matches other pages */
+.header-logo {
+  width: min(132px, 30vw);
+  height: auto;
+  min-height: 36px;
+  margin: 0;
+  display: block;
+  object-fit: contain;
+}
+
+.section-wrapper {
+  display: grid;
+  gap: 16px;
+}
+
+.tool-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 4px;
+}
+
+.cell-with-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.span-toggle {
+  font-size: 11px;
+  color: #444;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.span-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+}
+.span-btn:hover {
+  background: #f3f4f6;
+}
+
+.spanned {
+  background: #fafafa;
+  color: #9ca3af;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* Slight inner padding for highlighted area cells to improve readability */
+#breakerTable td[style] {
+  transition: background-color 0.15s ease;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 6px 18px rgba(16,24,40,0.04);
+}
+
+.panel h3,
+.card h3 {
+  margin: 0 0 10px;
+  font-size: 16px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.breaker-tool-page label {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: #111827;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.form-row input[type="number"],
+.form-row input[type="text"],
+.form-row input[type="file"],
+.form-row select {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-size: 14px;
+  line-height: 1.25;
+  background: #fff;
+}
+
+.form-row.inline-radio {
+  flex-direction: row;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.form-row.inline-radio label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.form-row.two-col {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+button.primary {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 14px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+button.primary:hover {
+  background: #1d4ed8;
+}
+
+.hint {
+  margin: 0 0 8px;
+  color: #6b7280;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.hidden {
+  display: none;
+}
+
+.divider {
+  border-top: 1px solid #e5e7eb;
+  margin: 14px 0;
+}
+
+.colors-card {
+  margin-bottom: 0;
+}
+
+.color-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.color-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  padding: 5px 10px;
+  background: #f9fafb;
+}
+
+.color-item .swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.2);
+}
+
+.color-item input[type="color"] {
+  border: none;
+  background: transparent;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.empty-state {
+  color: #6b7280;
+  font-style: italic;
+}
+
+.table-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  padding-top: 8px;
+}
+
+#breakerTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 980px;
+}
+
+#breakerTable th,
+#breakerTable td {
+  border: 1px solid #e5e7eb;
+  padding: 10px 8px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+#breakerTable th {
+  background: #f9fafb;
+  font-size: 13px;
+}
+
+#breakerTable td input[type="text"],
+#breakerTable td input[type="number"] {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font: inherit;
+}
+
+#breakerTable td textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: inherit;
+  resize: none;
+  min-height: 36px;
+}
+
+#breakerTable td label {
+  display: flex;
+  justify-content: center;
+}
+
+.area-chip {
+  display: inline-block;
+  min-width: 10px;
+  min-height: 10px;
+  border-radius: 3px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+@media (max-width: 900px) {
+  .tool-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .breaker-tool-page { padding: 20px 14px 34px; }
+  .card { padding: 16px; }
+  .form-row input[type="number"], .form-row input[type="text"] { padding: 8px; }
+}
+
+/* Prominent section header card to anchor the tool intro */
+.breaker-tool-page .section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 16px;
+  background: #ffffff;
+  border: 1px solid #e8e8ea;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(16,24,40,0.04);
+  margin-bottom: 0;
+}
+
+.breaker-tool-page .section-header h2 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.25;
+  font-weight: 600;
+}
+
+.breaker-tool-page .section-header p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+@media (max-width: 720px) {
+  .breaker-tool-page .section-header { flex-direction: column; align-items: flex-start; }
+}

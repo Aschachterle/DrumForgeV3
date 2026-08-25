@@ -53,8 +53,8 @@
 /* Models grid */
 .models-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 28px;
     margin-top: 16px;
 }
 

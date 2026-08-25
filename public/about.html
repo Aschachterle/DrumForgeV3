@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/images/logo.png">
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/index.css">
+    <title>About - Extrudo</title>
+    <style>
+        .about-content {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .about-content h1 {
+            font-size: 32px;
+            margin-bottom: 24px;
+        }
+        .about-content p {
+            font-size: 16px;
+            line-height: 1.7;
+            color: #444;
+            margin-bottom: 16px;
+        }
+        .about-content a {
+            color: #1976d2;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 32px;
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover {
+            color: #1976d2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/" aria-label="Go to home page">
+                <img class="header-logo" src="/images/logo.png" alt="Extrudo logo">
+            </a>
+        </div>
+
+        <div class="about-content">
+            <a href="/" class="back-link">← Back to Home</a>
+            <h1>About Extrudo</h1>
+            <p>
+                Extrudo is a parametric design platform for 3D printable projects. Our tools let you customize designs to your exact specifications, then generate print-ready STL files in seconds.
+            </p>
+            <p>
+                We started with electronic drums because we're drummers ourselves. Building custom e-drums shouldn't require CAD expertise or expensive software. With Extrudo, anyone can create professional-quality drum shells tailored to their needs.
+            </p>
+            <p>
+                All designs are optimized for home 3D printers using standard PLA or PETG filament. No special hardware required.
+            </p>
+            <p>
+                Have questions or feedback? <a href="/contact.html">Get in touch</a>.
+            </p>
+        </div>
+
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="/about.html">About</a>
+                    <a href="/contact.html">Contact</a>
+                    <a href="https://buymeacoffee.com/extrudo" target="_blank" rel="noopener">Donate</a>
+                </div>
+                <div class="footer-brand">
+                    <img src="/images/logo.png" alt="">
+                    <span>Extrudo &copy; 2026</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Fade in page smoothly after layout is stable
+        function showPage() {
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    document.body.classList.add('loaded');
+                });
+            });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', showPage);
+        } else {
+            showPage();
+        }
+    </script>
+</body>
+</html>

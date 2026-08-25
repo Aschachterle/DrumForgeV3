@@ -11,16 +11,29 @@
 <body>
     <div class="container">
         <div class="header">
-            <img class="header-logo" src="/images/logo.png" alt="Extrudo logo">
-            <p class="tagline">Parametric Design Automation Platform</p>
+            <a href="/" aria-label="Go to home page">
+                <img class="header-logo" src="/images/logo.png" alt="Extrudo logo">
+            </a>
+            <p class="tagline">Tools for creators, DIYers, and whatever else I might think of...</p>
         </div>
 
         <div class="section-wrapper">
             <div class="section-header">
-                <h2>⚙️ Generators</h2>
-                <p>Customize parameters and generate unique STL files</p>
+                <h2>⚙️ Technical Tools</h2>
+                <p>Various utilities for Hobbiest's and DIYers.</p>
             </div>
             <div class="models-grid">
+                <a href="/flooring.html" class="model-card">
+                    <div class="model-thumbnail">
+                        <img src="/images/items/FloorPlanThumb.png" alt="Flooring layout tool preview">
+                    </div>
+                    <h2>Flooring Layout Customizer</h2>
+                    <p>Upload a floorplan, calibrate wall scale, and paint flooring patterns directly onto the image with room-fill, brush, and seam tools.</p>
+                    <div class="model-meta">
+                        <span>📐 Scale calibration</span>
+                        <span>🎨 Live floor overlay</span>
+                    </div>
+                </a>
                 <a href="/drum.html" class="model-card">
                     <div class="model-thumbnail">
                         <img src="/images/descriptionGallery/printed-drum.jpg" alt="E-Drum preview">
@@ -30,6 +43,17 @@
                     <div class="model-meta">
                         <span>⚙️ 9 parameters</span>
                         <span>⚡ 15-30 sec</span>
+                    </div>
+                </a>
+                <a href="/breaker-labels.html" class="model-card">
+                    <div class="model-thumbnail">
+                        <img src="/images/items/BreakerBox.png" alt="Breaker labels tool preview">
+                    </div>
+                    <h2>Breaker Label Sheet Tool</h2>
+                    <p>Create printable replacement panel labels with area-based color coding, CSV import, and full-sheet or individual-label printing.</p>
+                    <div class="model-meta">
+                        <span>📄 CSV import</span>
+                        <span>🖨️ Print-ready</span>
                     </div>
                 </a>
             </div>
@@ -45,19 +69,34 @@
             </div>
         </div>
 
-        <div class="footer">
-            <p>Powered by Autodesk Design Automation</p>
-        </div>
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="/about.html">About</a>
+                    <a href="/contact.html">Contact</a>
+                    <a href="https://buymeacoffee.com/extrudo" target="_blank" rel="noopener">Donate</a>
+                </div>
+                <div class="footer-brand">
+                    <img src="/images/logo.png" alt="">
+                    <span>Extrudo &copy; 2026</span>
+                </div>
+            </div>
+        </footer>
     </div>
 
     <script>
-        // Fade in page once loaded to avoid layout shift flash
-        window.addEventListener('load', () => {
-            document.body.classList.add('loaded');
-        });
-        // Fallback in case load event already fired
-        if (document.readyState === 'complete') {
-            document.body.classList.add('loaded');
+        // Fade in page smoothly after layout is stable
+        function showPage() {
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    document.body.classList.add('loaded');
+                });
+            });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', showPage);
+        } else {
+            showPage();
         }
 
         // Load downloadable items from API

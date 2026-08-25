@@ -1,0 +1,2497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/images/logo.png">
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/flooring.css">
+    <title>Extrudo - Flooring Layout Customizer</title>
+</head>
+<body class="flooring-page">
+    <div class="container">
+        <div class="page-header">
+            <a href="/" class="back-link">← Back to Models</a>
+            <div class="brand-lockup">
+                <a href="/" aria-label="Go to home page">
+                    <img class="header-logo" src="/images/logo.png" alt="Extrudo logo">
+                </a>
+            </div>
+        </div>
+
+        <div class="tool-hero">
+            <div class="panel">
+                <span class="badge eyebrow">New Tool</span>
+                <h1>Flooring Layout Customizer</h1>
+                <p>Design how you want to lay your flooring down and determine how much flooring you need to buy. Upload your floor plan, correct the image alignment, and calibrate the scale. Then you can paint on your floor area, choose plank/tile dimensions and patterns.</p>
+                <div class="hero-stats">
+                    <span class="stat-pill">📐 Image alignment</span>
+                    <span class="stat-pill">🧭 Scale calibration</span>
+                    <span class="stat-pill">🎨 Room fill and brush tools</span>
+                </div>
+            </div>
+            <div class="panel empty-state-panel">
+                <img src="/images/items/FloorPlanThumb.png" alt="Flooring layout preview" style="width:100%; height:auto; display:block;">
+            </div>
+        </div>
+
+        <div class="workflow-grid">
+            <div class="header_wizard">
+                <div id="step_title" class="step_indicator">Step 1: Upload and Align Image</div>
+                <div class="btn_row">
+                    <button id="btn_back" onclick="changeStep(-1)" style="display:none;" title="Go to previous step">Back</button>
+                    <button id="btn_next" class="primary_btn" onclick="changeStep(1)" title="Continue to next step">Continue</button>
+                </div>
+            </div>
+
+            <div class="toolbar">
+                <div id="panel_step1" class="wizard_panel active">
+                    <div class="step_instructions">
+                        Upload your floorplan image. Use the rotation tools to level walls, then turn on the reference grid to visually confirm alignment.
+                    </div>
+                    <div class="step_help_card">
+                        Need a floor plan?
+                        <ul>
+                            <li>Reach out to your city to see if they have one on file from when your house was built.</li>
+                            <li>Use apps like MagicPlan or CubiCasa to generate a floor plan.</li>
+                        </ul>
+                    </div>
+                    <div class="tool_group">
+                        <strong>Floorplan Source</strong>
+                        <label class="upload_label" for="image_uploader" title="Click to upload an image of your floorplan">Upload Image</label>
+                        <button id="btn_reset_image" onclick="resetAndUploadNewImage()" title="Clear the current project and upload a new floorplan image">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35A7.95 7.95 0 0012 4V1L7 6l5 5V7a5 5 0 11-5 5H5a7 7 0 107.75-6.95c-.25-.03-.5-.05-.75-.05a6.96 6.96 0 00-4.24 1.45l1.43 1.43A4.97 4.97 0 0112 7c2.76 0 5 2.24 5 5s-2.24 5-5 5a4.99 4.99 0 01-4.9-4H5.08A7.01 7.01 0 0012 19a7 7 0 005.65-11.65z"/></svg>
+                            Reset + New Image
+                        </button>
+                        <input type="file" id="image_uploader" accept="image/*" onchange="handleImageUpload(event)">
+                    </div>
+                    <div class="tool_group">
+                        <strong>Level and Rotate Image</strong>
+                        <div class="btn_row">
+                            <button onclick="rotateFloorplan()" title="Rotate the entire image 90 degrees clockwise">Rotate 90°</button>
+                            <button id="btn_auto_align" onclick="autoAlign()" title="Attempt to automatically straighten the image based on detected lines">Auto Align Walls</button>
+                            <button id="btn_toggle_grid" onclick="toggleAlignGrid()" title="Show a straight grid over the image to help you visually align the walls">Toggle Reference Grid</button>
+                        </div>
+                        <div class="slider_wrapper" style="margin-top: 4px;">
+                            <label for="fine_rotation" title="Make small, precise rotation adjustments to perfectly straighten the image">Rotation Alignment</label>
+                            <input type="range" id="fine_rotation" min="-45" max="45" step="0.1" value="0" oninput="fineTuneRotation()" style="width: 350px;" title="Drag left or right to tilt the image">
+                        </div>
+                        <div class="slider_wrapper" id="grid_size_wrapper" style="margin-top: 4px; display: none;">
+                            <label for="grid_size" title="Adjust the spacing of the alignment grid lines">Grid Spacing</label>
+                            <input type="range" id="grid_size" min="10" max="150" value="40" oninput="scheduleRender()" style="width: 350px;" title="Drag to make the grid boxes larger or smaller">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="panel_step2" class="wizard_panel">
+                    <div class="step_instructions">
+                        Establish the real-world scale of your image. Measure a horizontal wall and a vertical wall so the plan matches the physical layout accurately.
+                    </div>
+                    <div id="lock_step2" class="step_lock_notice" style="display:none;"></div>
+                    <div class="tool_group">
+                        <strong>Measurement System</strong>
+                        <div class="slider_wrapper">
+                            <select id="unit_system" onchange="updateUnits()" title="Select your preferred measurement units">
+                                <option value="imperial" selected>Imperial System</option>
+                                <option value="metric">Metric System</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="tool_group">
+                        <strong>Scale Calibration Tools</strong>
+                        <div class="btn_row">
+                            <button id="btn_scale_x" class="axis_btn axis_btn_x" onclick="toggleScaleMode('x')" title="Click then drag a line horizontally across a known wall">Measure Horizontal Wall</button>
+                            <button id="btn_scale_y" class="axis_btn axis_btn_y" onclick="toggleScaleMode('y')" title="Click then drag a line vertically across a known wall">Measure Vertical Wall</button>
+                        </div>
+                        <div class="slider_wrapper" style="margin-top: 8px;">
+                            <label for="scale_x" title="Horizontal Scale Override">Horiz. Scale</label>
+                            <input type="range" id="scale_x" min="5" max="300" step="0.1" value="35" oninput="manualScaleUpdate()" style="width: 150px;">
+                            <label for="scale_y" style="margin-left: 10px;" title="Vertical Scale Override">Vert. Scale</label>
+                            <input type="range" id="scale_y" min="5" max="300" step="0.1" value="35" oninput="manualScaleUpdate()" style="width: 150px;">
+                        </div>
+                        <div id="ocr_status" class="ocr_status" aria-live="polite">Draw horizontal and vertical reference lines to calibrate scale.</div>
+                    </div>
+                </div>
+
+                <div id="panel_step3" class="wizard_panel">
+                    <div class="step_instructions">
+                        Configure flooring planks and paint them onto the map. Use room fill, seam movement, or brush tools to quickly populate spaces.
+                    </div>
+                    <div id="lock_step3" class="step_lock_notice" style="display:none;"></div>
+                    <div class="tool_group">
+                        <strong>Plank Configuration</strong>
+                        <div class="btn_row">
+                            <button id="btn_vert" onclick="setOrientation('vertical')" title="Run the planks straight up and down">Vertical</button>
+                            <button id="btn_horiz" onclick="setOrientation('horizontal')" title="Run the planks straight left to right">Horizontal</button>
+                            <button id="btn_diag" onclick="setOrientation('diagonal')" title="Run the planks at a 45 degree angle">Diagonal</button>
+                            <button id="btn_diag_rev" onclick="setOrientation('diagonalReverse')" title="Run the planks at a -45 degree angle">Diagonal Opposite</button>
+                            <button id="btn_none" class="active" onclick="setOrientation('none')" title="Temporarily hide the plank overlay entirely">Hide Planks</button>
+                        </div>
+                        <div class="slider_wrapper plank_size_row" style="margin-top: 4px;">
+                            <div class="size_pair">
+                                <label for="plank_width" id="label_width">Width:</label>
+                                <input type="number" id="plank_width" value="7.1" step="0.1" min="1" max="100" style="width: 80px;" oninput="scheduleRender()">
+                            </div>
+                            <div class="size_pair">
+                                <label for="plank_length" id="label_length">Length:</label>
+                                <input type="number" id="plank_length" value="48" step="1" min="1" max="400" style="width: 80px;" oninput="scheduleRender()">
+                            </div>
+                        </div>
+                        <div class="slider_wrapper" style="margin-top: 4px;">
+                            <label for="pattern_type">Pattern:</label>
+                            <select id="pattern_type" onchange="scheduleRender()">
+                                <option value="grid">Grid (No Stagger)</option>
+                                <option value="random">Random Stagger</option>
+                                <option value="step">One Third Step</option>
+                                <option value="brick">Half Brick Bond</option>
+                                <option value="herringbone">Herringbone</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="tool_group design_tools_group">
+                        <strong>Design Tools</strong>
+                        <div class="tool_hint">Start with room-level tools, then refine edges with brushes and shape tools.</div>
+                        <div class="design_tools_parent">
+                            <div class="tool_section_heading">Mode</div>
+                            <div class="btn_row">
+                                <button id="btn_toggle_erase" onclick="toggleDrawErase()" title="Toggle between drawing flooring and erasing flooring">Mode: Draw</button>
+                            </div>
+
+                            <div class="tool_section_heading">Room Tools</div>
+                            <div class="btn_row">
+                                <button id="btn_dragPattern" onclick="setMode('dragPattern')" title="Drag to adjust pattern start alignment">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm10 0h-3v4h3v3l5-5-5-5v3zm-5 5v3h-4v3l5 5 5-5v-3h-6z"/></svg>
+                                    Move Seams
+                                </button>
+                            </div>
+
+                            <div class="tool_section_heading">Drawing Tools</div>
+                            <div class="btn_row">
+                                <button id="btn_draw" class="active" onclick="setMode('draw')" title="Freehand round brush paint">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 14c-1.66 0-3 1.34-3 3 0 1.31-1.16 2-2 2 .92 1.22 2.49 2 4 2 2.21 0 4-1.79 4-4 0-1.66-1.34-3-3-3zm13.71-9.37l-1.34-1.34a.996.996 0 0 0-1.41 0L9 12.25 11.75 15l8.96-8.96c.39-.39.39-1.02 0-1.41z"/></svg>
+                                    Round Brush
+                                </button>
+                                <button id="btn_drawSquare" onclick="setMode('drawSquare')" title="Freehand square brush paint">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18V3H3zm16 16H5V5h14v14z"/></svg>
+                                    Square Brush
+                                </button>
+                            </div>
+
+                            <div class="tool_section_heading">Shape Tools</div>
+                            <div class="btn_row">
+                                <button id="btn_drawRect" onclick="setMode('drawRect')" title="Square or rectangular area tool">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18V3H3zm16 16H5V5h14v14z"/></svg>
+                                    Box Tool
+                                </button>
+                                <button id="btn_drawDiag" onclick="setMode('drawDiag')" title="Diagonal or angled area tool">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16L5 5h14v14z"/></svg>
+                                    Diagonal Tool
+                                </button>
+                            </div>
+
+                            <div class="slider_wrapper" style="margin-top: 6px;">
+                                <label for="brush_size">Tool Size</label>
+                                <input type="range" id="brush_size" min="5" max="150" value="40" style="width: 120px;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tool_group selected-area-card">
+                        <strong>Selected Area</strong>
+                        <div id="area_display">0.00 sq ft</div>
+                        <button id="btn_print_plan" class="primary_btn" onclick="printFloorplan()" title="Print a clean layout of your completed floorplan">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 8h-1V3H6v5H5a3 3 0 00-3 3v5h4v5h12v-5h4v-5a3 3 0 00-3-3zM8 5h8v3H8V5zm8 14H8v-5h8v5zm2-7a1 1 0 110-2 1 1 0 010 2z"/></svg>
+                            Print Layout
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="workspace" id="workspace_container">
+                <div id="empty_message" class="empty_state">
+                    <div>Please upload your floorplan image using the button above to begin.</div>
+                </div>
+                <canvas id="bg_canvas" style="display:none;"></canvas>
+                <canvas id="main_canvas" style="display:none;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div id="brush_cursor"></div>
+
+    <script>
+        let currentStep = 1;
+        let imageLoaded = false;
+
+        let currentDirection = 'none';
+        let currentMode = 'draw';
+        let eraseModeEnabled = false;
+        let showAlignGrid = false;
+
+        let activeScaleAxis = null;
+        let isDrawingScaleLine = false;
+        let hasSetScaleX = false;
+        let hasSetScaleY = false;
+        let calibrationLines = { x: null, y: null };
+        let calibrationRealWorld = { x: null, y: null };
+        let activeCalibrationHandle = null;
+
+        let currentMouseX = 0;
+        let currentMouseY = 0;
+        let rectStartX = 0;
+        let rectStartY = 0;
+
+        let isRendering = false;
+        let needsAreaCalc = false;
+        let lastPlankRenderKey = '';
+
+        let randomFloats = [];
+        for (let i = 0; i < 2000; i++) {
+            randomFloats.push(Math.random());
+        }
+
+        let ocrBusy = false;
+        let tesseractLoadPromise = null;
+        let showOCROverlay = false;
+        let ocrOverlayItems = [];
+        let ocrCandidateItems = [];
+
+        let originalImg = new Image();
+        let macroRotation = 0;
+        let fineRotation = 0;
+
+        let maskCanvas = document.createElement('canvas');
+        let maskCtx = maskCanvas.getContext('2d', { willReadFrequently: true });
+
+        let plankCanvas = document.createElement('canvas');
+
+        let isPainting = false;
+        let isDrawingShape = false;
+        let shapeStartX = 0;
+        let shapeStartY = 0;
+        let lastPaintX = null;
+        let lastPaintY = null;
+
+        let isDraggingPattern = false;
+        let dragPatternStartX = 0;
+        let dragPatternStartY = 0;
+        let patternOffsetX = 0;
+        let patternOffsetY = 0;
+
+        const mainCanvas = document.getElementById('main_canvas');
+
+        window.addEventListener('resize', () => {
+            if (imageLoaded) setupCanvases(false);
+        });
+
+        function scheduleRender(calcArea = false) {
+            if (calcArea) needsAreaCalc = true;
+            if (!isRendering) {
+                isRendering = true;
+                requestAnimationFrame(() => {
+                    isRendering = false;
+                    renderView();
+                });
+            }
+        }
+
+        function buildPlankRenderKey(canvas, scaleX, scaleY, system, inputWidth, inputLength, pattern) {
+            return [
+                canvas.width,
+                canvas.height,
+                currentDirection,
+                pattern,
+                system,
+                inputWidth,
+                inputLength,
+                scaleX.toFixed(4),
+                scaleY.toFixed(4),
+                patternOffsetX.toFixed(2),
+                patternOffsetY.toFixed(2)
+            ].join('|');
+        }
+
+        function renderPlankTexture(canvas, scaleX, scaleY, system, inputWidth, inputLength, pattern) {
+            let pCtx = plankCanvas.getContext('2d');
+            pCtx.clearRect(0, 0, plankCanvas.width, plankCanvas.height);
+
+            let pW = system === 'metric' ? inputWidth / 100 : inputWidth / 12;
+            let pL = system === 'metric' ? inputLength / 100 : inputLength / 12;
+
+            pCtx.fillStyle = 'rgba(181, 101, 29, 0.65)';
+            pCtx.strokeStyle = 'rgba(61, 35, 20, 0.55)';
+            pCtx.lineWidth = 1.2 / Math.max(scaleX, scaleY);
+
+            pCtx.save();
+            pCtx.scale(scaleX, scaleY);
+            pCtx.translate(patternOffsetX / scaleX, patternOffsetY / scaleY);
+
+            let angle = 0;
+            if (currentDirection === 'vertical') angle = 90;
+            if (currentDirection === 'diagonal') angle = 45;
+            if (currentDirection === 'diagonalReverse') angle = -45;
+            pCtx.rotate(angle * Math.PI / 180);
+
+            const viewW = canvas.width / scaleX;
+            const viewH = canvas.height / scaleY;
+            const diag = Math.hypot(viewW, viewH);
+            const margin = Math.max(pW, pL) * 2;
+
+            const minX = -diag - margin;
+            const maxX = viewW + diag + margin;
+            const minY = -diag - margin;
+            const maxY = viewH + diag + margin;
+
+            if (pattern === 'herringbone') {
+                let v1x = pL + pW;
+                let v1y = pW - pL;
+                let v2x = pW;
+                let v2y = pW;
+
+                let iters = Math.ceil((diag * 2 + margin * 2) / Math.min(pW, pL));
+
+                for (let i = -iters; i < iters; i++) {
+                    for (let j = -iters; j < iters; j++) {
+                        let basex = i * v1x + j * v2x;
+                        let basey = i * v1y + j * v2y;
+
+                        pCtx.fillRect(basex, basey, pL, pW);
+                        pCtx.strokeRect(basex, basey, pL, pW);
+
+                        pCtx.fillRect(basex + pL, basey + pW - pL, pW, pL);
+                        pCtx.strokeRect(basex + pL, basey + pW - pL, pW, pL);
+                    }
+                }
+            } else {
+                const startRow = Math.floor(minY / pW) - 1;
+                const endRow = Math.ceil(maxY / pW) + 1;
+                const startCol = Math.floor(minX / pL) - 1;
+                const endCol = Math.ceil(maxX / pL) + 1;
+
+                for (let i = startRow; i <= endRow; i++) {
+                    let offset = 0;
+                    if (pattern === 'grid') offset = 0;
+                    if (pattern === 'brick') offset = (Math.abs(i) % 2) * (pL / 2);
+                    if (pattern === 'step') offset = (Math.abs(i) % 3) * (pL / 3);
+                    if (pattern === 'random') offset = randomFloats[Math.abs(i) % randomFloats.length] * pL;
+
+                    for (let j = startCol; j <= endCol; j++) {
+                        let x = j * pL - offset;
+                        let y = i * pW;
+                        pCtx.fillRect(x, y, pL, pW);
+                        pCtx.strokeRect(x, y, pL, pW);
+                    }
+                }
+            }
+
+            pCtx.restore();
+        }
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    originalImg.onload = function() {
+                        imageLoaded = true;
+                        document.getElementById('empty_message').style.display = 'none';
+                        document.getElementById('bg_canvas').style.display = 'block';
+                        document.getElementById('main_canvas').style.display = 'block';
+                        currentStep = 1;
+
+                        macroRotation = 0;
+                        fineRotation = 0;
+                        document.getElementById('fine_rotation').value = 0;
+
+                        hasSetScaleX = false;
+                        hasSetScaleY = false;
+                        calibrationLines = { x: null, y: null };
+                        calibrationRealWorld = { x: null, y: null };
+                        activeCalibrationHandle = null;
+                        updateScaleButtonState();
+                        document.getElementById('scale_x').value = 35;
+                        document.getElementById('scale_y').value = 35;
+                        ocrCandidateItems = [];
+                        setOCRCandidateSummary([]);
+                        setOCRStatus('Draw horizontal and vertical reference lines to calibrate scale.');
+                        refreshStepLocks();
+
+                        renderBackground();
+                        setupCanvases(true);
+                    };
+                    originalImg.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+                function resetWorkspaceState() {
+                        currentStep = 1;
+                        imageLoaded = false;
+
+                        currentDirection = 'none';
+                        currentMode = 'draw';
+                        showAlignGrid = false;
+
+                        activeScaleAxis = null;
+                        isDrawingScaleLine = false;
+                        hasSetScaleX = false;
+                        hasSetScaleY = false;
+                        calibrationLines = { x: null, y: null };
+                        calibrationRealWorld = { x: null, y: null };
+                        activeCalibrationHandle = null;
+
+                        currentMouseX = 0;
+                        currentMouseY = 0;
+                        rectStartX = 0;
+                        rectStartY = 0;
+
+                        isRendering = false;
+                        needsAreaCalc = false;
+                        lastPlankRenderKey = '';
+
+                        macroRotation = 0;
+                        fineRotation = 0;
+                        patternOffsetX = 0;
+                        patternOffsetY = 0;
+
+                        isPainting = false;
+                        isDrawingShape = false;
+                        shapeStartX = 0;
+                        shapeStartY = 0;
+                        lastPaintX = null;
+                        lastPaintY = null;
+
+                        isDraggingPattern = false;
+                        dragPatternStartX = 0;
+                        dragPatternStartY = 0;
+
+                        const uploader = document.getElementById('image_uploader');
+                        uploader.value = '';
+
+                        document.getElementById('step_title').innerText = 'Step 1: Upload and Align Image';
+                        document.getElementById('panel_step1').classList.add('active');
+                        document.getElementById('panel_step2').classList.remove('active');
+                        document.getElementById('panel_step3').classList.remove('active');
+
+                        document.getElementById('btn_scale_x').classList.remove('active');
+                        document.getElementById('btn_scale_y').classList.remove('active');
+                        updateScaleButtonState();
+                        document.getElementById('scale_x').value = 35;
+                        document.getElementById('scale_y').value = 35;
+                        ocrCandidateItems = [];
+                        setOCRCandidateSummary([]);
+                        setOCRStatus('Draw horizontal and vertical reference lines to calibrate scale.');
+                        ocrOverlayItems = [];
+                        showOCROverlay = false;
+
+                        document.getElementById('fine_rotation').value = 0;
+                        const gridBtn = document.getElementById('btn_toggle_grid');
+                        gridBtn.innerText = 'Toggle Reference Grid';
+                        gridBtn.classList.remove('active');
+                        document.getElementById('grid_size_wrapper').style.display = 'none';
+
+                        document.getElementById('unit_system').value = 'imperial';
+                        document.getElementById('label_width').innerText = 'Width (in):';
+                        document.getElementById('label_length').innerText = 'Length (in):';
+                        document.getElementById('plank_width').value = 7.1;
+                        document.getElementById('plank_length').value = 48;
+                        document.getElementById('pattern_type').value = 'grid';
+                        document.getElementById('brush_size').value = 40;
+
+                        setMode('draw', true);
+                        setEraseMode(false);
+                        setOrientation('none');
+                        refreshStepLocks();
+
+                        document.getElementById('area_display').innerText = '0.00 sq ft';
+
+                        const bg = document.getElementById('bg_canvas');
+                        const bgCtx = bg.getContext('2d');
+                        bgCtx.clearRect(0, 0, bg.width, bg.height);
+                        bg.style.display = 'none';
+
+                        const ctx = mainCanvas.getContext('2d');
+                        ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
+                        mainCanvas.style.display = 'none';
+                        mainCanvas.style.cursor = 'default';
+
+                        if (maskCanvas.width > 0 && maskCanvas.height > 0) {
+                                maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+                        }
+
+                        const pCtx = plankCanvas.getContext('2d');
+                        pCtx.clearRect(0, 0, plankCanvas.width, plankCanvas.height);
+
+                        document.getElementById('empty_message').style.display = 'flex';
+                        document.getElementById('brush_cursor').style.display = 'none';
+                }
+
+                function resetAndUploadNewImage() {
+                        resetWorkspaceState();
+                        document.getElementById('image_uploader').click();
+                }
+
+                function setOCRStatus(message) {
+                    const el = document.getElementById('ocr_status');
+                    if (el) el.innerText = message;
+                }
+
+                function refreshStepLocks() {
+                    const panel1 = document.getElementById('panel_step1');
+                    const panel2 = document.getElementById('panel_step2');
+                    const panel3 = document.getElementById('panel_step3');
+                    const lock2 = document.getElementById('lock_step2');
+                    const lock3 = document.getElementById('lock_step3');
+                    const stepTitle = document.getElementById('step_title');
+                    const btnBack = document.getElementById('btn_back');
+                    const btnNext = document.getElementById('btn_next');
+
+                    const step2Unlocked = imageLoaded;
+                    const step3Unlocked = imageLoaded && hasSetScaleX && hasSetScaleY;
+
+                    if (!step2Unlocked && currentStep > 1) currentStep = 1;
+                    if (!step3Unlocked && currentStep > 2) currentStep = 2;
+
+                    if (panel1) panel1.classList.toggle('active', currentStep === 1);
+                    if (panel2) panel2.classList.toggle('active', currentStep === 2);
+                    if (panel3) panel3.classList.toggle('active', currentStep === 3);
+
+                    if (stepTitle) {
+                        if (currentStep === 1) stepTitle.innerText = 'Step 1: Upload and Align Image';
+                        if (currentStep === 2) stepTitle.innerText = 'Step 2: Set Scale Calibration';
+                        if (currentStep === 3) stepTitle.innerText = 'Step 3: Paint Flooring Design';
+                    }
+
+                    if (btnBack) btnBack.style.display = currentStep > 1 ? 'inline-flex' : 'none';
+                    if (btnNext) {
+                        btnNext.style.display = currentStep < 3 ? 'inline-flex' : 'none';
+                        btnNext.disabled = (currentStep === 1 && !step2Unlocked) || (currentStep === 2 && !step3Unlocked);
+                    }
+
+                    if (panel2) panel2.classList.toggle('locked', !step2Unlocked);
+                    if (panel3) panel3.classList.toggle('locked', !step3Unlocked);
+
+                    if (lock2) {
+                        lock2.style.display = step2Unlocked ? 'none' : 'block';
+                        lock2.innerText = 'Step 2 locked: Upload a floorplan image in Step 1 to unlock scale calibration.';
+                    }
+
+                    if (lock3) {
+                        lock3.style.display = step3Unlocked ? 'none' : 'block';
+                        lock3.innerText = 'Step 3 locked: Complete both horizontal and vertical measurements in Step 2 to unlock painting tools.';
+                    }
+
+                    const setPanelControlsEnabled = (panelEl, enabled) => {
+                        if (!panelEl) return;
+                        const controls = panelEl.querySelectorAll('button, input, select');
+                        controls.forEach((el) => {
+                            el.disabled = !enabled;
+                        });
+                    };
+
+                    setPanelControlsEnabled(panel1, currentStep === 1);
+                    setPanelControlsEnabled(panel2, step2Unlocked && currentStep === 2);
+                    setPanelControlsEnabled(panel3, step3Unlocked && currentStep === 3);
+                }
+
+                function changeStep(direction) {
+                    if (direction > 0) {
+                        if (currentStep === 1 && !imageLoaded) {
+                            alert('Please upload and align a floorplan image before continuing.');
+                            return;
+                        }
+
+                        if (currentStep === 2 && (!hasSetScaleX || !hasSetScaleY)) {
+                            alert('Please complete both horizontal and vertical measurements before continuing.');
+                            return;
+                        }
+                    }
+
+                    currentStep = Math.max(1, Math.min(3, currentStep + direction));
+                    activeScaleAxis = null;
+                    isDrawingScaleLine = false;
+
+                    const btnX = document.getElementById('btn_scale_x');
+                    const btnY = document.getElementById('btn_scale_y');
+                    if (btnX) btnX.classList.remove('active');
+                    if (btnY) btnY.classList.remove('active');
+
+                    if (currentStep === 3 && currentDirection === 'none') {
+                        setOrientation('vertical');
+                    }
+
+                    refreshStepLocks();
+                    if (currentStep === 3) scheduleRender(true);
+                    else scheduleRender();
+                }
+
+                function setOCRCandidateSummary(items) {
+                    const el = document.getElementById('ocr_candidate_list');
+                    if (!el) return;
+
+                    if (!items || !items.length) {
+                        el.innerHTML = '<div class="ocr_candidates_empty">OCR candidates will appear here after a scan.</div>';
+                        return;
+                    }
+
+                    const topItems = items.slice(0, 6);
+                    el.innerHTML = topItems.map((item) => {
+                        const valueText = item.values?.length ? item.values.map(v => v.toFixed(2)).join(' / ') : 'n/a';
+                        const confidenceText = `${Math.round(item.confidence || 0)}%`;
+                        const sourceText = item.source ? `<span class="ocr_candidate_source">${item.source}</span>` : '';
+                        return `
+                            <div class="ocr_candidate_item">
+                                <div class="ocr_candidate_text">${item.text}</div>
+                                <div class="ocr_candidate_meta">
+                                    <span>${valueText}</span>
+                                    <span>${confidenceText}</span>
+                                    ${sourceText}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                function createCanvasCopy(sourceCanvas) {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = sourceCanvas.width;
+                    canvas.height = sourceCanvas.height;
+                    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                    ctx.drawImage(sourceCanvas, 0, 0);
+                    return canvas;
+                }
+
+                function rotateCanvas(sourceCanvas, degrees) {
+                    if (!degrees) return createCanvasCopy(sourceCanvas);
+
+                    const radians = degrees * Math.PI / 180;
+                    const sin = Math.abs(Math.sin(radians));
+                    const cos = Math.abs(Math.cos(radians));
+                    const width = sourceCanvas.width;
+                    const height = sourceCanvas.height;
+                    const rotatedWidth = Math.max(1, Math.round(width * cos + height * sin));
+                    const rotatedHeight = Math.max(1, Math.round(width * sin + height * cos));
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = rotatedWidth;
+                    canvas.height = rotatedHeight;
+                    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, rotatedWidth, rotatedHeight);
+                    ctx.translate(rotatedWidth / 2, rotatedHeight / 2);
+                    ctx.rotate(radians);
+                    ctx.drawImage(sourceCanvas, -width / 2, -height / 2);
+                    return canvas;
+                }
+
+                function createEdgeMaskedCanvas(sourceCanvas, edgeRatio = 0.18) {
+                    const canvas = createCanvasCopy(sourceCanvas);
+                    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                    const width = canvas.width;
+                    const height = canvas.height;
+                    const bandW = Math.max(100, Math.round(width * edgeRatio));
+                    const bandH = Math.max(100, Math.round(height * edgeRatio));
+                    const innerW = Math.max(1, width - (bandW * 2));
+                    const innerH = Math.max(1, height - (bandH * 2));
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, width, height);
+                    ctx.drawImage(sourceCanvas, 0, 0, width, bandH, 0, 0, width, bandH);
+                    ctx.drawImage(sourceCanvas, 0, height - bandH, width, bandH, 0, height - bandH, width, bandH);
+                    ctx.drawImage(sourceCanvas, 0, bandH, bandW, innerH, 0, bandH, bandW, innerH);
+                    ctx.drawImage(sourceCanvas, width - bandW, bandH, bandW, innerH, width - bandW, bandH, bandW, innerH);
+                    return canvas;
+                }
+
+                function preprocessOCRCanvas(sourceCanvas, mode) {
+                    const canvas = createCanvasCopy(sourceCanvas);
+                    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const data = imageData.data;
+
+                    if (mode === 'edge') {
+                        const original = new Uint8ClampedArray(data);
+                        const width = canvas.width;
+                        const height = canvas.height;
+
+                        for (let y = 1; y < height - 1; y++) {
+                            for (let x = 1; x < width - 1; x++) {
+                                const idx = (y * width + x) * 4;
+                                const idxL = idx - 4;
+                                const idxR = idx + 4;
+                                const idxU = idx - (width * 4);
+                                const idxD = idx + (width * 4);
+
+                                const luma = original[idx] * 0.299 + original[idx + 1] * 0.587 + original[idx + 2] * 0.114;
+                                const lumaL = original[idxL] * 0.299 + original[idxL + 1] * 0.587 + original[idxL + 2] * 0.114;
+                                const lumaR = original[idxR] * 0.299 + original[idxR + 1] * 0.587 + original[idxR + 2] * 0.114;
+                                const lumaU = original[idxU] * 0.299 + original[idxU + 1] * 0.587 + original[idxU + 2] * 0.114;
+                                const lumaD = original[idxD] * 0.299 + original[idxD + 1] * 0.587 + original[idxD + 2] * 0.114;
+
+                                const sharpened = Math.max(0, Math.min(255, (luma * 1.85) - (lumaL * 0.25) - (lumaR * 0.25) - (lumaU * 0.25) - (lumaD * 0.25)));
+                                data[idx] = sharpened;
+                                data[idx + 1] = sharpened;
+                                data[idx + 2] = sharpened;
+                            }
+                        }
+                    } else {
+                        const threshold = mode === 'threshold' ? 168 : 0;
+                        for (let i = 0; i < data.length; i += 4) {
+                            const l = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+                            let boosted = l < 170 ? l * 0.72 : Math.min(255, l * 1.18);
+                            if (threshold) boosted = boosted < threshold ? 0 : 255;
+                            data[i] = boosted;
+                            data[i + 1] = boosted;
+                            data[i + 2] = boosted;
+                        }
+                    }
+
+                    ctx.putImageData(imageData, 0, 0);
+                    return canvas;
+                }
+
+                function estimateDeskewAngleFromCanvas(sourceCanvas) {
+                    const previewCanvas = document.createElement('canvas');
+                    const maxDim = 800;
+                    let scale = Math.min(maxDim / sourceCanvas.width, maxDim / sourceCanvas.height);
+                    if (scale > 1) scale = 1;
+
+                    previewCanvas.width = Math.max(1, Math.floor(sourceCanvas.width * scale));
+                    previewCanvas.height = Math.max(1, Math.floor(sourceCanvas.height * scale));
+                    const previewCtx = previewCanvas.getContext('2d', { willReadFrequently: true });
+                    previewCtx.drawImage(sourceCanvas, 0, 0, previewCanvas.width, previewCanvas.height);
+
+                    const imgData = previewCtx.getImageData(0, 0, previewCanvas.width, previewCanvas.height);
+                    const data = imgData.data;
+                    const w = previewCanvas.width;
+                    const h = previewCanvas.height;
+
+                    const gray = new Float32Array(w * h);
+                    for (let i = 0; i < data.length; i += 4) {
+                        gray[i / 4] = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+                    }
+
+                    const bins = new Int32Array(900);
+                    for (let y = 1; y < h - 1; y++) {
+                        for (let x = 1; x < w - 1; x++) {
+                            const idx = y * w + x;
+                            const gx = -gray[idx - w - 1] + gray[idx - w + 1] - 2 * gray[idx - 1] + 2 * gray[idx + 1] - gray[idx + w - 1] + gray[idx + w + 1];
+                            const gy = -gray[idx - w - 1] - 2 * gray[idx - w] - gray[idx - w + 1] + gray[idx + w - 1] + 2 * gray[idx + w] + gray[idx + w + 1];
+
+                            const mag = Math.sqrt(gx * gx + gy * gy);
+                            if (mag > 40) {
+                                let angle = Math.atan2(gy, gx) * 180 / Math.PI;
+                                let modAngle = (angle % 90 + 90) % 90;
+                                let bin = Math.floor(modAngle * 10);
+                                if (bin >= 0 && bin < 900) bins[bin]++;
+                            }
+                        }
+                    }
+
+                    const smoothed = new Int32Array(900);
+                    for (let i = 0; i < 900; i++) {
+                        let sum = 0;
+                        for (let j = -4; j <= 4; j++) {
+                            const idx = (i + j + 900) % 900;
+                            sum += bins[idx];
+                        }
+                        smoothed[i] = sum;
+                    }
+
+                    let maxBin = 0;
+                    let maxCount = 0;
+                    for (let i = 0; i < 900; i++) {
+                        if (smoothed[i] > maxCount) {
+                            maxCount = smoothed[i];
+                            maxBin = i;
+                        }
+                    }
+
+                    const dominantAngle = maxBin / 10;
+                    const correction = dominantAngle > 45 ? 90 - dominantAngle : -dominantAngle;
+                    return Math.max(-8, Math.min(8, correction));
+                }
+
+                function collectOCRCandidates(resultData, system, scaleX, scaleY, sourceLabel) {
+                    const items = [];
+                    const lines = resultData?.lines || [];
+                    const words = resultData?.words || [];
+
+                    for (const line of lines) {
+                        const text = (line?.text || '').trim();
+                        if (!text) continue;
+
+                        const values = collectDimensionValuesFromText(text, system);
+                        if (!values.length) continue;
+
+                        const rect = normalizeBBoxToDisplay(line.bbox, scaleX, scaleY);
+                        if (!rect) continue;
+
+                        const confidence = typeof line.confidence === 'number' ? line.confidence : 0;
+                        const orientation = rect.w >= rect.h ? 'horizontal' : 'vertical';
+                        items.push({
+                            ...rect,
+                            text,
+                            values,
+                            value: values[0],
+                            orientation,
+                            confidence,
+                            source: sourceLabel,
+                            kind: 'line'
+                        });
+                    }
+
+                    const verticalWordGroups = buildVerticalOCRWordGroups(words, system, scaleX, scaleY, sourceLabel);
+                    if (items.length < 3) {
+                        items.push(...verticalWordGroups);
+                    }
+
+                    return items;
+                }
+
+                function buildOCROverlayItems(candidateSets) {
+                    const items = [];
+                    for (const set of candidateSets || []) {
+                        for (const item of set || []) {
+                            items.push(item);
+                        }
+                    }
+
+                    const seen = new Set();
+                    const deduped = [];
+                    for (const item of items) {
+                        const key = `${Math.round(item.x)}:${Math.round(item.y)}:${Math.round(item.w)}:${Math.round(item.h)}:${item.text}`;
+                        if (seen.has(key)) continue;
+                        seen.add(key);
+                        deduped.push(item);
+                    }
+
+                    deduped.sort((a, b) => (b.confidence - a.confidence) || ((b.w * b.h) - (a.w * a.h)));
+                    return deduped.slice(0, 40);
+                }
+
+                function scoreOCRRun(resultData, candidates) {
+                    const baseConfidence = typeof resultData?.confidence === 'number' ? resultData.confidence : 0;
+                    const dimBonus = Math.min(24, candidates.length * 4);
+                    const strongest = candidates.reduce((best, item) => Math.max(best, item.confidence || 0), 0);
+                    const textBonus = candidates.reduce((best, item) => Math.max(best, (item.values?.length || 0) * 4), 0);
+                    return baseConfidence + dimBonus + (strongest * 0.08) + textBonus;
+                }
+
+                function toggleOCROverlay() {
+                    if (!ocrOverlayItems.length) {
+                        setOCRStatus('No OCR overlay data available yet. Run Auto Detect Scale first.');
+                        return;
+                    }
+                    showOCROverlay = !showOCROverlay;
+                    const btn = document.getElementById('btn_toggle_ocr_overlay');
+                    btn.innerText = showOCROverlay ? 'OCR Overlay: ON' : 'OCR Overlay: OFF';
+                    btn.classList.toggle('active', showOCROverlay);
+                    scheduleRender();
+                }
+
+                function normalizeBBoxToDisplay(bbox, scaleX, scaleY) {
+                    if (!bbox) return null;
+                    const x0 = bbox.x0 ?? bbox.left ?? bbox.x ?? 0;
+                    const y0 = bbox.y0 ?? bbox.top ?? bbox.y ?? 0;
+                    const x1 = bbox.x1 ?? (bbox.left !== undefined && bbox.width !== undefined ? bbox.left + bbox.width : 0);
+                    const y1 = bbox.y1 ?? (bbox.top !== undefined && bbox.height !== undefined ? bbox.top + bbox.height : 0);
+
+                    const minX = Math.min(x0, x1) * scaleX;
+                    const minY = Math.min(y0, y1) * scaleY;
+                    const width = Math.abs(x1 - x0) * scaleX;
+                    const height = Math.abs(y1 - y0) * scaleY;
+
+                    if (width < 4 || height < 4) return null;
+                    return { x: minX, y: minY, w: width, h: height };
+                }
+
+                function buildOCROverlayItems(candidateSets) {
+                    const items = [];
+                    for (const set of candidateSets || []) {
+                        for (const item of set || []) {
+                            items.push(item);
+                        }
+                    }
+
+                    const seen = new Set();
+                    const deduped = [];
+                    for (const item of items) {
+                        const key = `${Math.round(item.x)}:${Math.round(item.y)}:${Math.round(item.w)}:${Math.round(item.h)}:${item.text}`;
+                        if (seen.has(key)) continue;
+                        seen.add(key);
+                        deduped.push(item);
+                    }
+
+                    deduped.sort((a, b) => (b.confidence - a.confidence) || ((b.w * b.h) - (a.w * a.h)));
+                    return deduped.slice(0, 40);
+                }
+
+                function shouldIgnoreOCRText(text) {
+                    const normalized = String(text || '').toLowerCase();
+                    return /(sq\s*ft|square\s*feet|square\s*foot|sq\s*feet|sqft|ft²|ft\^2|m²|m\^2|square\s*meters|square\s*metres|sq\s*m|sqm|area|areas|sf\b)/i.test(normalized);
+                }
+
+                function bboxToRect(bbox, scaleX, scaleY) {
+                    if (!bbox) return null;
+                    const x0 = bbox.x0 ?? bbox.left ?? bbox.x ?? 0;
+                    const y0 = bbox.y0 ?? bbox.top ?? bbox.y ?? 0;
+                    const x1 = bbox.x1 ?? (bbox.left !== undefined && bbox.width !== undefined ? bbox.left + bbox.width : 0);
+                    const y1 = bbox.y1 ?? (bbox.top !== undefined && bbox.height !== undefined ? bbox.top + bbox.height : 0);
+                    const minX = Math.min(x0, x1) * scaleX;
+                    const minY = Math.min(y0, y1) * scaleY;
+                    const width = Math.abs(x1 - x0) * scaleX;
+                    const height = Math.abs(y1 - y0) * scaleY;
+                    if (width < 4 || height < 4) return null;
+                    return { x: minX, y: minY, w: width, h: height };
+                }
+
+                function buildVerticalOCRWordGroups(words, system, scaleX, scaleY, sourceLabel) {
+                    const candidates = [];
+                    const grouped = new Map();
+
+                    for (const word of words || []) {
+                        const text = String(word?.text || '').trim();
+                        if (!text) continue;
+
+                        const values = collectDimensionValuesFromText(text, system);
+                        if (!values.length) continue;
+
+                        const rect = bboxToRect(word.bbox, scaleX, scaleY);
+                        if (!rect) continue;
+
+                        const isVerticalText = rect.h > rect.w * 1.15;
+                        if (!isVerticalText) continue;
+
+                        const key = `${Math.round(rect.x / 40)}:${Math.round(rect.w / 40)}`;
+                        const entry = grouped.get(key) || [];
+                        entry.push({
+                            ...rect,
+                            text,
+                            values,
+                            value: values[0],
+                            confidence: typeof word.confidence === 'number' ? word.confidence : 0,
+                            source: sourceLabel,
+                            kind: 'word'
+                        });
+                        grouped.set(key, entry);
+                    }
+
+                    for (const group of grouped.values()) {
+                        group.sort((a, b) => a.y - b.y);
+                        const merged = group.reduce((acc, item) => {
+                            if (!acc) return { ...item };
+                            const x = Math.min(acc.x, item.x);
+                            const y = Math.min(acc.y, item.y);
+                            const right = Math.max(acc.x + acc.w, item.x + item.w);
+                            const bottom = Math.max(acc.y + acc.h, item.y + item.h);
+                            return {
+                                ...acc,
+                                x,
+                                y,
+                                w: right - x,
+                                h: bottom - y,
+                                text: `${acc.text} ${item.text}`.trim(),
+                                values: [...new Set([...(acc.values || []), ...(item.values || [])])],
+                                confidence: Math.min(acc.confidence, item.confidence),
+                                source: acc.source || item.source,
+                                kind: 'word-group'
+                            };
+                        }, null);
+
+                        if (!merged) continue;
+                        merged.orientation = 'vertical';
+                        candidates.push(merged);
+                    }
+
+                    return candidates;
+                }
+
+                function drawOCROverlay(ctx) {
+                    if (!showOCROverlay || !ocrOverlayItems.length || currentStep !== 2) return;
+
+                    ctx.save();
+                    ctx.font = '12px "IBM Plex Sans", "Segoe UI", sans-serif';
+                    ctx.textBaseline = 'top';
+
+                    for (const item of ocrOverlayItems) {
+                        const color = item.orientation === 'horizontal' ? 'rgba(29, 78, 216, 0.95)' : 'rgba(22, 163, 74, 0.95)';
+
+                        ctx.lineWidth = 2;
+                        ctx.strokeStyle = color;
+                        ctx.strokeRect(item.x, item.y, item.w, item.h);
+
+                        const confidenceLabel = `${Math.round(item.confidence || 0)}%`;
+                        const labelText = `${item.text} · ${confidenceLabel}`;
+                        const label = labelText.length > 30 ? `${labelText.slice(0, 28)}...` : labelText;
+                        const labelPad = 4;
+                        const labelW = Math.min(250, Math.max(40, ctx.measureText(label).width + (labelPad * 2)));
+                        const labelH = 18;
+                        const labelX = Math.max(2, Math.min(item.x, mainCanvas.width - labelW - 2));
+                        const labelY = Math.max(2, item.y - labelH - 2);
+
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+                        ctx.fillRect(labelX, labelY, labelW, labelH);
+                        ctx.strokeStyle = color;
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(labelX, labelY, labelW, labelH);
+                        ctx.fillStyle = '#111';
+                        ctx.fillText(label, labelX + labelPad, labelY + 3);
+                    }
+
+                    ctx.restore();
+                }
+
+                function loadScriptWithTimeout(src, timeoutMs = 15000) {
+                    return new Promise((resolve, reject) => {
+                        const script = document.createElement('script');
+                        let settled = false;
+
+                        const finish = (ok, err) => {
+                            if (settled) return;
+                            settled = true;
+                            clearTimeout(timer);
+                            script.onerror = null;
+                            script.onload = null;
+                            if (!ok && script.parentNode) {
+                                script.parentNode.removeChild(script);
+                            }
+                            if (ok) resolve();
+                            else reject(err || new Error('Script load failed.'));
+                        };
+
+                        const timer = setTimeout(() => {
+                            finish(false, new Error(`Timed out loading script: ${src}`));
+                        }, timeoutMs);
+
+                        script.src = src;
+                        script.async = true;
+                        script.onload = () => finish(true);
+                        script.onerror = () => finish(false, new Error(`Failed to load script: ${src}`));
+                        document.head.appendChild(script);
+                    });
+                }
+
+                function loadTesseractRuntime() {
+                    if (window.Tesseract) return Promise.resolve(window.Tesseract);
+                    if (tesseractLoadPromise) return tesseractLoadPromise;
+
+                    tesseractLoadPromise = (async () => {
+                        const cdnSources = [
+                            'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js',
+                            'https://unpkg.com/tesseract.js@5/dist/tesseract.min.js'
+                        ];
+
+                        if (navigator.onLine === false) {
+                            throw new Error('Browser appears offline. OCR runtime requires internet access on first load.');
+                        }
+
+                        let lastError = null;
+                        for (const src of cdnSources) {
+                            try {
+                                await loadScriptWithTimeout(src, 15000);
+                                if (window.Tesseract) {
+                                    return window.Tesseract;
+                                }
+                                lastError = new Error(`Runtime loaded from ${src} but API was missing.`);
+                            } catch (error) {
+                                lastError = error;
+                            }
+                        }
+
+                        throw lastError || new Error('Failed to load OCR runtime from all CDN sources.');
+                    })().catch((error) => {
+                        tesseractLoadPromise = null;
+                        throw error;
+                    });
+
+                    return tesseractLoadPromise;
+                }
+
+                function collectDimensionValuesFromText(text, system) {
+                    const valuesFeet = [];
+
+                    if (!text) return valuesFeet;
+
+                    const cleaned = String(text)
+                        .replace(/\b\d+(?:\.\d+)?\s*(?:sq\s*ft|square\s*feet|square\s*foot|sq\s*feet|sqft|ft²|ft\^2|m²|m\^2|square\s*meters?|square\s*metres?|sq\s*m|sqm|area|sf\b)/gi, ' ')
+                        .replace(/\b(?:sq\s*ft|square\s*feet|square\s*foot|sq\s*feet|sqft|ft²|ft\^2|m²|m\^2|square\s*meters?|square\s*metres?|sq\s*m|sqm|area|areas|sf\b)\b/gi, ' ')
+                        .replace(/[(),]/g, ' ');
+
+                    const segmentMatches = cleaned.match(/\d+(?:\.\d+)?\s*(?:ft|foot|feet|'|in|inch|inches|"|m|meter|meters|cm|centimeter|centimeters)\b/gi) || [];
+
+                    const imperialComboRegex = /(\d+(?:\.\d+)?)\s*(?:ft|foot|feet|')\s*(\d+(?:\.\d+)?)?\s*(?:in|inch|inches|")?/gi;
+                    let match;
+                    while ((match = imperialComboRegex.exec(cleaned)) !== null) {
+                        const feet = parseFloat(match[1]);
+                        const inches = match[2] ? parseFloat(match[2]) : 0;
+                        const totalFeet = feet + (inches / 12);
+                        if (!isNaN(totalFeet) && totalFeet > 0.2 && totalFeet < 500) valuesFeet.push(totalFeet);
+                    }
+
+                    const inchesRegex = /(\d+(?:\.\d+)?)\s*(?:in|inch|inches|")/gi;
+                    while ((match = inchesRegex.exec(cleaned)) !== null) {
+                        const inches = parseFloat(match[1]);
+                        const totalFeet = inches / 12;
+                        if (!isNaN(totalFeet) && totalFeet > 0.2 && totalFeet < 500) valuesFeet.push(totalFeet);
+                    }
+
+                    const feetOnlyRegex = /(\d+(?:\.\d+)?)\s*(?:ft|foot|feet|')/gi;
+                    while ((match = feetOnlyRegex.exec(cleaned)) !== null) {
+                        const feet = parseFloat(match[1]);
+                        if (!isNaN(feet) && feet > 0.2 && feet < 500) valuesFeet.push(feet);
+                    }
+
+                    const metricMRegex = /(\d+(?:\.\d+)?)\s*(?:m|meter|meters)\b/gi;
+                    while ((match = metricMRegex.exec(cleaned)) !== null) {
+                        const meters = parseFloat(match[1]);
+                        if (!isNaN(meters) && meters > 0.05 && meters < 200) valuesFeet.push(meters * 3.28084);
+                    }
+
+                    const metricCMRegex = /(\d+(?:\.\d+)?)\s*(?:cm|centimeter|centimeters)\b/gi;
+                    while ((match = metricCMRegex.exec(cleaned)) !== null) {
+                        const cm = parseFloat(match[1]);
+                        const meters = cm / 100;
+                        if (!isNaN(meters) && meters > 0.05 && meters < 200) valuesFeet.push(meters * 3.28084);
+                    }
+
+                    const metersDecimalRegex = /(?:^|[^\w])(\d+(?:\.\d+)?)\s*(?=\b(?:meter|meters|metre|metres|m)\b)/gi;
+                    while ((match = metersDecimalRegex.exec(cleaned)) !== null) {
+                        const meters = parseFloat(match[1]);
+                        if (!isNaN(meters) && meters > 0.05 && meters < 200) valuesFeet.push(meters * 3.28084);
+                    }
+
+                    if (segmentMatches.length >= 2) {
+                        const summedFeet = segmentMatches.reduce((total, segment) => {
+                            const parsed = collectDimensionValuesFromText(segment, 'imperial');
+                            return total + (parsed[0] || 0);
+                        }, 0);
+
+                        if (!isNaN(summedFeet) && summedFeet > 0.2 && summedFeet < 500) {
+                            valuesFeet.push(summedFeet);
+                        }
+                    }
+
+                    let deduped = [...new Set(valuesFeet.map(v => Number(v.toFixed(4))))];
+                    deduped = deduped.filter(v => v > 0.2 && v < 500);
+
+                    if (system === 'metric') {
+                        return deduped.map(feet => feet / 3.28084);
+                    }
+                    return deduped;
+                }
+
+                function sampleLineRuns(imageData, width, height, orientation = 'horizontal') {
+                    const data = imageData.data;
+                    const runs = [];
+                    const step = 2;
+
+                    let sumLuma = 0;
+                    const pixels = width * height;
+                    for (let i = 0; i < data.length; i += 4) {
+                        sumLuma += (data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
+                    }
+                    const avgLuma = sumLuma / pixels;
+                    const darkThreshold = Math.max(70, Math.min(165, avgLuma - 22));
+
+                    const isDark = (x, y) => {
+                        const idx = (y * width + x) * 4;
+                        const luma = data[idx] * 0.299 + data[idx + 1] * 0.587 + data[idx + 2] * 0.114;
+                        return luma < darkThreshold;
+                    };
+
+                    const maxGap = 3;
+                    const minRun = Math.max(20, Math.floor((orientation === 'horizontal' ? width : height) * 0.08));
+
+                    if (orientation === 'horizontal') {
+                        for (let y = 0; y < height; y += step) {
+                            let x = 0;
+                            while (x < width) {
+                                while (x < width && !isDark(x, y)) x++;
+                                if (x >= width) break;
+                                const start = x;
+                                let gap = 0;
+                                while (x < width) {
+                                    if (isDark(x, y)) {
+                                        gap = 0;
+                                    } else {
+                                        gap++;
+                                        if (gap > maxGap) break;
+                                    }
+                                    x++;
+                                }
+                                const end = Math.max(start, x - gap);
+                                const len = end - start;
+                                if (len >= minRun) runs.push(len);
+                            }
+                        }
+                    } else {
+                        for (let x = 0; x < width; x += step) {
+                            let y = 0;
+                            while (y < height) {
+                                while (y < height && !isDark(x, y)) y++;
+                                if (y >= height) break;
+                                const start = y;
+                                let gap = 0;
+                                while (y < height) {
+                                    if (isDark(x, y)) {
+                                        gap = 0;
+                                    } else {
+                                        gap++;
+                                        if (gap > maxGap) break;
+                                    }
+                                    y++;
+                                }
+                                const end = Math.max(start, y - gap);
+                                const len = end - start;
+                                if (len >= minRun) runs.push(len);
+                            }
+                        }
+                    }
+
+                    runs.sort((a, b) => b - a);
+                    return runs.slice(0, 140);
+                }
+
+                function estimateScaleFromRunsAndDims(runsPx, dimValues, pxToDisplayScale) {
+                    const candidates = [];
+                    for (const run of runsPx) {
+                        for (const dim of dimValues) {
+                            const scale = (run * pxToDisplayScale) / dim;
+                            if (scale >= 5 && scale <= 300) candidates.push(scale);
+                        }
+                    }
+
+                    if (candidates.length < 8) {
+                        return { ok: false, reason: 'Not enough candidate scale pairs.' };
+                    }
+
+                    const bins = new Map();
+                    for (const s of candidates) {
+                        const key = (Math.round(s * 2) / 2).toFixed(1);
+                        bins.set(key, (bins.get(key) || 0) + 1);
+                    }
+
+                    let bestBin = null;
+                    let bestCount = 0;
+                    for (const [bin, count] of bins.entries()) {
+                        if (count > bestCount) {
+                            bestCount = count;
+                            bestBin = parseFloat(bin);
+                        }
+                    }
+
+                    if (bestBin === null) {
+                        return { ok: false, reason: 'No stable scale bin found.' };
+                    }
+
+                    const inliers = candidates.filter(v => Math.abs(v - bestBin) <= 1.2);
+                    inliers.sort((a, b) => a - b);
+                    const median = inliers[Math.floor(inliers.length / 2)];
+                    const confidence = Math.max(0, Math.min(1, (inliers.length / candidates.length) * Math.min(1, inliers.length / 24)));
+
+                    return {
+                        ok: true,
+                        scale: Number(median.toFixed(1)),
+                        confidence,
+                        inliers: inliers.length,
+                        total: candidates.length
+                    };
+                }
+
+                async function autoDetectScaleOCR() {
+                    if (!imageLoaded) {
+                        alert('Upload a floorplan image before running OCR scale detection.');
+                        return;
+                    }
+
+                    if (ocrBusy) return;
+                    ocrBusy = true;
+
+                    const button = document.getElementById('btn_auto_scale_ocr');
+                    const previousText = button.innerText;
+                    button.disabled = true;
+                    button.innerText = 'Scanning...';
+                    setOCRStatus('Loading OCR runtime...');
+
+                    try {
+                        const TesseractRef = await loadTesseractRuntime();
+
+                        const bg = document.getElementById('bg_canvas');
+                        if (!bg.width || !bg.height) {
+                            throw new Error('Background image is not ready.');
+                        }
+
+                        const ocrMaxDimension = 1800;
+                        const ocrScale = Math.min(1, ocrMaxDimension / Math.max(bg.width, bg.height));
+                        const ocrCanvas = document.createElement('canvas');
+                        ocrCanvas.width = Math.max(1, Math.round(bg.width * ocrScale));
+                        ocrCanvas.height = Math.max(1, Math.round(bg.height * ocrScale));
+                        const ocrCtx = ocrCanvas.getContext('2d', { willReadFrequently: true });
+                        ocrCtx.drawImage(bg, 0, 0, ocrCanvas.width, ocrCanvas.height);
+
+                        const deskewAngle = estimateDeskewAngleFromCanvas(ocrCanvas);
+                        const deskewedCanvas = rotateCanvas(ocrCanvas, deskewAngle);
+                        const edgeCanvas = createEdgeMaskedCanvas(deskewedCanvas);
+
+                        const regionRuns = [
+                            { label: 'full/raw', canvas: preprocessOCRCanvas(deskewedCanvas, 'raw') },
+                            { label: 'full/threshold', canvas: preprocessOCRCanvas(deskewedCanvas, 'threshold') },
+                            { label: 'edges/threshold', canvas: preprocessOCRCanvas(edgeCanvas, 'threshold') },
+                            { label: 'edges/edge', canvas: preprocessOCRCanvas(edgeCanvas, 'edge') }
+                        ];
+
+                        const system = document.getElementById('unit_system').value;
+                        const candidateSets = [];
+                        const runSummaries = [];
+                        let bestRun = null;
+
+                        for (const run of regionRuns) {
+                            setOCRStatus(`Running OCR on ${run.label}...`);
+                            const result = await TesseractRef.recognize(run.canvas, 'eng', {
+                                logger: (m) => {
+                                    if (m.status === 'recognizing text' && typeof m.progress === 'number') {
+                                        const pct = Math.round(m.progress * 100);
+                                        setOCRStatus(`OCR progress (${run.label}): ${pct}%`);
+                                    }
+                                }
+                            });
+
+                                items.push(...verticalWordGroups);
+                            candidateSets.push(candidates);
+
+                            const score = scoreOCRRun(result?.data, candidates);
+                            const summary = {
+                                label: run.label,
+                                confidence: typeof result?.data?.confidence === 'number' ? result.data.confidence : 0,
+                                score,
+                                candidates,
+                                resultData: result?.data
+                            };
+                            runSummaries.push(summary);
+                            if (!bestRun || summary.score > bestRun.score) bestRun = summary;
+                        }
+
+                        ocrOverlayItems = buildOCROverlayItems(candidateSets);
+                        ocrCandidateItems = ocrOverlayItems;
+                        setOCRCandidateSummary(ocrOverlayItems);
+
+                        const overlayBtn = document.getElementById('btn_toggle_ocr_overlay');
+                        overlayBtn.disabled = ocrOverlayItems.length === 0;
+                        if (ocrOverlayItems.length) {
+                            showOCROverlay = true;
+                            overlayBtn.classList.add('active');
+                            overlayBtn.innerText = 'OCR Overlay: ON';
+                        } else {
+                            showOCROverlay = false;
+                            overlayBtn.classList.remove('active');
+                            overlayBtn.innerText = 'OCR Overlay: OFF';
+                        }
+
+                        const allDimValues = [...new Set(ocrOverlayItems.flatMap((item) => item.values || []))];
+                        if (allDimValues.length === 0) {
+                            setOCRStatus('OCR found text candidates, but no reliable linear measurements. Use manual calibration or try a clearer image.');
+                            scheduleRender(true);
+                            return;
+                        }
+
+                        const bestCanvas = bestRun?.label === 'full/raw'
+                            ? preprocessOCRCanvas(deskewedCanvas, 'raw')
+                            : bestRun?.label === 'full/threshold'
+                                ? preprocessOCRCanvas(deskewedCanvas, 'threshold')
+                                : bestRun?.label === 'edges/threshold'
+                                    ? preprocessOCRCanvas(edgeCanvas, 'threshold')
+                                    : preprocessOCRCanvas(edgeCanvas, 'edge');
+
+                        const imgData = bestCanvas.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, bestCanvas.width, bestCanvas.height);
+                        const horizontalRuns = sampleLineRuns(imgData, bestCanvas.width, bestCanvas.height, 'horizontal');
+                        const verticalRuns = sampleLineRuns(imgData, bestCanvas.width, bestCanvas.height, 'vertical');
+
+                        const pxToDisplayX = mainCanvas.width / bestCanvas.width;
+                        const pxToDisplayY = mainCanvas.height / bestCanvas.height;
+
+                        const estimateX = estimateScaleFromRunsAndDims(horizontalRuns, allDimValues, pxToDisplayX);
+                        const estimateY = estimateScaleFromRunsAndDims(verticalRuns, allDimValues, pxToDisplayY);
+
+                        if (estimateX.ok) {
+                            document.getElementById('scale_x').value = estimateX.scale;
+                            hasSetScaleX = true;
+                            document.getElementById('btn_scale_x').classList.add('completed');
+                        }
+
+                        if (estimateY.ok) {
+                            document.getElementById('scale_y').value = estimateY.scale;
+                            hasSetScaleY = true;
+                            document.getElementById('btn_scale_y').classList.add('completed');
+                        }
+
+                        scheduleRender(true);
+
+                        const confX = estimateX.ok ? `${Math.round(estimateX.confidence * 100)}%` : 'n/a';
+                        const confY = estimateY.ok ? `${Math.round(estimateY.confidence * 100)}%` : 'n/a';
+                        const bestConf = Math.round(bestRun?.confidence || 0);
+                        const topCandidates = ocrOverlayItems.slice(0, 3).map((item) => item.text).join(' | ');
+
+                        if (!estimateX.ok && !estimateY.ok) {
+                            setOCRStatus(`OCR candidates found (${bestConf}% best pass), but scale was too uncertain. Top reads: ${topCandidates || 'n/a'}. Use manual calibration.`);
+                            return;
+                        }
+
+                        setOCRStatus(`Auto-scale applied from ${bestRun?.label || 'OCR'}. X: ${estimateX.ok ? estimateX.scale : '-'} (conf ${confX}), Y: ${estimateY.ok ? estimateY.scale : '-'} (conf ${confY}). Best OCR pass: ${bestConf}%. Verify before proceeding.`);
+                    } catch (error) {
+                        console.error('OCR auto-scale failed:', error);
+                        const msg = String(error?.message || error || '').toLowerCase();
+                        if (msg.includes('offline')) {
+                            setOCRStatus('OCR runtime could not load because the browser is offline. Reconnect to internet, or calibrate using the horizontal and vertical measure buttons.');
+                        } else if (msg.includes('failed to load script') || msg.includes('timed out loading script')) {
+                            setOCRStatus('OCR runtime download failed from CDN (blocked or unreachable). Try another network, disable content blockers, or use the horizontal and vertical measure buttons.');
+                        } else {
+                            setOCRStatus('OCR failed during recognition. Try again, or calibrate with the horizontal and vertical measure buttons.');
+                        }
+                    } finally {
+                        ocrBusy = false;
+                        button.disabled = false;
+                        button.innerText = previousText;
+                    }
+                }
+
+                function printFloorplan() {
+                        if (!imageLoaded) {
+                                alert('Upload and complete a floorplan before printing.');
+                                return;
+                        }
+
+                        if (currentStep !== 3) {
+                                alert('Move to Step 3 before printing your completed floorplan.');
+                                return;
+                        }
+
+                        renderView();
+
+                        const bg = document.getElementById('bg_canvas');
+                        if (!bg.width || !bg.height) {
+                                alert('The floorplan image is not ready to print yet.');
+                                return;
+                        }
+
+                        const maxPrintDimension = 2400;
+                        const scaleForPrint = Math.min(1, maxPrintDimension / Math.max(bg.width, bg.height));
+
+                        const printableCanvas = document.createElement('canvas');
+                        printableCanvas.width = Math.max(1, Math.round(bg.width * scaleForPrint));
+                        printableCanvas.height = Math.max(1, Math.round(bg.height * scaleForPrint));
+                        const printCtx = printableCanvas.getContext('2d');
+
+                        printCtx.drawImage(bg, 0, 0, printableCanvas.width, printableCanvas.height);
+                        printCtx.drawImage(mainCanvas, 0, 0, printableCanvas.width, printableCanvas.height);
+
+                        const areaText = document.getElementById('area_display').innerText;
+                        const system = document.getElementById('unit_system').value === 'metric' ? 'Metric' : 'Imperial';
+                        const plankWidth = document.getElementById('plank_width').value;
+                        const plankLength = document.getElementById('plank_length').value;
+                        const patternLabel = document.getElementById('pattern_type').selectedOptions[0]?.textContent || 'Pattern';
+                        const orientation = currentDirection.charAt(0).toUpperCase() + currentDirection.slice(1);
+                        const printedAt = new Date().toLocaleString();
+
+                        const printWindow = window.open('', '_blank', 'noopener,noreferrer');
+                        if (!printWindow) {
+                                alert('Please allow pop-ups to print your floorplan layout.');
+                                return;
+                        }
+
+                        const printHtml = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Floorplan Print Layout</title>
+    <style>
+        :root {
+            --text: #121212;
+            --muted: #575757;
+            --line: #dcdcdc;
+            --chip-bg: #f4f4f4;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "IBM Plex Sans", "Segoe UI", Arial, sans-serif;
+            color: var(--text);
+            background: #fff;
+            padding: 18mm 14mm;
+        }
+        .sheet {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            gap: 14px;
+        }
+        .head {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 16px;
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 10px;
+        }
+        .head h1 {
+            margin: 0;
+            font-size: 22px;
+            letter-spacing: -0.02em;
+        }
+        .head .stamp {
+            color: var(--muted);
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .chip {
+            border: 1px solid var(--line);
+            background: var(--chip-bg);
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 12px;
+            color: #222;
+        }
+        .plan {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            overflow: hidden;
+            padding: 8px;
+            background: #fff;
+        }
+        .plan img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .foot {
+            margin-top: 2px;
+            font-size: 11px;
+            color: var(--muted);
+            text-align: right;
+        }
+        @media print {
+            body { padding: 10mm 8mm; }
+            .sheet { max-width: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="sheet">
+        <div class="head">
+            <h1>Extrudo Flooring Layout</h1>
+            <div class="stamp">Printed: ${printedAt}</div>
+        </div>
+
+        <div class="chips">
+            <div class="chip">Area: ${areaText}</div>
+            <div class="chip">Units: ${system}</div>
+            <div class="chip">Plank Width: ${plankWidth}</div>
+            <div class="chip">Plank Length: ${plankLength}</div>
+            <div class="chip">Pattern: ${patternLabel}</div>
+            <div class="chip">Orientation: ${orientation}</div>
+        </div>
+
+        <div class="plan">
+            <img id="planImage" alt="Completed floorplan" />
+        </div>
+
+        <div class="foot">Generated from Extrudo Flooring Layout Customizer</div>
+    </div>
+</body>
+</html>`;
+
+                        printWindow.document.open();
+                        printWindow.document.write(printHtml);
+                        printWindow.document.close();
+
+                        printableCanvas.toBlob((blob) => {
+                                if (!blob) {
+                                        alert('Unable to prepare print preview. Please try again.');
+                                        return;
+                                }
+
+                                const blobUrl = URL.createObjectURL(blob);
+                                const printDoc = printWindow.document;
+                                const planImage = printDoc.getElementById('planImage');
+                                if (!planImage) {
+                                        URL.revokeObjectURL(blobUrl);
+                                        return;
+                                }
+
+                                const triggerPrint = () => {
+                                        setTimeout(() => {
+                                                printWindow.print();
+                                                setTimeout(() => URL.revokeObjectURL(blobUrl), 1500);
+                                        }, 120);
+                                };
+
+                                planImage.addEventListener('load', triggerPrint, { once: true });
+                                planImage.addEventListener('error', () => {
+                                        alert('Preview image failed to load in print window. Please try again.');
+                                        URL.revokeObjectURL(blobUrl);
+                                }, { once: true });
+
+                                planImage.src = blobUrl;
+                        }, 'image/png');
+                }
+
+        function autoAlign() {
+            if (!imageLoaded) return;
+            currentStep = 1;
+            const btn = document.getElementById('btn_auto_align');
+            btn.innerText = 'Aligning Processing...';
+
+            setTimeout(() => {
+                const correction = estimateDeskewAngleFromCanvas(originalImg);
+                document.getElementById('fine_rotation').value = correction;
+                fineTuneRotation();
+                btn.innerText = 'Auto Align Walls';
+            }, 50);
+        }
+
+        function toggleAlignGrid() {
+            currentStep = 1;
+            showAlignGrid = !showAlignGrid;
+            const btn = document.getElementById('btn_toggle_grid');
+            const gridWrapper = document.getElementById('grid_size_wrapper');
+            if (showAlignGrid) {
+                btn.innerText = 'Grid: ON';
+                btn.classList.add('active');
+                if (gridWrapper) gridWrapper.style.display = 'flex';
+            } else {
+                btn.innerText = 'Grid: OFF';
+                btn.classList.remove('active');
+                if (gridWrapper) gridWrapper.style.display = 'none';
+            }
+            scheduleRender();
+        }
+
+        function toggleScaleMode(axis) {
+            if (!imageLoaded) {
+                setOCRStatus('Upload and align your image in Step 1 first to unlock calibration tools.');
+                return;
+            }
+
+            currentStep = 2;
+            refreshStepLocks();
+            const btnX = document.getElementById('btn_scale_x');
+            const btnY = document.getElementById('btn_scale_y');
+
+            if (activeScaleAxis === axis) {
+                activeScaleAxis = null;
+                btnX.classList.remove('active');
+                btnY.classList.remove('active');
+                mainCanvas.style.cursor = 'default';
+            } else {
+                activeScaleAxis = axis;
+                btnX.classList.remove('active');
+                btnY.classList.remove('active');
+                if (axis === 'x') btnX.classList.add('active');
+                if (axis === 'y') btnY.classList.add('active');
+                mainCanvas.style.cursor = 'crosshair';
+            }
+            scheduleRender();
+        }
+
+        function manualScaleUpdate() {
+            hasSetScaleX = true;
+            hasSetScaleY = true;
+            updateScaleButtonState();
+            scheduleRender(true);
+        }
+
+        function updateScaleButtonState() {
+            const btnX = document.getElementById('btn_scale_x');
+            const btnY = document.getElementById('btn_scale_y');
+            if (!btnX || !btnY) return;
+
+            btnX.innerText = hasSetScaleX ? 'Measure Horizontal Wall ✓' : 'Measure Horizontal Wall';
+            btnY.innerText = hasSetScaleY ? 'Measure Vertical Wall ✓' : 'Measure Vertical Wall';
+            btnX.classList.toggle('completed', hasSetScaleX);
+            btnY.classList.toggle('completed', hasSetScaleY);
+            refreshStepLocks();
+        }
+
+        function drawCalibrationLine(ctx, axis, line) {
+            if (!line) return;
+
+            const color = axis === 'x' ? '#1d4ed8' : '#ea580c';
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(line.x1, line.y1);
+            ctx.lineTo(line.x2, line.y2);
+            ctx.stroke();
+
+            const drawHandle = (x, y) => {
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            };
+
+            drawHandle(line.x1, line.y1);
+            drawHandle(line.x2, line.y2);
+            ctx.restore();
+        }
+
+        function getCalibrationHandleAt(x, y) {
+            const radius = 10;
+            const testLine = (axis, line) => {
+                if (!line) return null;
+
+                if (Math.hypot(x - line.x1, y - line.y1) <= radius) return { axis, handle: 'start' };
+                if (Math.hypot(x - line.x2, y - line.y2) <= radius) return { axis, handle: 'end' };
+                return null;
+            };
+
+            return testLine('x', calibrationLines.x) || testLine('y', calibrationLines.y);
+        }
+
+        function updateLineScaleFromStoredValue(axis) {
+            const line = calibrationLines[axis];
+            const knownValue = calibrationRealWorld[axis];
+            if (!line || !knownValue || knownValue <= 0) return;
+
+            const dist = axis === 'x' ? Math.abs(line.x2 - line.x1) : Math.abs(line.y2 - line.y1);
+            if (dist <= 1) return;
+
+            let newScale = dist / knownValue;
+            newScale = Math.max(5, Math.min(300, newScale));
+            if (axis === 'x') {
+                document.getElementById('scale_x').value = newScale;
+            } else {
+                document.getElementById('scale_y').value = newScale;
+            }
+        }
+
+        function updateUnits() {
+            const system = document.getElementById('unit_system').value;
+            const widthInput = document.getElementById('plank_width');
+            const lengthInput = document.getElementById('plank_length');
+            const labelWidth = document.getElementById('label_width');
+            const labelLength = document.getElementById('label_length');
+
+            if (system === 'metric') {
+                labelWidth.innerText = 'Width (cm):';
+                labelLength.innerText = 'Length (cm):';
+                widthInput.value = (7.1 * 2.54).toFixed(1);
+                lengthInput.value = (48 * 2.54).toFixed(0);
+            } else {
+                labelWidth.innerText = 'Width (in):';
+                labelLength.innerText = 'Length (in):';
+                widthInput.value = 7.1;
+                lengthInput.value = 48;
+            }
+            scheduleRender(true);
+        }
+
+        function rotateFloorplan() {
+            currentStep = 1;
+            macroRotation = (macroRotation + 90) % 360;
+            applyRotation();
+        }
+
+        function fineTuneRotation() {
+            currentStep = 1;
+            applyRotation();
+        }
+
+        function applyRotation() {
+            if (!imageLoaded) return;
+            fineRotation = parseFloat(document.getElementById('fine_rotation').value);
+            renderBackground();
+            setupCanvases(true);
+        }
+
+        function renderBackground() {
+            if (!imageLoaded) return;
+            const bg = document.getElementById('bg_canvas');
+            let totalAngle = (macroRotation + fineRotation) * Math.PI / 180;
+
+            let w = originalImg.width;
+            let h = originalImg.height;
+
+            let cos_a = Math.abs(Math.cos(totalAngle));
+            let sin_a = Math.abs(Math.sin(totalAngle));
+
+            bg.width = w * cos_a + h * sin_a;
+            bg.height = w * sin_a + h * cos_a;
+
+            const ctx = bg.getContext('2d');
+            ctx.save();
+            ctx.translate(bg.width / 2, bg.height / 2);
+            ctx.rotate(totalAngle);
+            ctx.drawImage(originalImg, -w / 2, -h / 2);
+            ctx.restore();
+        }
+
+        function setupCanvases(forceClearMask) {
+            if (!imageLoaded) return;
+            const bg = document.getElementById('bg_canvas');
+
+            if (bg.clientWidth === 0) return;
+
+            let prevWidth = mainCanvas.width;
+            let prevHeight = mainCanvas.height;
+
+            mainCanvas.width = bg.clientWidth;
+            mainCanvas.height = bg.clientHeight;
+
+            plankCanvas.width = bg.clientWidth;
+            plankCanvas.height = bg.clientHeight;
+
+            if (forceClearMask) {
+                maskCanvas.width = bg.clientWidth;
+                maskCanvas.height = bg.clientHeight;
+                maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+            } else if (maskCanvas.width !== bg.clientWidth || maskCanvas.height !== bg.clientHeight) {
+                let tempMask = document.createElement('canvas');
+                tempMask.width = prevWidth;
+                tempMask.height = prevHeight;
+                tempMask.getContext('2d').drawImage(maskCanvas, 0, 0);
+
+                maskCanvas.width = bg.clientWidth;
+                maskCanvas.height = bg.clientHeight;
+                maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+
+                if (prevWidth > 0 && prevHeight > 0) {
+                    maskCtx.globalCompositeOperation = 'source-over';
+                    maskCtx.drawImage(tempMask, 0, 0, prevWidth, prevHeight, 0, 0, bg.clientWidth, bg.clientHeight);
+                }
+            }
+
+            lastPlankRenderKey = '';
+            scheduleRender(true);
+        }
+
+        function setMode(mode, force = false) {
+            if (!force && !(imageLoaded && hasSetScaleX && hasSetScaleY)) {
+                setOCRStatus('Complete Step 2 horizontal and vertical measurements to unlock painting tools.');
+                return;
+            }
+
+            if (!force) {
+                currentStep = 3;
+                refreshStepLocks();
+            }
+            currentMode = mode;
+            document.getElementById('btn_draw').classList.remove('active');
+            document.getElementById('btn_drawSquare').classList.remove('active');
+            document.getElementById('btn_drawRect').classList.remove('active');
+            document.getElementById('btn_drawDiag').classList.remove('active');
+            document.getElementById('btn_dragPattern').classList.remove('active');
+
+            document.getElementById('btn_' + mode).classList.add('active');
+
+            if (mode === 'dragPattern') {
+                mainCanvas.style.cursor = 'grab';
+            } else if (mode === 'draw' || mode === 'drawSquare' || mode === 'drawDiag') {
+                mainCanvas.style.cursor = 'none';
+            } else {
+                mainCanvas.style.cursor = 'crosshair';
+            }
+
+            document.getElementById('brush_cursor').style.display = 'none';
+        }
+
+        function setEraseMode(enabled) {
+            eraseModeEnabled = !!enabled;
+            const toggleBtn = document.getElementById('btn_toggle_erase');
+            if (toggleBtn) {
+                toggleBtn.innerText = eraseModeEnabled ? 'Mode: Erase' : 'Mode: Draw';
+                toggleBtn.classList.toggle('active', eraseModeEnabled);
+            }
+        }
+
+        function toggleDrawErase() {
+            setEraseMode(!eraseModeEnabled);
+        }
+
+        function setOrientation(direction) {
+            currentDirection = direction;
+            document.getElementById('btn_vert').classList.remove('active');
+            document.getElementById('btn_horiz').classList.remove('active');
+            document.getElementById('btn_diag').classList.remove('active');
+            document.getElementById('btn_diag_rev').classList.remove('active');
+            document.getElementById('btn_none').classList.remove('active');
+
+            if (direction === 'vertical') document.getElementById('btn_vert').classList.add('active');
+            if (direction === 'horizontal') document.getElementById('btn_horiz').classList.add('active');
+            if (direction === 'diagonal') document.getElementById('btn_diag').classList.add('active');
+            if (direction === 'diagonalReverse') document.getElementById('btn_diag_rev').classList.add('active');
+            if (direction === 'none') document.getElementById('btn_none').classList.add('active');
+
+            scheduleRender(true);
+        }
+
+        function executeRoomFill(startX, startY, isErase) {
+            const bg = document.getElementById('bg_canvas');
+            const w = bg.width;
+            const h = bg.height;
+
+            startX = Math.floor(startX);
+            startY = Math.floor(startY);
+
+            if (startX < 0 || startX >= w || startY < 0 || startY >= h) return;
+
+            const bgCtx = bg.getContext('2d', { willReadFrequently: true });
+            const imgData = bgCtx.getImageData(0, 0, w, h);
+            const data = imgData.data;
+
+            const startPos = (startY * w + startX) * 4;
+            const startR = data[startPos];
+            const startG = data[startPos + 1];
+            const startB = data[startPos + 2];
+
+            const maskImgData = maskCtx.getImageData(0, 0, w, h);
+            const mData = maskImgData.data;
+
+            const visited = new Uint8Array(w * h);
+            const stack = [[startX, startY]];
+            const tolerance = parseInt(document.getElementById('fill_tolerance').value) || 100;
+
+            function matchColor(x, y) {
+                const pos = (y * w + x) * 4;
+                return Math.abs(data[pos] - startR) + Math.abs(data[pos + 1] - startG) + Math.abs(data[pos + 2] - startB) <= tolerance;
+            }
+
+            while (stack.length > 0) {
+                const [cx, cy] = stack.pop();
+                const idx = cy * w + cx;
+
+                if (visited[idx]) continue;
+
+                let left = cx;
+                while (left > 0 && matchColor(left - 1, cy) && !visited[cy * w + left - 1]) {
+                    left--;
+                }
+
+                let right = cx;
+                while (right < w - 1 && matchColor(right + 1, cy) && !visited[cy * w + right + 1]) {
+                    right++;
+                }
+
+                for (let x = left; x <= right; x++) {
+                    const cIdx = cy * w + x;
+                    visited[cIdx] = 1;
+
+                    const mPos = cIdx * 4;
+                    if (isErase) {
+                        mData[mPos + 3] = 0;
+                    } else {
+                        mData[mPos] = 255;
+                        mData[mPos + 1] = 255;
+                        mData[mPos + 2] = 255;
+                        mData[mPos + 3] = 255;
+                    }
+
+                    if (cy > 0 && matchColor(x, cy - 1) && !visited[(cy - 1) * w + x]) {
+                        stack.push([x, cy - 1]);
+                    }
+                    if (cy < h - 1 && matchColor(x, cy + 1) && !visited[(cy + 1) * w + x]) {
+                        stack.push([x, cy + 1]);
+                    }
+                }
+            }
+
+            maskCtx.putImageData(maskImgData, 0, 0);
+            scheduleRender(true);
+        }
+
+        function calculateArea(scaleX, scaleY) {
+            if (!imageLoaded) return;
+            const w = maskCanvas.width;
+            const h = maskCanvas.height;
+            if (w === 0 || h === 0) return;
+
+            const imgData = maskCtx.getImageData(0, 0, w, h);
+            const data = imgData.data;
+            let filledPixels = 0;
+
+            for (let i = 3; i < data.length; i += 4) {
+                if (data[i] > 128) {
+                    filledPixels++;
+                }
+            }
+
+            const system = document.getElementById('unit_system').value;
+            const sqPixelsPerUnit = scaleX * scaleY;
+            const area = filledPixels / sqPixelsPerUnit;
+
+            const displayEl = document.getElementById('area_display');
+            if (displayEl) {
+                displayEl.innerText = area.toFixed(2) + (system === 'metric' ? ' sq m' : ' sq ft');
+            }
+        }
+
+        function parseImperialLengthToFeet(input) {
+            if (!input) return NaN;
+            const normalized = input.trim().toLowerCase().replace(/\s+/g, ' ');
+            if (!normalized) return NaN;
+
+            if (/^\d*\.?\d+$/.test(normalized)) {
+                return parseFloat(normalized);
+            }
+
+            let feet = 0;
+            let inches = 0;
+            let matched = false;
+
+            const feetMatch = normalized.match(/(\d*\.?\d+)\s*(ft|foot|feet|')/);
+            if (feetMatch) {
+                feet = parseFloat(feetMatch[1]);
+                matched = true;
+            }
+
+            const inchMatch = normalized.match(/(\d*\.?\d+)\s*(in|inch|inches|")/);
+            if (inchMatch) {
+                inches = parseFloat(inchMatch[1]);
+                matched = true;
+            }
+
+            if (!matched) return NaN;
+            return feet + (inches / 12);
+        }
+
+        function renderView() {
+            if (!imageLoaded) return;
+
+            let scaleX = parseFloat(document.getElementById('scale_x').value) || 35;
+            let scaleY = parseFloat(document.getElementById('scale_y').value) || 35;
+
+            const canvas = document.getElementById('main_canvas');
+            const ctx = canvas.getContext('2d');
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (currentStep === 1 && showAlignGrid) {
+                const gridInput = document.getElementById('grid_size');
+                const gridSize = gridInput ? (parseInt(gridInput.value) || 40) : 40;
+                ctx.strokeStyle = 'rgba(10, 10, 10, 0.18)';
+                ctx.lineWidth = 1;
+
+                for (let x = 0; x < canvas.width; x += gridSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, canvas.height);
+                    ctx.stroke();
+                }
+                for (let y = 0; y < canvas.height; y += gridSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(canvas.width, y);
+                    ctx.stroke();
+                }
+            }
+
+            if (currentStep === 3 && currentDirection !== 'none') {
+                const system = document.getElementById('unit_system').value;
+                let inputWidth = parseFloat(document.getElementById('plank_width').value) || 7.1;
+                let inputLength = parseFloat(document.getElementById('plank_length').value) || 48;
+                const pattern = document.getElementById('pattern_type').value;
+
+                const plankKey = buildPlankRenderKey(canvas, scaleX, scaleY, system, inputWidth, inputLength, pattern);
+                if (plankKey !== lastPlankRenderKey) {
+                    renderPlankTexture(canvas, scaleX, scaleY, system, inputWidth, inputLength, pattern);
+                    lastPlankRenderKey = plankKey;
+                }
+
+                ctx.save();
+                ctx.globalAlpha = 0.9;
+                ctx.drawImage(plankCanvas, 0, 0);
+                ctx.restore();
+                ctx.globalCompositeOperation = 'destination-in';
+                ctx.drawImage(maskCanvas, 0, 0);
+                ctx.globalCompositeOperation = 'source-over';
+            }
+
+            if (needsAreaCalc && currentStep === 3) {
+                calculateArea(scaleX, scaleY);
+                needsAreaCalc = false;
+            }
+
+            if (currentStep === 2 && isDrawingScaleLine) {
+                let endX = currentMouseX;
+                let endY = currentMouseY;
+                if (activeScaleAxis === 'x') endY = rectStartY;
+                if (activeScaleAxis === 'y') endX = rectStartX;
+
+                ctx.strokeStyle = activeScaleAxis === 'y' ? '#ea580c' : '#1d4ed8';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(rectStartX, rectStartY);
+                ctx.lineTo(endX, endY);
+                ctx.stroke();
+            }
+
+            if (currentStep === 2) {
+                drawCalibrationLine(ctx, 'x', calibrationLines.x);
+                drawCalibrationLine(ctx, 'y', calibrationLines.y);
+            }
+
+            drawOCROverlay(ctx);
+
+            if (currentStep === 3 && isDrawingShape) {
+                ctx.strokeStyle = (currentMode === 'drawRect' || currentMode === 'drawDiag') ? '#0a0a0a' : '#6b6b6b';
+                ctx.lineWidth = 2;
+                if (currentMode === 'drawRect') {
+                    ctx.strokeRect(shapeStartX, shapeStartY, currentMouseX - shapeStartX, currentMouseY - shapeStartY);
+                } else if (currentMode === 'drawDiag') {
+                    ctx.beginPath();
+                    ctx.moveTo(shapeStartX, shapeStartY);
+                    ctx.lineTo(currentMouseX, currentMouseY);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        function updateBrushCursor(e) {
+            const brushCursor = document.getElementById('brush_cursor');
+            if (currentStep === 3) {
+                const size = document.getElementById('brush_size').value;
+                if (currentMode === 'draw') {
+                    brushCursor.style.width = size + 'px';
+                    brushCursor.style.height = size + 'px';
+                    brushCursor.style.display = 'block';
+                    brushCursor.style.left = e.clientX + 'px';
+                    brushCursor.style.top = e.clientY + 'px';
+                    brushCursor.style.borderRadius = '50%';
+                    brushCursor.style.transform = 'translate(-50%, -50%)';
+                    brushCursor.innerHTML = '';
+                } else if (currentMode === 'drawSquare') {
+                    brushCursor.style.width = size + 'px';
+                    brushCursor.style.height = size + 'px';
+                    brushCursor.style.display = 'block';
+                    brushCursor.style.left = e.clientX + 'px';
+                    brushCursor.style.top = e.clientY + 'px';
+                    brushCursor.style.borderRadius = '0';
+                    brushCursor.style.transform = 'translate(-50%, -50%)';
+                    brushCursor.innerHTML = '';
+                } else if (currentMode === 'drawDiag') {
+                    brushCursor.style.width = size + 'px';
+                    brushCursor.style.height = size + 'px';
+                    brushCursor.style.display = 'block';
+                    brushCursor.style.left = e.clientX + 'px';
+                    brushCursor.style.top = e.clientY + 'px';
+                    brushCursor.style.borderRadius = '0';
+                    brushCursor.style.transform = 'translate(-50%, -50%) rotate(45deg)';
+                    brushCursor.innerHTML = '<div style="width:100%; height:100%; position:relative;"><div style="position:absolute; top:50%; left:0; width:100%; height:1.5px; background:black; box-shadow: 0 0 0 1px white;"></div><div style="position:absolute; top:0; left:50%; width:1.5px; height:100%; background:black; box-shadow: 0 0 0 1px white;"></div></div>';
+                } else {
+                    brushCursor.style.display = 'none';
+                }
+            } else {
+                brushCursor.style.display = 'none';
+            }
+        }
+
+        function startPosition(e) {
+            if (currentStep === 2) {
+                const rect = mainCanvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                const handle = getCalibrationHandleAt(x, y);
+                if (handle) {
+                    activeCalibrationHandle = handle;
+                    currentMouseX = x;
+                    currentMouseY = y;
+                    return;
+                }
+
+                if (activeScaleAxis) {
+                    rectStartX = x;
+                    rectStartY = y;
+                    currentMouseX = rectStartX;
+                    currentMouseY = rectStartY;
+                    isDrawingScaleLine = true;
+                }
+                return;
+            }
+
+            if (currentStep !== 3) return;
+            const rect = mainCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            currentMouseX = x;
+            currentMouseY = y;
+
+            if (currentMode === 'dragPattern') {
+                isDraggingPattern = true;
+                dragPatternStartX = x;
+                dragPatternStartY = y;
+                mainCanvas.style.cursor = 'grabbing';
+                return;
+            }
+
+            if (currentMode === 'drawRect' || currentMode === 'drawDiag') {
+                isDrawingShape = true;
+                shapeStartX = x;
+                shapeStartY = y;
+            } else {
+                isPainting = true;
+                lastPaintX = x;
+                lastPaintY = y;
+                maskCtx.beginPath();
+                maskCtx.moveTo(x, y);
+                drawMask(e);
+            }
+        }
+
+        function endPosition(e) {
+            if (currentStep === 2) {
+                if (activeCalibrationHandle) {
+                    activeCalibrationHandle = null;
+                    scheduleRender(true);
+                    return;
+                }
+
+                if (isDrawingScaleLine) {
+                    isDrawingScaleLine = false;
+
+                    const calibrationMode = activeScaleAxis;
+
+                    let endX = currentMouseX;
+                    let endY = currentMouseY;
+
+                    if (calibrationMode === 'x') {
+                        endY = rectStartY;
+                    } else if (calibrationMode === 'y') {
+                        endX = rectStartX;
+                    }
+
+                    const dist = calibrationMode === 'x'
+                            ? Math.abs(endX - rectStartX)
+                            : Math.abs(endY - rectStartY);
+
+                    if (dist > 10) {
+                        const system = document.getElementById('unit_system').value;
+                        const inputMessage = system === 'metric'
+                            ? 'Enter the real world length of this line in meters:'
+                            : 'Enter the real world length (feet and/or inches). Examples: 10, 10\'6", 126in, 6ft';
+                        const defaultValue = system === 'metric' ? '10' : '10\'0"';
+                        const input = prompt(inputMessage, defaultValue);
+
+                        if (input !== null) {
+                            const val = system === 'metric' ? parseFloat(input) : parseImperialLengthToFeet(input);
+                            if (!isNaN(val) && val > 0) {
+                                let newScale = dist / val;
+                                newScale = Math.max(5, Math.min(300, newScale));
+
+                                if (calibrationMode === 'x') {
+                                    document.getElementById('scale_x').value = newScale;
+                                    hasSetScaleX = true;
+                                    calibrationLines.x = { x1: rectStartX, y1: rectStartY, x2: endX, y2: endY };
+                                    calibrationRealWorld.x = val;
+                                } else if (calibrationMode === 'y') {
+                                    document.getElementById('scale_y').value = newScale;
+                                    hasSetScaleY = true;
+                                    calibrationLines.y = { x1: rectStartX, y1: rectStartY, x2: endX, y2: endY };
+                                    calibrationRealWorld.y = val;
+                                }
+                                updateScaleButtonState();
+                            } else {
+                                alert(system === 'metric'
+                                    ? 'Please enter a valid positive number of meters.'
+                                    : 'Please enter a valid positive length, such as 10\'6", 126in, or 6ft.');
+                            }
+                        }
+                    }
+
+                    toggleScaleMode(activeScaleAxis);
+                    scheduleRender();
+                }
+                return;
+            }
+
+            if (currentStep !== 3) return;
+
+            if (isDraggingPattern) {
+                isDraggingPattern = false;
+                mainCanvas.style.cursor = 'grab';
+                return;
+            }
+
+            if (isDrawingShape) {
+                isDrawingShape = false;
+
+                maskCtx.globalCompositeOperation = eraseModeEnabled ? 'destination-out' : 'source-over';
+                maskCtx.fillStyle = 'rgba(255, 255, 255, 1)';
+                maskCtx.beginPath();
+
+                if (currentMode === 'drawRect') {
+                    const width = currentMouseX - shapeStartX;
+                    const height = currentMouseY - shapeStartY;
+                    maskCtx.fillRect(shapeStartX, shapeStartY, width, height);
+                } else if (currentMode === 'drawDiag') {
+                    maskCtx.moveTo(shapeStartX, shapeStartY);
+                    maskCtx.lineTo(currentMouseX, currentMouseY);
+                    maskCtx.lineWidth = parseInt(document.getElementById('brush_size').value) || 40;
+                    maskCtx.lineCap = 'square';
+                    if (!eraseModeEnabled) {
+                        maskCtx.strokeStyle = 'rgba(255, 255, 255, 1)';
+                    }
+                    maskCtx.stroke();
+                }
+                scheduleRender(true);
+                return;
+            }
+
+            if (isPainting) {
+                isPainting = false;
+                lastPaintX = null;
+                lastPaintY = null;
+                maskCtx.beginPath();
+                scheduleRender(true);
+            }
+        }
+
+        function handleMouseMove(e) {
+            const rect = mainCanvas.getBoundingClientRect();
+            currentMouseX = e.clientX - rect.left;
+            currentMouseY = e.clientY - rect.top;
+
+            if (currentStep === 2) {
+                if (activeCalibrationHandle) {
+                    const axis = activeCalibrationHandle.axis;
+                    const line = calibrationLines[axis];
+                    if (line) {
+                        if (axis === 'x') {
+                            if (activeCalibrationHandle.handle === 'start') line.x1 = currentMouseX;
+                            else line.x2 = currentMouseX;
+                            line.y1 = currentMouseY;
+                            line.y2 = currentMouseY;
+                        } else {
+                            if (activeCalibrationHandle.handle === 'start') line.y1 = currentMouseY;
+                            else line.y2 = currentMouseY;
+                            line.x1 = currentMouseX;
+                            line.x2 = currentMouseX;
+                        }
+
+                        updateLineScaleFromStoredValue(axis);
+                        scheduleRender(true);
+                    }
+                    return;
+                }
+
+                if (isDrawingScaleLine) {
+                    scheduleRender();
+                }
+                return;
+            }
+
+            if (currentStep !== 3) return;
+
+            if (isDraggingPattern) {
+                const dx = currentMouseX - dragPatternStartX;
+                const dy = currentMouseY - dragPatternStartY;
+                patternOffsetX += dx;
+                patternOffsetY += dy;
+                dragPatternStartX = currentMouseX;
+                dragPatternStartY = currentMouseY;
+                scheduleRender();
+                return;
+            }
+
+            if (isDrawingShape) {
+                scheduleRender();
+                return;
+            }
+
+            if (isPainting) {
+                drawMask(e);
+            }
+        }
+
+        function drawMask(e) {
+            const brushSize = parseInt(document.getElementById('brush_size').value, 10) || 40;
+            const isSquareMode = currentMode === 'drawSquare';
+            maskCtx.lineWidth = brushSize;
+
+            if (!isSquareMode) {
+                maskCtx.lineCap = 'round';
+                maskCtx.lineJoin = 'round';
+            }
+
+            if (eraseModeEnabled) {
+                maskCtx.globalCompositeOperation = 'destination-out';
+            } else {
+                maskCtx.globalCompositeOperation = 'source-over';
+                maskCtx.strokeStyle = 'rgba(255, 255, 255, 1)';
+            }
+
+            if (isSquareMode) {
+                const startX = lastPaintX === null ? currentMouseX : lastPaintX;
+                const startY = lastPaintY === null ? currentMouseY : lastPaintY;
+                const dx = currentMouseX - startX;
+                const dy = currentMouseY - startY;
+                const distance = Math.hypot(dx, dy);
+                const step = Math.max(1, brushSize * 0.2);
+                const steps = Math.max(1, Math.ceil(distance / step));
+                const half = brushSize / 2;
+
+                maskCtx.fillStyle = 'rgba(255, 255, 255, 1)';
+                for (let i = 0; i <= steps; i++) {
+                    const t = i / steps;
+                    const px = startX + dx * t;
+                    const py = startY + dy * t;
+                    maskCtx.fillRect(px - half, py - half, brushSize, brushSize);
+                }
+
+                lastPaintX = currentMouseX;
+                lastPaintY = currentMouseY;
+            } else {
+                maskCtx.lineTo(currentMouseX, currentMouseY);
+                maskCtx.stroke();
+                maskCtx.beginPath();
+                maskCtx.moveTo(currentMouseX, currentMouseY);
+            }
+
+            scheduleRender();
+        }
+
+        mainCanvas.addEventListener('mousedown', startPosition);
+        mainCanvas.addEventListener('mouseup', endPosition);
+        mainCanvas.addEventListener('mousemove', function(e) {
+            handleMouseMove(e);
+            updateBrushCursor(e);
+        });
+        mainCanvas.addEventListener('mouseenter', updateBrushCursor);
+        mainCanvas.addEventListener('mouseleave', function(e) {
+            document.getElementById('brush_cursor').style.display = 'none';
+            if (isDrawingScaleLine || isDrawingShape || isPainting || isDraggingPattern) {
+                endPosition(e);
+            }
+        });
+
+        refreshStepLocks();
+
+        function showPage() {
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    document.body.classList.add('loaded');
+                });
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', showPage);
+        } else {
+            showPage();
+        }
+    </script>
+</body>
+</html>

@@ -10,6 +10,7 @@ import basicAuth from 'express-basic-auth';
 import { config, validateConfig } from './src/config.js';
 import AutodeskAPIClient from './src/autodesk-api.js';
 import { buildPreviewSvg } from './src/svg-preview.js';
+import { optimizeAllImages } from './scripts/optimize-images.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1158,6 +1159,12 @@ app.use((req, res) => {
 });
 
 // Start server
+
+// Optimize any oversized images (async, non-blocking)
+optimizeAllImages().catch(err => {
+  log(`Warning: Image optimization skipped - ${err.message}`);
+});
+
 app.listen(PORT, () => {
   log('');
   log(`✓ Extrudo Web Server running at http://localhost:${PORT}`);
