@@ -1784,10 +1784,31 @@
             scheduleRender();
         }
 
+        function syncCalibrationValueFromScale(axis) {
+            const line = calibrationLines[axis];
+            if (!line) return;
+
+            const scaleInputId = axis === 'x' ? 'scale_x' : 'scale_y';
+            const scale = parseFloat(document.getElementById(scaleInputId).value) || 0;
+            const dist = axis === 'x' ? Math.abs(line.x2 - line.x1) : Math.abs(line.y2 - line.y1);
+            if (scale <= 0 || dist <= 1) return;
+
+            calibrationRealWorld[axis] = dist / scale;
+        }
+
         function manualScaleUpdate() {
             hasSetScaleX = true;
             hasSetScaleY = true;
+
+            syncCalibrationValueFromScale('x');
+            syncCalibrationValueFromScale('y');
+
+            const scaleX = parseFloat(document.getElementById('scale_x').value) || 35;
+            const scaleY = parseFloat(document.getElementById('scale_y').value) || 35;
+            setOCRStatus(`Manual scale override active. Horizontal: ${scaleX.toFixed(1)} px/unit, Vertical: ${scaleY.toFixed(1)} px/unit.`);
+
             updateScaleButtonState();
+            refreshCalibrationValueControls();
             scheduleRender(true);
         }
 
