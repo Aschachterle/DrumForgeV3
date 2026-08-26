@@ -114,12 +114,6 @@
                             <button id="btn_scale_x" class="axis_btn axis_btn_x" onclick="toggleScaleMode('x')" title="Click then drag a line horizontally across a known wall">Measure Horizontal Wall</button>
                             <button id="btn_scale_y" class="axis_btn axis_btn_y" onclick="toggleScaleMode('y')" title="Click then drag a line vertically across a known wall">Measure Vertical Wall</button>
                         </div>
-                        <div class="slider_wrapper" style="margin-top: 8px;">
-                            <label for="scale_x" title="Horizontal Scale Override">Horiz. Scale</label>
-                            <input type="range" id="scale_x" min="5" max="300" step="0.1" value="35" oninput="manualScaleUpdate()" style="width: 150px;">
-                            <label for="scale_y" style="margin-left: 10px;" title="Vertical Scale Override">Vert. Scale</label>
-                            <input type="range" id="scale_y" min="5" max="300" step="0.1" value="35" oninput="manualScaleUpdate()" style="width: 150px;">
-                        </div>
                         <div class="slider_wrapper calibration_edit_row" style="margin-top: 8px;">
                             <label for="calibration_x_value" title="Edit the measured horizontal wall length after drawing the line">Horiz. Wall Length</label>
                             <input type="text" id="calibration_x_value" class="calibration-edit-control" placeholder="10'0\"" style="width: 120px;" onkeydown="handleCalibrationValueKeydown(event, 'x')">
@@ -275,6 +269,7 @@
         let showOCROverlay = false;
         let ocrOverlayItems = [];
         let ocrCandidateItems = [];
+        let calibratedScale = { x: 35, y: 35 };
         let fitZoom = 1;
         let zoomMultiplier = 1;
         let currentViewScale = 1;
@@ -442,8 +437,7 @@
                                 calibrationRealWorld = { x: null, y: null };
                                 activeCalibrationHandle = null;
                                 updateScaleButtonState();
-                                document.getElementById('scale_x').value = 35;
-                                document.getElementById('scale_y').value = 35;
+                                calibratedScale = { x: 35, y: 35 };
                                 ocrCandidateItems = [];
                                 setOCRCandidateSummary([]);
                                 setOCRStatus('Draw horizontal and vertical reference lines to calibrate scale.');
@@ -475,6 +469,7 @@
                         calibrationLines = { x: null, y: null };
                         calibrationRealWorld = { x: null, y: null };
                         activeCalibrationHandle = null;
+                        calibratedScale = { x: 35, y: 35 };
 
                         currentMouseX = 0;
                         currentMouseY = 0;
@@ -519,8 +514,6 @@
                         document.getElementById('btn_scale_x').classList.remove('active');
                         document.getElementById('btn_scale_y').classList.remove('active');
                         updateScaleButtonState();
-                        document.getElementById('scale_x').value = 35;
-                        document.getElementById('scale_y').value = 35;
                         ocrCandidateItems = [];
                         setOCRCandidateSummary([]);
                         setOCRStatus('Draw horizontal and vertical reference lines to calibrate scale.');
@@ -1500,13 +1493,13 @@
                         const estimateY = estimateScaleFromRunsAndDims(verticalRuns, allDimValues, pxToDisplayY);
 
                         if (estimateX.ok) {
-                            document.getElementById('scale_x').value = estimateX.scale;
+                            calibratedScale.x = estimateX.scale;
                             hasSetScaleX = true;
                             document.getElementById('btn_scale_x').classList.add('completed');
                         }
 
                         if (estimateY.ok) {
-                            document.getElementById('scale_y').value = estimateY.scale;
+                            calibratedScale.y = estimateY.scale;
                             hasSetScaleY = true;
                             document.getElementById('btn_scale_y').classList.add('completed');
                         }
@@ -1784,32 +1777,10 @@
             scheduleRender();
         }
 
-        function syncCalibrationValueFromScale(axis) {
-            const line = calibrationLines[axis];
-            if (!line) return;
-
-            const scaleInputId = axis === 'x' ? 'scale_x' : 'scale_y';
-            const scale = parseFloat(document.getElementById(scaleInputId).value) || 0;
-            const dist = axis === 'x' ? Math.abs(line.x2 - line.x1) : Math.abs(line.y2 - line.y1);
-            if (scale <= 0 || dist <= 1) return;
-
-            calibrationRealWorld[axis] = dist / scale;
-        }
-
-        function manualScaleUpdate() {
-            hasSetScaleX = true;
-            hasSetScaleY = true;
-
-            syncCalibrationValueFromScale('x');
-            syncCalibrationValueFromScale('y');
-
-            const scaleX = parseFloat(document.getElementById('scale_x').value) || 35;
-            const scaleY = parseFloat(document.getElementById('scale_y').value) || 35;
-            setOCRStatus(`Manual scale override active. Horizontal: ${scaleX.toFixed(1)} px/unit, Vertical: ${scaleY.toFixed(1)} px/unit.`);
-
-            updateScaleButtonState();
-            refreshCalibrationValueControls();
-            scheduleRender(true);
+        function getEffectiveScale(axis) {
+            const value = axis === 'x' ? calibratedScale.x : calibratedScale.y;
+            if (!Number.isFinite(value) || value <= 0) return 35;
+            return value;
         }
 
         function formatCalibrationValue(value) {
@@ -1949,11 +1920,8 @@
 
             let newScale = dist / knownValue;
             newScale = Math.max(5, Math.min(300, newScale));
-            if (axis === 'x') {
-                document.getElementById('scale_x').value = newScale;
-            } else {
-                document.getElementById('scale_y').value = newScale;
-            }
+            if (axis === 'x') calibratedScale.x = newScale;
+            else calibratedScale.y = newScale;
         }
 
         function updateUnits() {
@@ -2314,8 +2282,8 @@
         function renderView() {
             if (!imageLoaded) return;
 
-            let scaleX = parseFloat(document.getElementById('scale_x').value) || 35;
-            let scaleY = parseFloat(document.getElementById('scale_y').value) || 35;
+            let scaleX = getEffectiveScale('x');
+            let scaleY = getEffectiveScale('y');
 
             const canvas = document.getElementById('main_canvas');
             const ctx = canvas.getContext('2d');
