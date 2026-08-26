@@ -119,6 +119,14 @@
                             <label for="scale_y" style="margin-left: 10px;" title="Vertical Scale Override">Vert. Scale</label>
                             <input type="range" id="scale_y" min="5" max="300" step="0.1" value="35" oninput="manualScaleUpdate()" style="width: 150px;">
                         </div>
+                        <div class="slider_wrapper calibration_edit_row" style="margin-top: 8px;">
+                            <label for="calibration_x_value" title="Edit the measured horizontal wall length after drawing the line">Horiz. Wall Length</label>
+                            <input type="text" id="calibration_x_value" class="calibration-edit-control" placeholder="10'0\"" style="width: 120px;" onkeydown="handleCalibrationValueKeydown(event, 'x')">
+                            <button id="btn_apply_calibration_x" class="calibration-edit-control" onclick="applyCalibrationValue('x')" disabled>Apply</button>
+                            <label for="calibration_y_value" style="margin-left: 10px;" title="Edit the measured vertical wall length after drawing the line">Vert. Wall Length</label>
+                            <input type="text" id="calibration_y_value" class="calibration-edit-control" placeholder="10'0\"" style="width: 120px;" onkeydown="handleCalibrationValueKeydown(event, 'y')">
+                            <button id="btn_apply_calibration_y" class="calibration-edit-control" onclick="applyCalibrationValue('y')" disabled>Apply</button>
+                        </div>
                         <div id="ocr_status" class="ocr_status" aria-live="polite">Draw horizontal and vertical reference lines to calibrate scale.</div>
                     </div>
                 </div>
@@ -151,7 +159,7 @@
                             <label for="pattern_type">Pattern:</label>
                             <select id="pattern_type" onchange="scheduleRender()">
                                 <option value="grid">Grid (No Stagger)</option>
-                                <option value="random">Random Stagger</option>
+                                <option value="random" selected>Random Stagger</option>
                                 <option value="step">One Third Step</option>
                                 <option value="brick">Half Brick Bond</option>
                                 <option value="herringbone">Herringbone</option>
@@ -529,7 +537,7 @@
                         document.getElementById('label_length').innerText = 'Length (in):';
                         document.getElementById('plank_width').value = 7.1;
                         document.getElementById('plank_length').value = 48;
-                        document.getElementById('pattern_type').value = 'grid';
+                        document.getElementById('pattern_type').value = 'random';
                         document.getElementById('brush_size').value = 40;
 
                         setMode('draw', true);
@@ -623,6 +631,7 @@
                         if (!panelEl) return;
                         const controls = panelEl.querySelectorAll('button, input, select');
                         controls.forEach((el) => {
+                            if (el.classList.contains('calibration-edit-control')) return;
                             el.disabled = !enabled;
                         });
                     };
@@ -1745,6 +1754,80 @@
             scheduleRender(true);
         }
 
+        function formatCalibrationValue(value) {
+            if (value === null || value === undefined || Number.isNaN(value)) return '';
+            const system = document.getElementById('unit_system').value;
+            if (system === 'metric') {
+                return Number(value).toFixed(2).replace(/\.00$/, '').replace(/(\.[0-9])0$/, '$1');
+            }
+
+            const feet = Math.floor(value);
+            const inches = Math.round((value - feet) * 12);
+            if (inches === 12) {
+                return `${feet + 1}'0"`;
+            }
+            if (inches === 0) {
+                return `${feet}'0"`;
+            }
+            return `${feet}'${inches}"`;
+        }
+
+        function refreshCalibrationValueControls() {
+            const syncAxis = (axis) => {
+                const input = document.getElementById(`calibration_${axis}_value`);
+                const button = document.getElementById(`btn_apply_calibration_${axis}`);
+                const lineExists = !!calibrationLines[axis];
+                const rawValue = calibrationRealWorld[axis];
+
+                if (input) {
+                    input.disabled = !lineExists;
+                    input.value = lineExists ? formatCalibrationValue(rawValue) : '';
+                }
+
+                if (button) {
+                    button.disabled = !lineExists;
+                }
+            };
+
+            syncAxis('x');
+            syncAxis('y');
+        }
+
+        function applyCalibrationValue(axis) {
+            const input = document.getElementById(`calibration_${axis}_value`);
+            if (!input || !calibrationLines[axis]) return;
+
+            const system = document.getElementById('unit_system').value;
+            const raw = input.value.trim();
+            const value = system === 'metric' ? parseFloat(raw) : parseImperialLengthToFeet(raw);
+
+            if (!isFinite(value) || value <= 0) {
+                alert(system === 'metric'
+                    ? 'Please enter a valid positive number of meters.'
+                    : 'Please enter a valid positive length, such as 10\'6", 126in, or 6ft.');
+                input.focus();
+                return;
+            }
+
+            calibrationRealWorld[axis] = value;
+            if (axis === 'x') {
+                hasSetScaleX = true;
+            } else {
+                hasSetScaleY = true;
+            }
+            updateLineScaleFromStoredValue(axis);
+            updateScaleButtonState();
+            refreshCalibrationValueControls();
+            scheduleRender(true);
+        }
+
+        function handleCalibrationValueKeydown(event, axis) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                applyCalibrationValue(axis);
+            }
+        }
+
         function updateScaleButtonState() {
             const btnX = document.getElementById('btn_scale_x');
             const btnY = document.getElementById('btn_scale_y');
@@ -1754,6 +1837,7 @@
             btnY.innerText = hasSetScaleY ? 'Measure Vertical Wall ✓' : 'Measure Vertical Wall';
             btnX.classList.toggle('completed', hasSetScaleX);
             btnY.classList.toggle('completed', hasSetScaleY);
+            refreshCalibrationValueControls();
             refreshStepLocks();
         }
 
@@ -1832,6 +1916,7 @@
                 widthInput.value = 7.1;
                 lengthInput.value = 48;
             }
+            refreshCalibrationValueControls();
             scheduleRender(true);
         }
 
@@ -2356,6 +2441,7 @@
             if (currentStep === 2) {
                 if (activeCalibrationHandle) {
                     activeCalibrationHandle = null;
+                    refreshCalibrationValueControls();
                     scheduleRender(true);
                     return;
                 }
@@ -2379,37 +2465,21 @@
                             : Math.abs(endY - rectStartY);
 
                     if (dist > 10) {
-                        const system = document.getElementById('unit_system').value;
-                        const inputMessage = system === 'metric'
-                            ? 'Enter the real world length of this line in meters:'
-                            : 'Enter the real world length (feet and/or inches). Examples: 10, 10\'6", 126in, 6ft';
-                        const defaultValue = system === 'metric' ? '10' : '10\'0"';
-                        const input = prompt(inputMessage, defaultValue);
-
-                        if (input !== null) {
-                            const val = system === 'metric' ? parseFloat(input) : parseImperialLengthToFeet(input);
-                            if (!isNaN(val) && val > 0) {
-                                let newScale = dist / val;
-                                newScale = Math.max(5, Math.min(300, newScale));
-
-                                if (calibrationMode === 'x') {
-                                    document.getElementById('scale_x').value = newScale;
-                                    hasSetScaleX = true;
-                                    calibrationLines.x = { x1: rectStartX, y1: rectStartY, x2: endX, y2: endY };
-                                    calibrationRealWorld.x = val;
-                                } else if (calibrationMode === 'y') {
-                                    document.getElementById('scale_y').value = newScale;
-                                    hasSetScaleY = true;
-                                    calibrationLines.y = { x1: rectStartX, y1: rectStartY, x2: endX, y2: endY };
-                                    calibrationRealWorld.y = val;
-                                }
-                                updateScaleButtonState();
-                            } else {
-                                alert(system === 'metric'
-                                    ? 'Please enter a valid positive number of meters.'
-                                    : 'Please enter a valid positive length, such as 10\'6", 126in, or 6ft.');
-                            }
+                        if (calibrationMode === 'x') {
+                            calibrationLines.x = { x1: rectStartX, y1: rectStartY, x2: endX, y2: endY };
+                            calibrationRealWorld.x = null;
+                            hasSetScaleX = false;
+                        } else if (calibrationMode === 'y') {
+                            calibrationLines.y = { x1: rectStartX, y1: rectStartY, x2: endX, y2: endY };
+                            calibrationRealWorld.y = null;
+                            hasSetScaleY = false;
                         }
+
+                        updateScaleButtonState();
+                        refreshCalibrationValueControls();
+                        setOCRStatus(calibrationMode === 'x'
+                            ? 'Horizontal line set. Enter the wall length below and click Apply.'
+                            : 'Vertical line set. Enter the wall length below and click Apply.');
                     }
 
                     toggleScaleMode(activeScaleAxis);
