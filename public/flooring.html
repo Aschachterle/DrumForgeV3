@@ -2515,9 +2515,32 @@
 
                         updateScaleButtonState();
                         refreshCalibrationValueControls();
-                        setOCRStatus(calibrationMode === 'x'
-                            ? 'Horizontal line set. Enter the wall length below and click Apply.'
-                            : 'Vertical line set. Enter the wall length below and click Apply.');
+
+                        const system = document.getElementById('unit_system').value;
+                        const axisLabel = calibrationMode === 'x' ? 'horizontal' : 'vertical';
+                        const inputMessage = system === 'metric'
+                            ? `Enter the real-world ${axisLabel} wall length in meters:`
+                            : `Enter the real-world ${axisLabel} wall length (feet/inches). Examples: 10, 10'6", 126in, 6ft`;
+                        const defaultValue = system === 'metric' ? '10' : '10\'0"';
+
+                        let promptValue = null;
+                        try {
+                            promptValue = window.prompt(inputMessage, defaultValue);
+                        } catch (error) {
+                            promptValue = null;
+                        }
+
+                        if (promptValue !== null) {
+                            const inputEl = document.getElementById(`calibration_${calibrationMode}_value`);
+                            if (inputEl) {
+                                inputEl.value = String(promptValue).trim();
+                            }
+                            applyCalibrationValue(calibrationMode);
+                        } else {
+                            setOCRStatus(calibrationMode === 'x'
+                                ? 'Horizontal line set. Enter the wall length below and click Apply.'
+                                : 'Vertical line set. Enter the wall length below and click Apply.');
+                        }
                     }
 
                     toggleScaleMode(activeScaleAxis);
