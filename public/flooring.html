@@ -1531,6 +1531,7 @@
 
                         printCtx.drawImage(bg, 0, 0, printableCanvas.width, printableCanvas.height);
                         printCtx.drawImage(mainCanvas, 0, 0, printableCanvas.width, printableCanvas.height);
+                        const imageDataUrl = printableCanvas.toDataURL('image/png');
 
                         const areaText = document.getElementById('area_display').innerText;
                         const system = document.getElementById('unit_system').value === 'metric' ? 'Metric' : 'Imperial';
@@ -1540,7 +1541,7 @@
                         const orientation = currentDirection.charAt(0).toUpperCase() + currentDirection.slice(1);
                         const printedAt = new Date().toLocaleString();
 
-                        const printWindow = window.open('', '_blank', 'noopener,noreferrer');
+                        const printWindow = window.open('', '_blank');
                         if (!printWindow) {
                                 alert('Please allow pop-ups to print your floorplan layout.');
                                 return;
@@ -1567,6 +1568,8 @@
             color: var(--text);
             background: #fff;
             padding: 18mm 14mm;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
         .sheet {
             max-width: 1100px;
@@ -1624,6 +1627,7 @@
             text-align: right;
         }
         @media print {
+            @page { margin: 0; }
             body { padding: 10mm 8mm; }
             .sheet { max-width: none; }
         }
@@ -1646,7 +1650,7 @@
         </div>
 
         <div class="plan">
-            <img id="planImage" alt="Completed floorplan" />
+            <img id="planImage" alt="Completed floorplan" loading="eager" />
         </div>
 
         <div class="foot">Generated from Extrudo Flooring Layout Customizer</div>
@@ -1657,36 +1661,30 @@
                         printWindow.document.open();
                         printWindow.document.write(printHtml);
                         printWindow.document.close();
+                        printWindow.focus();
 
-                        printableCanvas.toBlob((blob) => {
-                                if (!blob) {
-                                        alert('Unable to prepare print preview. Please try again.');
-                                        return;
-                                }
+                        const planImage = printWindow.document.getElementById('planImage');
+                        if (!planImage) {
+                            alert('Unable to prepare print preview. Please try again.');
+                            return;
+                        }
 
-                                const blobUrl = URL.createObjectURL(blob);
-                                const printDoc = printWindow.document;
-                                const planImage = printDoc.getElementById('planImage');
-                                if (!planImage) {
-                                        URL.revokeObjectURL(blobUrl);
-                                        return;
-                                }
+                        const triggerPrint = () => {
+                            setTimeout(() => {
+                                printWindow.print();
+                            }, 180);
+                        };
 
-                                const triggerPrint = () => {
-                                        setTimeout(() => {
-                                                printWindow.print();
-                                                setTimeout(() => URL.revokeObjectURL(blobUrl), 1500);
-                                        }, 120);
-                                };
+                        if (planImage.complete && planImage.naturalWidth > 0) {
+                            triggerPrint();
+                        } else {
+                            planImage.addEventListener('load', triggerPrint, { once: true });
+                            planImage.addEventListener('error', () => {
+                                alert('Preview image failed to load in print window. Please try again.');
+                            }, { once: true });
+                        }
 
-                                planImage.addEventListener('load', triggerPrint, { once: true });
-                                planImage.addEventListener('error', () => {
-                                        alert('Preview image failed to load in print window. Please try again.');
-                                        URL.revokeObjectURL(blobUrl);
-                                }, { once: true });
-
-                                planImage.src = blobUrl;
-                        }, 'image/png');
+                        planImage.src = imageDataUrl;
                 }
 
         function autoAlign() {
