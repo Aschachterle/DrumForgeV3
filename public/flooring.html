@@ -67,6 +67,12 @@
                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-1 16H6l3.5-4.5 2.5 3 3.5-4.5L18 19z"/></svg>
                             Try Sample Floor Plan
                         </button>
+                        <div class="slider_wrapper zoom_control">
+                            <label for="zoom_slider" title="Scale the floorplan view in or out">View Zoom</label>
+                            <input type="range" id="zoom_slider" min="50" max="200" step="1" value="100" oninput="updateViewZoomFromSlider()" style="width: 180px;">
+                            <span id="zoom_label" class="zoom_label">100%</span>
+                            <button type="button" id="btn_fit_zoom" onclick="resetZoomToFit()" title="Resize the floorplan to fit the available view">Fit to Screen</button>
+                        </div>
                         <input type="file" id="image_uploader" accept="image/*" onchange="handleImageUpload(event)">
                     </div>
                     <div class="tool_group">
@@ -260,6 +266,9 @@
         let showOCROverlay = false;
         let ocrOverlayItems = [];
         let ocrCandidateItems = [];
+        let fitZoom = 1;
+        let zoomMultiplier = 1;
+        let currentViewScale = 1;
 
         let originalImg = new Image();
         let macroRotation = 0;
@@ -286,7 +295,10 @@
         const mainCanvas = document.getElementById('main_canvas');
 
         window.addEventListener('resize', () => {
-            if (imageLoaded) setupCanvases(false);
+            if (imageLoaded) {
+                updateViewZoom();
+                scheduleRender();
+            }
         });
 
         function scheduleRender(calcArea = false) {
@@ -480,6 +492,13 @@
                         dragPatternStartX = 0;
                         dragPatternStartY = 0;
 
+                        fitZoom = 1;
+                        zoomMultiplier = 1;
+                        currentViewScale = 1;
+                        const zoomSlider = document.getElementById('zoom_slider');
+                        if (zoomSlider) zoomSlider.value = 100;
+                        updateZoomLabel();
+
                         const uploader = document.getElementById('image_uploader');
                         uploader.value = '';
 
@@ -524,11 +543,15 @@
                         const bgCtx = bg.getContext('2d');
                         bgCtx.clearRect(0, 0, bg.width, bg.height);
                         bg.style.display = 'none';
+                        bg.style.width = '';
+                        bg.style.height = '';
 
                         const ctx = mainCanvas.getContext('2d');
                         ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
                         mainCanvas.style.display = 'none';
                         mainCanvas.style.cursor = 'default';
+                        mainCanvas.style.width = '';
+                        mainCanvas.style.height = '';
 
                         if (maskCanvas.width > 0 && maskCanvas.height > 0) {
                                 maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
@@ -1852,43 +1875,108 @@
             ctx.restore();
         }
 
+        function computeFitZoom() {
+            const workspace = document.getElementById('workspace_container');
+            const bg = document.getElementById('bg_canvas');
+            if (!workspace || !bg || !bg.width || !bg.height) return 1;
+
+            const workspaceRect = workspace.getBoundingClientRect();
+            const availableWidth = Math.max(320, workspaceRect.width - 24);
+            const availableHeight = Math.max(260, window.innerHeight - workspaceRect.top - 24);
+            const fitWidth = availableWidth / bg.width;
+            const fitHeight = availableHeight / bg.height;
+            return Math.max(0.1, Math.min(fitWidth, fitHeight));
+        }
+
+        function syncCanvasDisplaySize() {
+            const bg = document.getElementById('bg_canvas');
+            if (!bg || !bg.width || !bg.height) return;
+
+            const displayWidth = Math.max(1, Math.round(bg.width * currentViewScale));
+            const displayHeight = Math.max(1, Math.round(bg.height * currentViewScale));
+            [bg, mainCanvas].forEach((canvas) => {
+                if (!canvas) return;
+                canvas.style.width = displayWidth + 'px';
+                canvas.style.height = displayHeight + 'px';
+            });
+        }
+
+        function updateZoomLabel() {
+            const label = document.getElementById('zoom_label');
+            if (label) label.innerText = `${Math.round(zoomMultiplier * 100)}%`;
+        }
+
+        function updateViewZoom() {
+            if (!imageLoaded) return;
+            fitZoom = computeFitZoom();
+            currentViewScale = fitZoom * zoomMultiplier;
+            syncCanvasDisplaySize();
+            updateZoomLabel();
+        }
+
+        function updateViewZoomFromSlider() {
+            const slider = document.getElementById('zoom_slider');
+            zoomMultiplier = (parseFloat(slider?.value || '100') || 100) / 100;
+            updateViewZoom();
+            scheduleRender();
+        }
+
+        function resetZoomToFit() {
+            const slider = document.getElementById('zoom_slider');
+            zoomMultiplier = 1;
+            if (slider) slider.value = 100;
+            updateViewZoom();
+            scheduleRender();
+        }
+
         function setupCanvases(forceClearMask) {
             if (!imageLoaded) return;
             const bg = document.getElementById('bg_canvas');
 
-            if (bg.clientWidth === 0) return;
+            if (!bg.width || !bg.height) return;
 
             let prevWidth = mainCanvas.width;
             let prevHeight = mainCanvas.height;
 
-            mainCanvas.width = bg.clientWidth;
-            mainCanvas.height = bg.clientHeight;
+            mainCanvas.width = bg.width;
+            mainCanvas.height = bg.height;
 
-            plankCanvas.width = bg.clientWidth;
-            plankCanvas.height = bg.clientHeight;
+            plankCanvas.width = bg.width;
+            plankCanvas.height = bg.height;
 
             if (forceClearMask) {
-                maskCanvas.width = bg.clientWidth;
-                maskCanvas.height = bg.clientHeight;
+                maskCanvas.width = bg.width;
+                maskCanvas.height = bg.height;
                 maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
-            } else if (maskCanvas.width !== bg.clientWidth || maskCanvas.height !== bg.clientHeight) {
+            } else if (maskCanvas.width !== bg.width || maskCanvas.height !== bg.height) {
                 let tempMask = document.createElement('canvas');
                 tempMask.width = prevWidth;
                 tempMask.height = prevHeight;
                 tempMask.getContext('2d').drawImage(maskCanvas, 0, 0);
 
-                maskCanvas.width = bg.clientWidth;
-                maskCanvas.height = bg.clientHeight;
+                maskCanvas.width = bg.width;
+                maskCanvas.height = bg.height;
                 maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
 
                 if (prevWidth > 0 && prevHeight > 0) {
                     maskCtx.globalCompositeOperation = 'source-over';
-                    maskCtx.drawImage(tempMask, 0, 0, prevWidth, prevHeight, 0, 0, bg.clientWidth, bg.clientHeight);
+                    maskCtx.drawImage(tempMask, 0, 0, prevWidth, prevHeight, 0, 0, bg.width, bg.height);
                 }
             }
 
             lastPlankRenderKey = '';
+            updateViewZoom();
             scheduleRender(true);
+        }
+
+        function getCanvasPoint(e) {
+            const rect = mainCanvas.getBoundingClientRect();
+            const scaleX = mainCanvas.width / rect.width;
+            const scaleY = mainCanvas.height / rect.height;
+            return {
+                x: (e.clientX - rect.left) * scaleX,
+                y: (e.clientY - rect.top) * scaleY
+            };
         }
 
         function setMode(mode, force = false) {
@@ -2213,9 +2301,9 @@
 
         function startPosition(e) {
             if (currentStep === 2) {
-                const rect = mainCanvas.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
+                const point = getCanvasPoint(e);
+                const x = point.x;
+                const y = point.y;
 
                 const handle = getCalibrationHandleAt(x, y);
                 if (handle) {
@@ -2236,9 +2324,9 @@
             }
 
             if (currentStep !== 3) return;
-            const rect = mainCanvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+            const point = getCanvasPoint(e);
+            const x = point.x;
+            const y = point.y;
             currentMouseX = x;
             currentMouseY = y;
 
@@ -2373,9 +2461,9 @@
         }
 
         function handleMouseMove(e) {
-            const rect = mainCanvas.getBoundingClientRect();
-            currentMouseX = e.clientX - rect.left;
-            currentMouseY = e.clientY - rect.top;
+            const point = getCanvasPoint(e);
+            currentMouseX = point.x;
+            currentMouseY = point.y;
 
             if (currentStep === 2) {
                 if (activeCalibrationHandle) {

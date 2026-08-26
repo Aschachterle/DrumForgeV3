@@ -288,6 +288,18 @@
     border: 1px solid #e2e2e2;
 }
 
+.flooring-page .zoom_control {
+    align-items: center;
+}
+
+.flooring-page .zoom_label {
+    min-width: 44px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #0a0a0a;
+    text-align: right;
+}
+
 .flooring-page .plank_size_row {
     align-items: center;
     justify-content: flex-start;
