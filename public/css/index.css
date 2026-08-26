@@ -70,6 +70,8 @@
     text-decoration: none;
     color: inherit;
     display: block;
+    position: relative;
+    overflow: hidden;
 }
 
 .model-card:hover {
@@ -163,6 +165,30 @@
     border-radius: 4px;
     z-index: 10;
     box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+.card-banner {
+    position: absolute;
+    top: 22px;
+    right: -34px;
+    width: 140px;
+    padding: 7px 0;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #ffffff;
+    background: linear-gradient(135deg, #ef4444, #f59e0b);
+    box-shadow: 0 8px 18px rgba(239, 68, 68, 0.24);
+    transform: rotate(38deg);
+    transform-origin: center;
+    z-index: 12;
+    pointer-events: none;
+}
+
+.card-banner-new {
+    background: linear-gradient(135deg, #0f172a, #475569);
 }
 
 /* Responsive */
