@@ -43,6 +43,7 @@
                     <button id="btn_next" class="primary_btn" onclick="changeStep(1)" title="Continue to next step">Continue</button>
                 </div>
             </div>
+            <div id="validation_notice" class="step_lock_notice validation_notice" style="display:none;"></div>
 
             <div class="toolbar">
                 <div id="panel_step1" class="wizard_panel active">
@@ -582,6 +583,40 @@
                     if (el) el.innerText = message;
                 }
 
+                function clearValidationNotice() {
+                    const el = document.getElementById('validation_notice');
+                    if (!el) return;
+                    el.style.display = 'none';
+                    el.innerText = '';
+                }
+
+                function showValidationNotice(message) {
+                    const el = document.getElementById('validation_notice');
+                    if (!el) return;
+                    el.innerText = message;
+                    el.style.display = 'block';
+                }
+
+                function getStepValidationMessage() {
+                    if (currentStep === 1 && !imageLoaded) {
+                        return 'Step 1 needs a floorplan image. Click Upload Image or Try Sample Floor Plan, then use the rotation tools to align the walls before continuing.';
+                    }
+
+                    if (currentStep === 2 && (!hasSetScaleX || !hasSetScaleY)) {
+                        const missingAxes = [];
+                        if (!hasSetScaleX) missingAxes.push('horizontal');
+                        if (!hasSetScaleY) missingAxes.push('vertical');
+
+                        const missingText = missingAxes.length === 2
+                            ? 'both a horizontal and vertical measurement'
+                            : `${missingAxes[0]} measurement`;
+
+                        return `Step 2 needs ${missingText}. Click the matching Measure button, draw the line across a known wall, then enter the wall length and click Apply.`;
+                    }
+
+                    return '';
+                }
+
                 function refreshStepLocks() {
                     const panel1 = document.getElementById('panel_step1');
                     const panel2 = document.getElementById('panel_step2');
@@ -601,6 +636,10 @@
                     if (panel1) panel1.classList.toggle('active', currentStep === 1);
                     if (panel2) panel2.classList.toggle('active', currentStep === 2);
                     if (panel3) panel3.classList.toggle('active', currentStep === 3);
+
+                    const validationMessage = getStepValidationMessage();
+                    if (validationMessage) showValidationNotice(validationMessage);
+                    else clearValidationNotice();
 
                     if (stepTitle) {
                         if (currentStep === 1) stepTitle.innerText = 'Step 1: Upload and Align Image';
@@ -644,12 +683,12 @@
                 function changeStep(direction) {
                     if (direction > 0) {
                         if (currentStep === 1 && !imageLoaded) {
-                            alert('Please upload and align a floorplan image before continuing.');
+                            showValidationNotice(getStepValidationMessage());
                             return;
                         }
 
                         if (currentStep === 2 && (!hasSetScaleX || !hasSetScaleY)) {
-                            alert('Please complete both horizontal and vertical measurements before continuing.');
+                            showValidationNotice(getStepValidationMessage());
                             return;
                         }
                     }

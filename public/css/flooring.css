@@ -155,6 +155,14 @@
     line-height: 1.5;
 }
 
+.flooring-page .validation_notice {
+    background: #fff7ed;
+    border-style: solid;
+    border-color: #fdba74;
+    color: #9a3412;
+    font-weight: 600;
+}
+
 .flooring-page .wizard_panel.locked {
     opacity: 0.58;
 }
