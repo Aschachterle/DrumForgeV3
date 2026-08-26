@@ -2386,9 +2386,10 @@
             const brushCursor = document.getElementById('brush_cursor');
             if (currentStep === 3) {
                 const size = document.getElementById('brush_size').value;
+                const displaySize = Math.max(4, size * currentViewScale);
                 if (currentMode === 'draw') {
-                    brushCursor.style.width = size + 'px';
-                    brushCursor.style.height = size + 'px';
+                    brushCursor.style.width = displaySize + 'px';
+                    brushCursor.style.height = displaySize + 'px';
                     brushCursor.style.display = 'block';
                     brushCursor.style.left = e.clientX + 'px';
                     brushCursor.style.top = e.clientY + 'px';
@@ -2396,8 +2397,8 @@
                     brushCursor.style.transform = 'translate(-50%, -50%)';
                     brushCursor.innerHTML = '';
                 } else if (currentMode === 'drawSquare') {
-                    brushCursor.style.width = size + 'px';
-                    brushCursor.style.height = size + 'px';
+                    brushCursor.style.width = displaySize + 'px';
+                    brushCursor.style.height = displaySize + 'px';
                     brushCursor.style.display = 'block';
                     brushCursor.style.left = e.clientX + 'px';
                     brushCursor.style.top = e.clientY + 'px';
@@ -2405,8 +2406,8 @@
                     brushCursor.style.transform = 'translate(-50%, -50%)';
                     brushCursor.innerHTML = '';
                 } else if (currentMode === 'drawDiag') {
-                    brushCursor.style.width = size + 'px';
-                    brushCursor.style.height = size + 'px';
+                    brushCursor.style.width = displaySize + 'px';
+                    brushCursor.style.height = displaySize + 'px';
                     brushCursor.style.display = 'block';
                     brushCursor.style.left = e.clientX + 'px';
                     brushCursor.style.top = e.clientY + 'px';
