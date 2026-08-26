@@ -2684,6 +2684,22 @@
             scheduleRender();
         }
 
+        function isPointerInteractionActive() {
+            return isDrawingScaleLine || !!activeCalibrationHandle || isDrawingShape || isPainting || isDraggingPattern;
+        }
+
+        function clampClientPointToCanvas(clientX, clientY) {
+            const rect = mainCanvas.getBoundingClientRect();
+            if (!rect || !rect.width || !rect.height) {
+                return { clientX, clientY };
+            }
+
+            return {
+                clientX: Math.max(rect.left, Math.min(rect.right, clientX)),
+                clientY: Math.max(rect.top, Math.min(rect.bottom, clientY))
+            };
+        }
+
         mainCanvas.addEventListener('mousedown', startPosition);
         mainCanvas.addEventListener('mouseup', endPosition);
         mainCanvas.addEventListener('mousemove', function(e) {
@@ -2693,9 +2709,20 @@
         mainCanvas.addEventListener('mouseenter', updateBrushCursor);
         mainCanvas.addEventListener('mouseleave', function(e) {
             document.getElementById('brush_cursor').style.display = 'none';
-            if (isDrawingScaleLine || isDrawingShape || isPainting || isDraggingPattern) {
-                endPosition(e);
-            }
+        });
+
+        window.addEventListener('mousemove', function(e) {
+            if (!isPointerInteractionActive()) return;
+            const clamped = clampClientPointToCanvas(e.clientX, e.clientY);
+            handleMouseMove(clamped);
+            if (currentStep === 3) updateBrushCursor(clamped);
+        });
+
+        window.addEventListener('mouseup', function(e) {
+            if (!isPointerInteractionActive()) return;
+            const clamped = clampClientPointToCanvas(e.clientX, e.clientY);
+            handleMouseMove(clamped);
+            endPosition(clamped);
         });
 
         refreshStepLocks();
