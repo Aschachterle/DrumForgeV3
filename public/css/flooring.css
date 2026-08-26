@@ -440,15 +440,18 @@
 }
 
 .flooring-page #bg_canvas {
-    width: 100%;
-    height: auto;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     display: block;
 }
 
 .flooring-page #main_canvas {
     position: absolute;
-    top: 0;
-    left: 0;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     cursor: default;
 }
 
