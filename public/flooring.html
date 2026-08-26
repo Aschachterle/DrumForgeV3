@@ -63,6 +63,10 @@
                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35A7.95 7.95 0 0012 4V1L7 6l5 5V7a5 5 0 11-5 5H5a7 7 0 107.75-6.95c-.25-.03-.5-.05-.75-.05a6.96 6.96 0 00-4.24 1.45l1.43 1.43A4.97 4.97 0 0112 7c2.76 0 5 2.24 5 5s-2.24 5-5 5a4.99 4.99 0 01-4.9-4H5.08A7.01 7.01 0 0012 19a7 7 0 005.65-11.65z"/></svg>
                             Reset + New Image
                         </button>
+                        <button id="btn_sample_image" onclick="loadSampleFloorplan()" title="Load the included sample floor plan to try the tool">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-1 16H6l3.5-4.5 2.5 3 3.5-4.5L18 19z"/></svg>
+                            Try Sample Floor Plan
+                        </button>
                         <input type="file" id="image_uploader" accept="image/*" onchange="handleImageUpload(event)">
                     </div>
                     <div class="tool_group">
@@ -393,38 +397,47 @@
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    originalImg.onload = function() {
-                        imageLoaded = true;
-                        document.getElementById('empty_message').style.display = 'none';
-                        document.getElementById('bg_canvas').style.display = 'block';
-                        document.getElementById('main_canvas').style.display = 'block';
-                        currentStep = 1;
-
-                        macroRotation = 0;
-                        fineRotation = 0;
-                        document.getElementById('fine_rotation').value = 0;
-
-                        hasSetScaleX = false;
-                        hasSetScaleY = false;
-                        calibrationLines = { x: null, y: null };
-                        calibrationRealWorld = { x: null, y: null };
-                        activeCalibrationHandle = null;
-                        updateScaleButtonState();
-                        document.getElementById('scale_x').value = 35;
-                        document.getElementById('scale_y').value = 35;
-                        ocrCandidateItems = [];
-                        setOCRCandidateSummary([]);
-                        setOCRStatus('Draw horizontal and vertical reference lines to calibrate scale.');
-                        refreshStepLocks();
-
-                        renderBackground();
-                        setupCanvases(true);
-                    };
-                    originalImg.src = e.target.result;
+                    loadFloorplanImage(e.target.result);
                 };
                 reader.readAsDataURL(file);
             }
         }
+
+                function loadFloorplanImage(source) {
+                        originalImg.onload = function() {
+                                imageLoaded = true;
+                                document.getElementById('empty_message').style.display = 'none';
+                                document.getElementById('bg_canvas').style.display = 'block';
+                                document.getElementById('main_canvas').style.display = 'block';
+                                currentStep = 1;
+
+                                macroRotation = 0;
+                                fineRotation = 0;
+                                document.getElementById('fine_rotation').value = 0;
+
+                                hasSetScaleX = false;
+                                hasSetScaleY = false;
+                                calibrationLines = { x: null, y: null };
+                                calibrationRealWorld = { x: null, y: null };
+                                activeCalibrationHandle = null;
+                                updateScaleButtonState();
+                                document.getElementById('scale_x').value = 35;
+                                document.getElementById('scale_y').value = 35;
+                                ocrCandidateItems = [];
+                                setOCRCandidateSummary([]);
+                                setOCRStatus('Draw horizontal and vertical reference lines to calibrate scale.');
+                                refreshStepLocks();
+
+                                renderBackground();
+                                setupCanvases(true);
+                        };
+                        originalImg.src = source;
+                }
+
+                function loadSampleFloorplan() {
+                        resetWorkspaceState();
+                        loadFloorplanImage('/images/FloorPlan.png');
+                }
 
                 function resetWorkspaceState() {
                         currentStep = 1;
